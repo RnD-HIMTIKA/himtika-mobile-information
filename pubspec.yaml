@@ -49,7 +49,7 @@ dev_dependencies:
     sdk: flutter
   mockito : ^5.4.2 # mocking library for testing
   bloc_test : ^9.1.3  # testing for BLoC
-  lints : ^2.1.1 # lints for Dart and Flutter
+  flutter_lints: ^5.0.0
   build_runner: ^2.4.0
   freezed: ^2.3.0
 
