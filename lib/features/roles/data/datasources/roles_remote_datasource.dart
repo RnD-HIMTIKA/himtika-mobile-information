@@ -1,6 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class RolesRemoteDataSource {
+class RolesRemoteDatasource {
   final _client = Supabase.instance.client;
 
   Future<List<Map<String, dynamic>>> fetchUserPermissions(String userId) async {
