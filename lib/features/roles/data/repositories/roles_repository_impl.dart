@@ -8,15 +8,18 @@ class RolesRepositoryImpl implements RolesRepository {
 
   RolesRepositoryImpl(this.datasource);
   
+  @override
   Future<List<Permission>> getUserPermissions(String userId) async {
     final raw = await datasource.fetchUserPermissions(userId);
     return raw.map((e) => PermissionModel.fromJson(e)).toList();
   }
 
+  @override
   Future<void> assignRole(String userId, String roleId) async {
     await datasource.assignRole(userId, roleId);
   }
 
+  @override
   Future<void> revokeRole(String userId, String roleId) async {
     await datasource.revokeRole(userId, roleId);
   }
