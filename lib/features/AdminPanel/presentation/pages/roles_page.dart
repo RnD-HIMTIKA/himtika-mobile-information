@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'sidebar.dart';
 
 class RolesPage extends StatefulWidget {
   const RolesPage({super.key});
@@ -7,17 +8,43 @@ class RolesPage extends StatefulWidget {
   State<RolesPage> createState() => _RolesPageState();
 }
 
-class _RolesPageState extends State<RolesPage> {
+class _RolesPageState extends State<RolesPage> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fade;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+
+    _fade = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeIn,
+    );
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+
   String searchQuery = '';
 
   // Dummy data
-  final List<Map<String, dynamic>> dummyRoles = List.generate(10, (index) {
+  final List<Map<String, dynamic>> dummyRoles = List.generate(5, (index) {
     final usernames = ['Mishiee', 'Adriane', 'Pierro', 'Panjul', 'Menrey'];
     final roleGroups = [
       ['Angkatan 23', 'Kelas E'],
-      ['Angkatan 24', 'Kelas F', 'Sekretaris'],
-      ['Angkatan 24'],
-      ['Angkatan 23', 'Kelas F'],
+      ['Angkatan 24', 'Kelas F', 'Sekretaris', 'Sekpel'],
+      ['Angkatan 24', 'Kelas A'],
+      ['Angkatan 23', 'Kelas B'],
     ];
 
     return {
@@ -30,7 +57,7 @@ class _RolesPageState extends State<RolesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF0175C8),
-      drawer: const Drawer(),
+      drawer: const Sidebar(),
       appBar: AppBar(
         foregroundColor: Colors.white,
         title: const Text('Roles'),
@@ -47,14 +74,17 @@ class _RolesPageState extends State<RolesPage> {
           child: Divider(height: 1, thickness: 1, color: Colors.white),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _buildRoleSection('Hima Roles'),
-            const SizedBox(height: 24),
-            _buildRoleSection('General Roles'),
-          ],
+      body: FadeTransition(
+        opacity: _fade,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              _buildRoleSection('Hima Roles'),
+              const SizedBox(height: 24),
+              _buildRoleSection('General Roles'),
+            ],
+          ),
         ),
       ),
     );
@@ -121,7 +151,7 @@ class _RolesPageState extends State<RolesPage> {
         border: TableBorder.all(color: Colors.black),
         columnWidths: const {
           0: FixedColumnWidth(180), // Username
-          1: FixedColumnWidth(230), // Roles
+          1: FixedColumnWidth(350), // Roles
           2: FixedColumnWidth(140), // Action
         },
         defaultVerticalAlignment: TableCellVerticalAlignment.middle,
@@ -157,68 +187,68 @@ class _RolesPageState extends State<RolesPage> {
             ],
           ),
           // Data Rows
-          ...data.map((item) => TableRow(
-                decoration:
-                    const BoxDecoration(color: Color(0xFFD2F8D2)), // light green
-                children: [
-                  // Username + avatar
-                  Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Row(
-                      children: [
-                        const CircleAvatar(
-                          radius: 12,
-                          backgroundColor: Colors.black26,
-                          child: Icon(Icons.person, size: 14, color: Colors.white),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            item['username'],
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
+      ...data.map((item) => TableRow(
+            decoration:
+                const BoxDecoration(color: Color(0xFFD2F8D2)),
+            children: [
+              // Username + avatar
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    const CircleAvatar(
+                      radius: 12,
+                      backgroundColor: Colors.black26,
+                      child: Icon(Icons.person, size: 14, color: Colors.white),
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        item['username'],
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
 
-                  // Roles chip (dinamis)
-                  Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: List.generate(
-                          (item['roles'] as List).length,
-                          (i) => Padding(
-                            padding: const EdgeInsets.only(right: 6),
-                            child: Chip(
-                              label: Text(item['roles'][i]),
-                              backgroundColor: i.isEven
-                                  ? Colors.pink.shade100
-                                  : Colors.green.shade100,
-                            ),
-                          ),
+              // Roles chip (dinamis)
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: List.generate(
+                      (item['roles'] as List).length,
+                      (i) => Padding(
+                        padding: const EdgeInsets.only(right: 6),
+                        child: Chip(
+                          label: Text(item['roles'][i]),
+                          backgroundColor: i.isEven
+                              ? Colors.pink.shade100
+                              : Colors.green.shade100,
                         ),
                       ),
                     ),
                   ),
+                ),
+              ),
 
-                  // Edit username button
-                  Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: ElevatedButton.icon(
-                      onPressed: () => _showEditUsernameDialog(item),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                      ),
-                      icon: const Icon(Icons.edit, size: 14),
-                      label: const Text('Edit', style: TextStyle(fontSize: 12)),
-                    ),
+              // Edit username button
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: ElevatedButton.icon(
+                  onPressed: () => _showEditUsernameDialog(item),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                   ),
-                ],
-              )),
+                  icon: const Icon(Icons.edit, size: 14),
+                  label: const Text('Edit', style: TextStyle(fontSize: 12)),
+                ),
+              ),
+            ],
+          )),
         ],
       ),
     );
