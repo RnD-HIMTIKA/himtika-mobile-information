@@ -5,7 +5,7 @@ class AssignRole {
 
   AssignRole(this.repository);
 
-  Future<void> call(String userId, String roleId) async {
-    await repository.assignRole(userId, roleId);
+  Future<void> call(String userId, String roleId) {
+    return repository.assignRole(userId, roleId);
   }
 }

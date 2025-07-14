@@ -6,7 +6,7 @@ class GetUserPermissions {
 
   GetUserPermissions(this.repository);
 
-  Future<List<Permission>> call(String userId) async {
-    return await repository.getUserPermissions(userId);
+  Future<List<Permission>> call(String userId) {
+    return repository.getUserPermissions(userId);
   }
 }
