@@ -121,7 +121,7 @@ class _RolesPageState extends State<RolesPage> {
         border: TableBorder.all(color: Colors.black),
         columnWidths: const {
           0: FixedColumnWidth(180), // Username
-          1: FixedColumnWidth(220), // Roles
+          1: FixedColumnWidth(230), // Roles
           2: FixedColumnWidth(140), // Action
         },
         defaultVerticalAlignment: TableCellVerticalAlignment.middle,
