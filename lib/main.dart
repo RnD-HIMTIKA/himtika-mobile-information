@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'core/supabase_config.dart';
+import 'features/AdminPanel/presentation/pages/roles_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,7 +15,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       title: 'HIMTIKA App',
-      home: Placeholder(), // Ganti nanti dengan halaman utama aplikasi
+      home: const RolesPage(), // Ganti nanti dengan halaman utama aplikasi
     );
   }
 }
