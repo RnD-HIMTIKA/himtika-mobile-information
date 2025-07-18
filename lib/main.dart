@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/pages/dashboard.dart';
 import 'core/supabase_config.dart';
-import 'features/AdminPanel/presentation/pages/dashboard.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
