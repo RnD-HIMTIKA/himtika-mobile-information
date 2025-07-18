@@ -6,7 +6,6 @@ plugins {
 }
 
 android {
-    namespace = "com.example.himtika_mobile_information"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
