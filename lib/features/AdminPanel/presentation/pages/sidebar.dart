@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dashboard.dart';
 import 'roles_page.dart';
-
+import 'dashboard.dart';
 
 class Sidebar extends StatelessWidget {
   const Sidebar({super.key});
@@ -58,39 +57,10 @@ class Sidebar extends StatelessWidget {
             leading: const Icon(Icons.people),
             title: const Text('Roles'),
             onTap: () {
-              Navigator.pushReplacement(
+              Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const RolesPage()),
               );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.contacts),
-            title: const Text('kontak Dosen'),
-            onTap: () {
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.leaderboard_outlined),
-            title: const Text('HiCode'),
-            onTap: () {
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.perm_device_information),
-            title: const Text('Info HIMA'),
-            onTap: () {
-              Navigator.pop(context);
-            },
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.logout),
-            title: const Text('Logout'),
-            onTap: () {
-              Navigator.pop(context);
             },
           ),
         ],

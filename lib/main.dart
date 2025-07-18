@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/pages/dashboard.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/adminpanel_bloc.dart';
 import 'core/supabase_config.dart';
 
 void main() async {
@@ -13,9 +15,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: 'HIMTIKA App',
-      home: const Dashboard(), // Ganti nanti dengan halaman utama aplikasi
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<AdminPanelBloc>(
+          create: (context) => AdminPanelBloc(),
+        ),
+      ],
+      child: MaterialApp(
+        title: 'HIMTIKA Mobile Information',
+        debugShowCheckedModeBanner: false,
+        home: Dashboard(),
+      ),
     );
   }
 }

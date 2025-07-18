@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../bloc/adminpanel_bloc.dart';
+import '../bloc/adminpanel_event.dart';
+import '../bloc/adminpanel_state.dart';
 import 'sidebar.dart';
 
 class RolesPage extends StatefulWidget {
@@ -15,6 +19,10 @@ class _RolesPageState extends State<RolesPage> with SingleTickerProviderStateMix
   @override
   void initState() {
     super.initState();
+
+    // Panggil event ke bloc
+    context.read<AdminPanelBloc>().add(LoadAdminPanel());
+
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
@@ -33,7 +41,6 @@ class _RolesPageState extends State<RolesPage> with SingleTickerProviderStateMix
     _controller.dispose();
     super.dispose();
   }
-
 
   String searchQuery = '';
 
@@ -55,38 +62,43 @@ class _RolesPageState extends State<RolesPage> with SingleTickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFF0175C8),
-      drawer: const Sidebar(),
-      appBar: AppBar(
-        foregroundColor: Colors.white,
-        title: const Text('Roles'),
-        centerTitle: true,
-        backgroundColor: const Color(0xFF0175C8),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: Icon(Icons.account_circle),
-          )
-        ],
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1.0),
-          child: Divider(height: 1, thickness: 1, color: Colors.white),
-        ),
-      ),
-      body: FadeTransition(
-        opacity: _fade,
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              _buildRoleSection('Hima Roles'),
-              const SizedBox(height: 24),
-              _buildRoleSection('General Roles'),
+    return BlocBuilder<AdminPanelBloc, AdminPanelState>(
+      builder: (context, state) {
+        // Hanya trigger state meski belum digunakan
+        return Scaffold(
+          backgroundColor: const Color(0xFF0175C8),
+          drawer: const Sidebar(),
+          appBar: AppBar(
+            foregroundColor: Colors.white,
+            title: const Text('Roles'),
+            centerTitle: true,
+            backgroundColor: const Color(0xFF0175C8),
+            actions: const [
+              Padding(
+                padding: EdgeInsets.only(right: 16),
+                child: Icon(Icons.account_circle),
+              )
             ],
+            bottom: const PreferredSize(
+              preferredSize: Size.fromHeight(1.0),
+              child: Divider(height: 1, thickness: 1, color: Colors.white),
+            ),
           ),
-        ),
-      ),
+          body: FadeTransition(
+            opacity: _fade,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  _buildRoleSection('Hima Roles'),
+                  const SizedBox(height: 24),
+                  _buildRoleSection('General Roles'),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -150,105 +162,85 @@ class _RolesPageState extends State<RolesPage> with SingleTickerProviderStateMix
       child: Table(
         border: TableBorder.all(color: Colors.black),
         columnWidths: const {
-          0: FixedColumnWidth(180), // Username
-          1: FixedColumnWidth(350), // Roles
-          2: FixedColumnWidth(140), // Action
+          0: FixedColumnWidth(180),
+          1: FixedColumnWidth(350),
+          2: FixedColumnWidth(140),
         },
         defaultVerticalAlignment: TableCellVerticalAlignment.middle,
         children: [
-          // Header
           TableRow(
             decoration: const BoxDecoration(color: Color(0xFFBEE3F8)),
             children: const [
               Padding(
                 padding: EdgeInsets.all(12),
-                child: Text(
-                  'Username',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
+                child: Text('Username', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
               ),
               Padding(
                 padding: EdgeInsets.all(12),
-                child: Text(
-                  'Roles',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
+                child: Text('Roles', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
               ),
               Padding(
                 padding: EdgeInsets.all(12),
-                child: Text(
-                  'Action',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
+                child: Text('Action', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
               ),
             ],
           ),
-          // Data Rows
-      ...data.map((item) => TableRow(
-            decoration:
-                const BoxDecoration(color: Color(0xFFD2F8D2)),
-            children: [
-              // Username + avatar
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Row(
-                  children: [
-                    const CircleAvatar(
-                      radius: 12,
-                      backgroundColor: Colors.black26,
-                      child: Icon(Icons.person, size: 14, color: Colors.white),
+          ...data.map((item) => TableRow(
+                decoration: const BoxDecoration(color: Color(0xFFD2F8D2)),
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        const CircleAvatar(
+                          radius: 12,
+                          backgroundColor: Colors.black26,
+                          child: Icon(Icons.person, size: 14, color: Colors.white),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            item['username'],
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        item['username'],
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Roles chip (dinamis)
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: List.generate(
-                      (item['roles'] as List).length,
-                      (i) => Padding(
-                        padding: const EdgeInsets.only(right: 6),
-                        child: Chip(
-                          label: Text(item['roles'][i]),
-                          backgroundColor: i.isEven
-                              ? Colors.pink.shade100
-                              : Colors.green.shade100,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: List.generate(
+                          (item['roles'] as List).length,
+                          (i) => Padding(
+                            padding: const EdgeInsets.only(right: 6),
+                            child: Chip(
+                              label: Text(item['roles'][i]),
+                              backgroundColor: i.isEven
+                                  ? Colors.pink.shade100
+                                  : Colors.green.shade100,
+                            ),
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ),
-
-              // Edit username button
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: ElevatedButton.icon(
-                  onPressed: () => _showEditUsernameDialog(item),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                  Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: ElevatedButton.icon(
+                      onPressed: () => _showEditUsernameDialog(item),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                      ),
+                      icon: const Icon(Icons.edit, size: 14),
+                      label: const Text('Edit', style: TextStyle(fontSize: 12)),
+                    ),
                   ),
-                  icon: const Icon(Icons.edit, size: 14),
-                  label: const Text('Edit', style: TextStyle(fontSize: 12)),
-                ),
-              ),
-            ],
-          )),
+                ],
+              )),
         ],
       ),
     );
@@ -260,7 +252,7 @@ class _RolesPageState extends State<RolesPage> with SingleTickerProviderStateMix
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Edit Username'),
+        title: const Text('Edit Username'),
         content: TextField(
           controller: controller,
           decoration: const InputDecoration(labelText: 'New Username'),
