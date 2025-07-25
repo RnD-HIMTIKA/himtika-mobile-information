@@ -51,7 +51,7 @@ class RolesRemoteDatasource {
         .match({'user_id': userId, 'role_id': roleId});
   }
 
-  Future<void> assignRolePermissionToRole(String roleId, String permissionId) async {
+  Future<void> assignPermissionToRole(String roleId, String permissionId) async {
     await _client.from('role_permissions').insert({
       'role_id': roleId,
       'permission_id': permissionId,
