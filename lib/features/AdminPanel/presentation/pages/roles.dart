@@ -12,39 +12,9 @@ class RolesPage extends StatefulWidget {
   State<RolesPage> createState() => _RolesPageState();
 }
 
-class _RolesPageState extends State<RolesPage> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _fade;
-
-  @override
-  void initState() {
-    super.initState();
-
-    // Panggil event ke bloc
-    context.read<AdminPanelBloc>().add(LoadAdminPanel());
-
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-
-    _fade = CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeIn,
-    );
-
-    _controller.forward();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
+class _RolesPageState extends State<RolesPage> {
   String searchQuery = '';
 
-  // Dummy data
   final List<Map<String, dynamic>> dummyRoles = List.generate(5, (index) {
     final usernames = ['Mishiee', 'Adriane', 'Pierro', 'Panjul', 'Menrey'];
     final roleGroups = [
@@ -61,10 +31,15 @@ class _RolesPageState extends State<RolesPage> with SingleTickerProviderStateMix
   });
 
   @override
+  void initState() {
+    super.initState();
+    context.read<AdminPanelBloc>().add(LoadAdminPanel());
+  }
+
+  @override
   Widget build(BuildContext context) {
     return BlocBuilder<AdminPanelBloc, AdminPanelState>(
       builder: (context, state) {
-        // Hanya trigger state meski belum digunakan
         return Scaffold(
           backgroundColor: const Color(0xFF0175C8),
           drawer: const Sidebar(),
@@ -84,17 +59,14 @@ class _RolesPageState extends State<RolesPage> with SingleTickerProviderStateMix
               child: Divider(height: 1, thickness: 1, color: Colors.white),
             ),
           ),
-          body: FadeTransition(
-            opacity: _fade,
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  _buildRoleSection('Hima Roles'),
-                  const SizedBox(height: 24),
-                  _buildRoleSection('General Roles'),
-                ],
-              ),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                _buildRoleSection('Hima Roles'),
+                const SizedBox(height: 24),
+                _buildRoleSection('General Roles'),
+              ],
             ),
           ),
         );
