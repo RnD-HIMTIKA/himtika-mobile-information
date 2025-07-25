@@ -12,4 +12,5 @@ abstract class RolesRepository {
   Future<void> assignPermissionToRole(String roleId, String permissionId);
   Future<void> revokePermissionFromRole(String roleId, String permissionId);
   Future<List<RolePermission>> getPermissionsByRoleId(String roleId);
+  Future<List<Permission>> getPermissionsByRole(String roleId);
 }

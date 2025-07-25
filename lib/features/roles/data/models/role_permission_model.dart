@@ -1,3 +1,5 @@
+import '../../domain/entities/role_permission.dart';
+
 class RolePermissionModel {
   final String roleId;
   final String permissionId;
@@ -7,17 +9,31 @@ class RolePermissionModel {
     required this.permissionId,
   });
 
-  factory RolePermissionModel.fromMap(Map<String, dynamic> map) {
+  factory RolePermissionModel.fromJson(Map<String, dynamic> json) {
     return RolePermissionModel(
-      roleId: map['role_Id'] as String,
-      permissionId: map['permission_Id'] as String,
+      roleId: json['role_id'] as String,
+      permissionId: json['permission_id'] as String,
     );
   }
 
-  Map<String, dynamic> toMap() {
+  Map<String, dynamic> toJson() {
     return {
-      'role_Id': roleId,
-      'permission_Id': permissionId,
+      'role_id': roleId,
+      'permission_id': permissionId,
     };
+  }
+
+  RolePermission toEntity() {
+    return RolePermission(
+      roleId: roleId,
+      permissionId: permissionId,
+    );
+  }
+
+  factory RolePermissionModel.fromEntity(RolePermission entity) {
+    return RolePermissionModel(
+      roleId: entity.roleId,
+      permissionId: entity.permissionId,
+    );
   }
 }

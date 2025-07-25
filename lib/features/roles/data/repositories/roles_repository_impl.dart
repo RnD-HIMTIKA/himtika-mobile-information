@@ -13,12 +13,12 @@ class RolesRepositoryImpl implements RolesRepository {
   final RolesRemoteDatasource remoteDatasource;
 
   RolesRepositoryImpl(this.remoteDatasource);
-  
+
   @override
   Future<List<Role>> getAllRoles(String userId) async {
-    final roleModels = await remoteDatasource.getAllRoles(userId);
-    return roleModels.map((model) => RoleMapper.toEntity(model)).toList();
-  } 
+    final models = await remoteDatasource.getAllRoles(userId);
+    return models.map(RoleMapper.toEntity).toList();
+  }
 
   @override
   Future<void> assignRole(String userId, String roleId) async {
@@ -32,14 +32,14 @@ class RolesRepositoryImpl implements RolesRepository {
 
   @override
   Future<List<Permission>> getUserPermissions(String userId) async {
-    final permissionModels = await remoteDatasource.getUserPermissions(userId);
-    return permissionModels.map((model) => PermissionMapper.toEntity(model)).toList();
+    final models = await remoteDatasource.getUserPermissions(userId);
+    return models.map(PermissionMapper.toEntity).toList();
   }
 
   @override
   Future<List<UserRole>> getUserRoles(String userId) async {
-    final userRoleModels = await remoteDatasource.getUserRoles(userId);
-    return userRoleModels.map((model) => UserRoleMapper.toEntity(model)).toList();
+    final models = await remoteDatasource.getUserRoles(userId);
+    return models.map(UserRoleMapper.toEntity).toList();
   }
 
   @override
@@ -54,7 +54,13 @@ class RolesRepositoryImpl implements RolesRepository {
 
   @override
   Future<List<RolePermission>> getPermissionsByRoleId(String roleId) async {
-    final models = await remoteDatasource.getRolePermissionByRoleId(roleId);
-    return models.map((model) => RolePermissionMapper.toEntity(model)).toList();
+    final models = await remoteDatasource.getPermissionsByRoleId(roleId);
+    return models.map(RolePermissionMapper.toEntity).toList();
+  }
+
+  @override
+  Future<List<Permission>> getPermissionsByRole(String roleId) async {
+    final models = await remoteDatasource.getPermissionsByRole(roleId);
+    return models.map(PermissionMapper.toEntity).toList();
   }
 }
