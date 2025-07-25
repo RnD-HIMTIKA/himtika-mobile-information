@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/role_model.dart';
 import '../models/user_role_model.dart';
 import '../models/permission_model.dart';
+import '../models/role_permission_model.dart';
 
 class RolesRemoteDatasource {
   final _client = Supabase.instance.client;
@@ -48,5 +49,30 @@ class RolesRemoteDatasource {
         .from('user_roles')
         .delete()
         .match({'user_id': userId, 'role_id': roleId});
+  }
+
+  Future<void> assignRolePermissionToRole(String roleId, String permissionId) async {
+    await _client.from('role_permissions').insert({
+      'role_id': roleId,
+      'permission_id': permissionId,
+    });
+  }
+
+  Future<void> revokePermissionFromRole(String roleId, String permissionId) async {
+    await _client
+        .from('role_permissions')
+        .delete()
+        .match({'role_id': roleId, 'permission_id': permissionId});
+  }
+
+  Future<List<RolePermissionModel>> getRolePermissionByRoleId(String roleId) async {
+    final data = await _client
+        .from('role_permissions')
+        .select()
+        .match({'role_id': roleId});
+        
+    return (data as List)
+        .map((json) => RolePermissionModel.fromMap(json))
+        .toList();
   }
 }
