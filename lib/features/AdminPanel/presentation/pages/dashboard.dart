@@ -23,8 +23,8 @@ class _DashboardState extends State<Dashboard> {
   Widget build(BuildContext context) {
     return BlocBuilder<AdminPanelBloc, AdminPanelState>(
       builder: (context, state) {
-        String userName = '';
-        String userRole = '';
+        String userName = 'Pengguna';
+        String userRole = 'Admin';
 
         if (state is AdminPanelLoaded) {
           userName = state.userName;
@@ -32,7 +32,6 @@ class _DashboardState extends State<Dashboard> {
         }
 
         return Scaffold(
-          backgroundColor: const Color(0xFF0175C8),
           drawer: const Sidebar(),
           appBar: AppBar(
             backgroundColor: const Color(0xFF0175C8),
@@ -46,52 +45,110 @@ class _DashboardState extends State<Dashboard> {
               ),
             ],
           ),
-          body: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const CircleAvatar(
-                    radius: 60,
-                    backgroundColor: Colors.white,
-                    child:
-                        Icon(Icons.person, size: 64, color: Colors.black45),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    'Halo, $userName!',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
+          body: SingleChildScrollView(
+            child: Stack(
+              alignment: Alignment.topCenter,
+              children: [
+                // Background biru atas
+                Container(
+                  height: 700,
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF0D8EDB), Color(0xFF1791E4)],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  RichText(
-                    textAlign: TextAlign.center,
-                    text: TextSpan(
-                      style:
-                          const TextStyle(color: Colors.white, fontSize: 14),
+                ),
+
+                // Bagian konten putih
+                Container(
+                  margin: const EdgeInsets.only(top: 190),
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(80),
+                      topRight: Radius.circular(80),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 80, 24, 32),
+                    child: Column(
                       children: [
-                        const TextSpan(text: 'Selamat datang di '),
-                        const TextSpan(
-                          text: 'Dashboard Admin',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        const TextSpan(
-                            text: ', saat ini anda memiliki roles '),
-                        TextSpan(
-                          text: '$userRole!',
+                        Text(
+                          'Halo, $userName!',
                           style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white),
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF0D8EDB),
+                          ),
                         ),
+                        const SizedBox(height: 8),
+                        RichText(
+                          textAlign: TextAlign.center,
+                          text: TextSpan(
+                            style: const TextStyle(
+                              color: Colors.black87,
+                              fontSize: 14,
+                            ),
+                            children: [
+                              const TextSpan(text: 'Selamat datang di '),
+                              const TextSpan(
+                                text: 'Dashboard Admin',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              const TextSpan(text: ', saat ini anda memiliki roles '),
+                              TextSpan(
+                                text: '$userRole!',
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        Image.asset(
+                          'src/features/AdminPanel/images/dashboard.png',
+                          width: 200,
+                        ),
+                        const SizedBox(height: 32),
+                        const Text(
+                          'Pantau, kelola, dan kontrol sistem dengan efisien di satu tempat!',
+                          style: TextStyle(fontSize: 16, color: Colors.black54),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 64),
                       ],
                     ),
                   ),
-                ],
-              ),
+                ),
+
+                // Avatar tepat di garis biru-putih
+                Positioned(
+                  top: 145, // setengah di biru, setengah di putih
+                  child: Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.grey.shade300,
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 6,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.account_circle_outlined,
+                      size: 80,
+                      color: Colors.black54,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         );

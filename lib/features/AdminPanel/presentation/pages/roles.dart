@@ -76,7 +76,7 @@ class _RolesPageState extends State<RolesPage> with SingleTickerProviderStateMix
             actions: const [
               Padding(
                 padding: EdgeInsets.only(right: 16),
-                child: Icon(Icons.account_circle),
+                child: Icon(Icons.account_circle, size: 32),
               )
             ],
             bottom: const PreferredSize(
