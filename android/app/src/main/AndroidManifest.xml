@@ -1,4 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.himtika_mobile_information">
     <application
         android:label="himtika_mobile_information"
         android:name="${applicationName}"
