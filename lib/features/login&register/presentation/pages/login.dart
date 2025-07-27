@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'splash.dart';
 import 'register.dart';
+import 'continue_with_google.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -60,7 +62,10 @@ class _LoginPageState extends State<LoginPage> {
                                   padding: const EdgeInsets.all(4),
                                   child: GestureDetector(
                                     onTap: () {
-                                      Navigator.pop(context);
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => const SplashPage()),
+                                      );
                                     },
                                     child: Image.asset(
                                       'src/features/login&register/images/arrow_back.png',
@@ -72,7 +77,6 @@ class _LoginPageState extends State<LoginPage> {
                               ),
 
                               const SizedBox(height: 2),
-
                               // Logo HIMTIKA
                               Center(
                                 child: Image.asset(
@@ -237,7 +241,12 @@ class _LoginPageState extends State<LoginPage> {
       child: OutlinedButton.icon(
         icon: Image.asset('src/features/login&register/images/google.png', height: 20),
         label: const Text('Continue with Google'),
-        onPressed: () {},
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ContinueWithGoogle()),
+          );
+        },
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 14),
           shape: RoundedRectangleBorder(

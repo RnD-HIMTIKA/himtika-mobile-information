@@ -1,20 +1,35 @@
 import 'package:flutter/material.dart';
-import 'login.dart';
+import 'package:flutter/services.dart';
 
-class RegisterPage extends StatefulWidget {
-  const RegisterPage({super.key});
+class ContinueWithGoogle extends StatefulWidget {
+  const ContinueWithGoogle({super.key});
 
   @override
-  State<RegisterPage> createState() => _RegisterPageState();
+  State<ContinueWithGoogle> createState() => _ContinueWithGoogleState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _ContinueWithGoogleState extends State<ContinueWithGoogle> {
   final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
-  bool _obscurePassword = true;
-  bool _agreeTerms = false;
+  final TextEditingController _phoneNumberController = TextEditingController();
+  final TextEditingController _dateOfBirthController = TextEditingController();
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime(2000),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+
+    if (picked != null) {
+      setState(() {
+        _dateOfBirthController.text =
+            '${picked.day}/${picked.month}/${picked.year}';
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,7 +38,6 @@ class _RegisterPageState extends State<RegisterPage> {
         builder: (context, constraints) {
           return Stack(
             children: [
-              // Background atas biru, bawah putih
               Column(
                 children: [
                   Container(
@@ -33,8 +47,6 @@ class _RegisterPageState extends State<RegisterPage> {
                   Expanded(child: Container(color: Colors.white)),
                 ],
               ),
-
-              // Isi konten
               SafeArea(
                 child: SingleChildScrollView(
                   child: Padding(
@@ -45,18 +57,30 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     child: Column(
                       children: [
-                        const SizedBox(height: 46),
-                        // Logo Himtika di tengah
+                        const SizedBox(height: 16),
+                        Align(
+                          alignment: Alignment.topLeft,
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 16),
+                            child: GestureDetector(
+                              onTap: () => Navigator.pop(context),
+                              child: Image.asset(
+                                'src/features/login&register/images/arrow_back.png',
+                                height: 24,
+                                width: 24,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
                         Center(
                           child: Image.asset(
                             'src/features/login&register/images/himtika.png',
                             height: 58,
                           ),
                         ),
-
-
                         const SizedBox(height: 2),
-                        // Judul & bintang
                         Padding(
                           padding: const EdgeInsets.only(top: 2, left: 24, right: 16),
                           child: Stack(
@@ -65,7 +89,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 child: Column(
                                   children: const [
                                     Text(
-                                      'Create your new',
+                                      'Welcome To',
                                       style: TextStyle(
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
@@ -73,7 +97,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                       ),
                                     ),
                                     Text(
-                                      'account',
+                                      'HIMTIKA',
                                       style: TextStyle(
                                         fontSize: 24,
                                         fontWeight: FontWeight.bold,
@@ -94,15 +118,15 @@ class _RegisterPageState extends State<RegisterPage> {
                             ],
                           ),
                         ),
-
                         const SizedBox(height: 12),
-                        const Text(
-                          'Sign up to unlock all features',
-                          style: TextStyle(color: Colors.white),
+                        const Center(
+                          child: Text(
+                            'Let\'s complete your profile so we can tailor your experience in the app!',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white),
+                          ),
                         ),
                         const SizedBox(height: 24),
-
-                        // Card isi form
                         ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 400),
                           child: Card(
@@ -115,52 +139,38 @@ class _RegisterPageState extends State<RegisterPage> {
                               padding: const EdgeInsets.all(24),
                               child: Column(
                                 children: [
-                                  _buildTextField('Nama Lengkap', _nameController, false),
+                                  _buildTextField('Nama Lengkap', _nameController),
                                   const SizedBox(height: 16),
-                                  _buildTextField('Email', _emailController, false),
+                                  _buildTextField('Username', _usernameController),
                                   const SizedBox(height: 16),
-                                  _buildTextField('Create Password', _passwordController, true),
-                                  const SizedBox(height: 16),
-                                  _buildTextField('Confirm Password', _confirmPasswordController, true),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    children: [
-                                      Checkbox(
-                                        value: _agreeTerms,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            _agreeTerms = value ?? false;
-                                          });
-                                        },
-                                      ),
-                                      const Expanded(
-                                        child: Text.rich(
-                                          TextSpan(
-                                            text: 'Dengan mendaftar, Anda menyetujui ',
-                                            children: [
-                                              TextSpan(
-                                                text: 'Syarat & Ketentuan ',
-                                                style: TextStyle(
-                                                  color: Colors.blue,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                              TextSpan(text: 'dan '),
-                                              TextSpan(
-                                                text: 'Kebijakan Privasi',
-                                                style: TextStyle(
-                                                  color: Colors.blue,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                              TextSpan(text: ' kami.'),
-                                            ],
-                                          ),
-                                          style: TextStyle(fontSize: 12),
-                                        ),
-                                      ),
-                                    ],
+                                  _buildTextField(
+                                    'Email',
+                                    _emailController,
+                                    keyboardType: TextInputType.emailAddress,
                                   ),
+                                  const SizedBox(height: 16),
+                                  _buildTextField(
+                                    'Phone Number',
+                                    _phoneNumberController,
+                                    keyboardType: TextInputType.phone,
+                                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  TextField(
+                                    controller: _dateOfBirthController,
+                                    readOnly: true,
+                                    onTap: () => _selectDate(context),
+                                    decoration: InputDecoration(
+                                      labelText: 'Date of Birth',
+                                      filled: true,
+                                      fillColor: Colors.white,
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      suffixIcon: const Icon(Icons.calendar_today),
+                                    ),
+                                  ),
+                                  
                                   const SizedBox(height: 16),
                                   SizedBox(
                                     width: double.infinity,
@@ -173,31 +183,11 @@ class _RegisterPageState extends State<RegisterPage> {
                                           borderRadius: BorderRadius.circular(12),
                                         ),
                                       ),
-                                      onPressed: () {},
-                                      child: const Text('Sign up'),
+                                      onPressed: () {
+                                        // Lanjutkan ke homepage
+                                      },
+                                      child: const Text('Continue to Homepage'),
                                     ),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Text('Have an account? '),
-                                      GestureDetector(
-                                        onTap: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(builder: (context) => const LoginPage()),
-                                          );
-                                        },
-                                        child: const Text(
-                                          'Sign in',
-                                          style: TextStyle(
-                                            color: Colors.blueAccent,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
                                   ),
                                 ],
                               ),
@@ -216,25 +206,21 @@ class _RegisterPageState extends State<RegisterPage> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, bool isPassword) {
+  Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    TextInputType keyboardType = TextInputType.text,
+    List<TextInputFormatter>? inputFormatters,
+  }) {
     return TextField(
       controller: controller,
-      obscureText: isPassword ? _obscurePassword : false,
+      keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
       decoration: InputDecoration(
         labelText: label,
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        suffixIcon: isPassword
-            ? IconButton(
-                icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
-                onPressed: () {
-                  setState(() {
-                    _obscurePassword = !_obscurePassword;
-                  });
-                },
-              )
-            : null,
       ),
     );
   }

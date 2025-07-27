@@ -16,19 +16,19 @@ class _SplashPageState extends State<SplashPage> {
     OnboardingPage(
       title: 'Your Informatics\nHub.',
       highlightedWord: 'Informatics',
-      description: 'The ultimate platform designed to enhance your learning...',
+      description: 'The ultimate platform designed to enhance your learning, connect you with peers, and provide essential resources for every informatics student.',
       imagePath: 'src/features/login&register/images/splash1.png',
     ),
     OnboardingPage(
-      title: 'Learn & Grow\nwith HiCode.',
+      title: 'Learn & Grow with\nHiCode.',
       highlightedWord: 'HiCode',
-      description: 'Dive into curated HiCode courses to master...',
+      description: 'Dive into curated HiCode courses to master new skills, and access vital HIMA information to stay ahead in your studies and career.',
       imagePath: 'src/features/login&register/images/splash2.png',
     ),
     OnboardingPage(
-      title: 'Get Started\nNow!',
-      highlightedWord: 'Started',
-      description: 'Create your account and unlock all features...',
+      title: 'Connect, Chill, & Get\nInstant Help.',
+      highlightedWord: 'Instant Help.',
+      description: 'Participate in lively discussions, find a relaxed space in the Chill Area, and always have an AI Chatbot ready to assist you.',
       imagePath: 'src/features/login&register/images/splash3.png',
       isLast: true,
     ),
@@ -38,7 +38,10 @@ class _SplashPageState extends State<SplashPage> {
     if (_currentPage < _pages.length - 1) {
       _controller.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.ease);
     } else {
-      // Go to register or home
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+      );
     }
   }
 
