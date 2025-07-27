@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'splash.dart';
+import 'onboarding.dart';
 import 'register.dart';
 import 'continue_with_google.dart';
 
@@ -64,7 +64,7 @@ class _LoginPageState extends State<LoginPage> {
                                     onTap: () {
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (context) => const SplashPage()),
+                                        MaterialPageRoute(builder: (context) => const Onboarding()),
                                       );
                                     },
                                     child: Image.asset(

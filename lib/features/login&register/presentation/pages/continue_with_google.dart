@@ -61,7 +61,7 @@ class _ContinueWithGoogleState extends State<ContinueWithGoogle> {
                         Align(
                           alignment: Alignment.topLeft,
                           child: Padding(
-                            padding: const EdgeInsets.only(left: 16),
+                            padding: const EdgeInsets.only(left: 2),
                             child: GestureDetector(
                               onTap: () => Navigator.pop(context),
                               child: Image.asset(
