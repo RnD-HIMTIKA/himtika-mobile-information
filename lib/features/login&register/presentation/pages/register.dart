@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'login.dart';
+import 'otp_verification.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -173,7 +174,12 @@ class _RegisterPageState extends State<RegisterPage> {
                                           borderRadius: BorderRadius.circular(12),
                                         ),
                                       ),
-                                      onPressed: () {},
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context, 
+                                          MaterialPageRoute(builder: (context) => const OTPVerificationPage()),
+                                        );
+                                      },
                                       child: const Text('Sign up'),
                                     ),
                                   ),

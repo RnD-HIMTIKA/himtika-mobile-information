@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'onboarding.dart';
 import 'register.dart';
-import 'continue_with_google.dart';
+import 'login_with_google.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
