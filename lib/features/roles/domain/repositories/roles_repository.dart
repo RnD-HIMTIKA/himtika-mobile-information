@@ -5,6 +5,7 @@ import '../entities/role_permission.dart';
 
 abstract class RolesRepository {
   Future<List<Role>> getAllRoles(String userId);
+  Future<List<Role>> getRolesByUser(String userId);
   Future<void> assignRole(String userId, String roleId);
   Future<void> revokeRole(String userId, String roleId);
   Future<List<Permission>> getUserPermissions(String userId);
