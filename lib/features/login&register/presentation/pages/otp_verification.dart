@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'register.dart';
+import 'register_success.dart';
 
 class OTPVerificationPage extends StatefulWidget {
   const OTPVerificationPage({super.key});
@@ -49,15 +50,19 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
   }
 
   void _submitOTP() {
-    final code = _controllers.map((c) => c.text).join();
-    if (code.length == 6) {
-      print('OTP submitted: $code');
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter the full 4-digit code')),
-      );
-    }
+  final code = _controllers.map((c) => c.text).join();
+  if (code.length == 6) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const RegisterSuccess()),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Please enter the full 6-digit code')),
+    );
   }
+}
+
 
   Widget _buildOTPField(int index) {
     return SizedBox(
@@ -196,7 +201,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
                             ),
                           ),
                           SizedBox(
-                            height: 30, // pastikan tinggi tetap agar tidak geser
+                            height: 60, // pastikan tinggi tetap agar tidak geser
                             child: Center(
                               child: _secondsRemaining > 0
                                   ? Text(

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/adminpanel_bloc.dart';
-import 'package:himtika_mobile_information/features/login&register/presentation/pages/otp_verification.dart';
+import 'package:himtika_mobile_information/features/login&register/presentation/pages/register_success.dart';
 import 'core/supabase_config.dart';
 
 void main() async {
@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'HIMTIKA Mobile Information',
         debugShowCheckedModeBanner: false,
-        home: const OTPVerificationPage(),
+        home: const RegisterSuccess(),
       ),
     );
   }
