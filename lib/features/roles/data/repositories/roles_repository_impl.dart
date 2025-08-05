@@ -16,8 +16,13 @@ class RolesRepositoryImpl implements RolesRepository {
 
   @override
   Future<List<Role>> getAllRoles(String userId) async {
-    final models = await remoteDatasource.getAllRoles(userId);
+    final models = await remoteDatasource.getAllRoles();
     return models.map(RoleMapper.toEntity).toList();
+  }
+
+  @override
+  Future<List<Role>> getRolesByUser(String userId) {
+    return remoteDatasource.getRolesByUser(userId);
   }
 
   @override

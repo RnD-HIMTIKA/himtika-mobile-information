@@ -1,6 +1,9 @@
 import '../../domain/entities/permission.dart';
+import '../../domain/entities/role.dart';
 import '../../domain/usecases/get_user_permissions.dart';
 import '../../domain/usecases/get_permissions_by_role.dart';
+import '../../domain/usecases/get_all_roles.dart';
+import '../../domain/usecases/get_roles_by_user.dart';
 
 abstract class IRolesController {
   /// Cek apakah user boleh akses fitur tertentu
@@ -17,15 +20,22 @@ abstract class IRolesController {
 
   /// Ambil permission berdasarkan role (untuk validasi UI)
   Future<List<Permission>> getPermissionsByRole(String roleId);
+
+  /// Ambil role yang bisa ditugaskan oleh user tertentu
+  Future<List<Role>> getAssignableRoles(String userId);
 }
 
 class RolesController implements IRolesController {
   final GetUserPermissions getUserPermissions;
   final GetPermissionsByRole getPermissionsByRoleUsecase;
+  final GetAllRoles getAllRoles;
+  final GetRolesByUser getRolesByUser;
 
   RolesController({
     required this.getUserPermissions,
     required this.getPermissionsByRoleUsecase,
+    required this.getAllRoles,
+    required this.getRolesByUser,
   });
 
   @override
@@ -58,5 +68,21 @@ class RolesController implements IRolesController {
   @override
   Future<List<Permission>> getPermissionsByRole(String roleId) async {
     return await getPermissionsByRoleUsecase(roleId);
+  }
+
+  @override
+  Future<List<Role>> getAssignableRoles(String userId) async {
+    final userRoles = await getRolesByUser(userId);
+    final allRoles = await getAllRoles(userId);
+
+    final isRnD = userRoles.any((r) => r.name.toLowerCase() == 'rnd');
+    if (isRnD) return allRoles;
+
+    final isKahim = userRoles.any((r) => r.name.toLowerCase() == 'kahim');
+    if (isKahim) {
+      return allRoles.where((r) => r.groupName.toLowerCase() == 'pengurus').toList();
+    }
+
+    return []; // Tidak bisa assign role apapun
   }
 }

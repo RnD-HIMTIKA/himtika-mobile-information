@@ -1,17 +1,17 @@
 import '../../domain/entities/role.dart';
 
 class RoleModel extends Role {
-  RoleModel ({
+  RoleModel({
     required super.id,
     required super.name,
     required super.groupName,
   });
 
-  factory RoleModel.fromJson (Map<String, dynamic> json) {
+  factory RoleModel.fromJson(Map<String, dynamic> json) {
     return RoleModel(
       id: json['id'] as String,
       name: json['name'] as String,
-      groupName: json['groupName'] as String,
+      groupName: json['group_name'] as String, // perbaikan di sini
     );
   }
 }

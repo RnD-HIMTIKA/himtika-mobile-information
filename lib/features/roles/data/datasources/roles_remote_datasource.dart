@@ -7,20 +7,32 @@ import '../models/role_permission_model.dart';
 class RolesRemoteDatasource {
   final _client = Supabase.instance.client;
 
-  Future<List<RoleModel>> getAllRoles(String userId) async {
-    final data = await _client
-        .from('roles')
-        .select()
-        .match({'user_id': userId});
-    return (data as List)
-        .map((json) => RoleModel.fromJson(json))
-        .toList();
+  Future<List<RoleModel>> getAllRoles() async {
+    final data = await _client.from('roles').select();
+    return (data as List).map((json) => RoleModel.fromJson(json)).toList();
+  }
+
+  Future<List<RoleModel>> getRolesByUser(String userId) async {
+    final response = await _client
+        .from('user_roles')
+        .select('roles(*)')
+        .eq('user_id', userId);
+
+    if (response == null || response.isEmpty) return [];
+
+    return (response as List).map((e) {
+      final roleData = e['roles'];
+      return RoleModel.fromJson(roleData);
+    }).toList();
   }
 
   Future<List<PermissionModel>> getUserPermissions(String userId) async {
     final data = await _client
         .rpc('get_user_permissions', params: {'user_id': userId});
-    if(data == null) throw Exception('No permissions found for user $userId');
+
+    if (data == null) {
+      throw Exception('No permissions found for user $userId');
+    }
 
     return List<Map<String, dynamic>>.from(data)
         .map((json) => PermissionModel.fromJson(json))
@@ -31,12 +43,13 @@ class RolesRemoteDatasource {
     final data = await _client
         .from('user_roles')
         .select()
-        .match({'user_id': userId});
+        .eq('user_id', userId);
+
     return (data as List)
         .map((json) => UserRoleModel.fromJson(json))
         .toList();
   }
-  
+
   Future<void> assignRole(String userId, String roleId) async {
     await _client.from('user_roles').insert({
       'user_id': userId,
@@ -69,7 +82,7 @@ class RolesRemoteDatasource {
     final data = await _client
         .from('role_permissions')
         .select()
-        .match({'role_id': roleId});
+        .eq('role_id', roleId);
 
     return (data as List)
         .map((json) => RolePermissionModel.fromJson(json))
@@ -77,9 +90,15 @@ class RolesRemoteDatasource {
   }
 
   Future<List<PermissionModel>> getPermissionsByRole(String roleId) async {
-    final data = await _client.rpc('get_permissions_by_role', params: {'role_id': roleId});
-    if (data == null) throw Exception("No permissions found for role $roleId");
-    
+    final data = await _client.rpc(
+      'get_permissions_by_role',
+      params: {'role_id': roleId},
+    );
+
+    if (data == null) {
+      throw Exception("No permissions found for role $roleId");
+    }
+
     return List<Map<String, dynamic>>.from(data)
         .map((json) => PermissionModel.fromJson(json))
         .toList();
