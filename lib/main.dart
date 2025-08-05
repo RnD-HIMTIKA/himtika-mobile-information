@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/pages/dashboard.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/adminpanel_bloc.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/admin_roles/presentation/bloc/admin_roles_bloc.dart';
 import 'core/supabase_config.dart';
 
 void main() async {

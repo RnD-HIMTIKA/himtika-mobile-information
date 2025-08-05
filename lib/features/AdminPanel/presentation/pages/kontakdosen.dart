@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:himtika_mobile_information/features/AdminPanel/presentation/pages/sidebar.dart';
+import 'package:himtika_mobile_information/features/adminPanel/presentation/pages/sidebar.dart';
 
 class Kontakdosen extends StatefulWidget {
   const Kontakdosen({super.key});

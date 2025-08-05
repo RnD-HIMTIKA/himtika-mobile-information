@@ -4,9 +4,17 @@ import 'package:himtika_mobile_information/features/roles/domain/usecases/get_pe
 import 'package:himtika_mobile_information/features/roles/domain/usecases/get_all_roles.dart';
 import 'package:himtika_mobile_information/features/roles/domain/usecases/get_roles_by_user.dart';
 
+import 'package:himtika_mobile_information/features/AdminPanel/admin_roles/application/admin_roles_controller.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/admin_roles/domain/usecases/get_all_users_with_roles.dart';
+
 class AppService {
+  // ✅ Roles
   static late final RolesController rolesController;
 
+  // ✅ Admin Roles
+  static AdminRolesController? _adminRolesController;
+
+  // 🔧 Init untuk RolesController (tetap seperti sebelumnya)
   static void init({
     required GetUserPermissions getUserPermissions,
     required GetPermissionsByRole getPermissionsByRole,
@@ -19,5 +27,22 @@ class AppService {
       getAllRoles: getAllRoles,
       getRolesByUser: getRolesByUser,
     );
+  }
+
+  // 🔧 Tambahan init khusus untuk AdminRolesController
+  static void initAdminRoles({
+    required GetAllUsersWithRoles getAllUsersWithRoles,
+  }) {
+    _adminRolesController = AdminRolesController(
+      getAllUsersWithRoles: getAllUsersWithRoles,
+    );
+  }
+
+  // Getter
+  static AdminRolesController get adminRolesController {
+    if (_adminRolesController == null) {
+      throw Exception('AdminRolesController belum diinisialisasi! Panggil AppService.initAdminRoles() dulu.');
+    }
+    return _adminRolesController!;
   }
 }
