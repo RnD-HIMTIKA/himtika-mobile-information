@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:himtika_mobile_information/features/login&register/forgot_password/presentation/pages/forgot_password_page.dart';
 import 'onboarding.dart';
 import 'register.dart';
 import 'login_with_google.dart';
@@ -170,7 +171,12 @@ class _LoginPageState extends State<LoginPage> {
                                               ],
                                             ),
                                             TextButton(
-                                              onPressed: () {},
+                                              onPressed: () {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(builder: (context) => const ForgotPasswordPage()),
+                                                );
+                                              },
                                               child: const Text('Forgot Password?'),
                                             ),
                                           ],
