@@ -7,6 +7,7 @@ import '../../data/repositories/auth_repository_impl.dart';
 import '../../domain/usecases/sign_in_with_email.dart';
 import '../../domain/usecases/sign_in_with_google.dart';
 import '../../domain/usecases/get_current_user.dart';
+import '../../application/auth_controller.dart';
 import '../blocs/login/login_bloc.dart';
 import '../blocs/login/login_event.dart';
 import '../blocs/login/login_state.dart';
@@ -288,9 +289,9 @@ class _LoginPageState extends State<LoginPage> {
       child: OutlinedButton.icon(
         icon: Image.asset('src/features/login&register/images/google.png', height: 20),
         label: const Text('Continue with Google'),
-        onPressed: () {
-          // dispatch BLoC event to start Google login flow
-          context.read<LoginBloc>().add(const LoginWithGoogle());
+        onPressed: () async {
+          final authController = AuthController();
+          await authController.signInWithGoogle(context);
         },
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 14),
