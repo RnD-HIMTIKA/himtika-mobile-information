@@ -8,6 +8,9 @@ import '../../domain/usecases/sign_in_with_email.dart';
 import '../../domain/usecases/sign_in_with_google.dart';
 import '../../domain/usecases/get_current_user.dart';
 import '../../application/auth_controller.dart';
+import '../../application/auth_controller.dart';
+import '../../../../core/injection_container.dart'; // Import sl
+
 import '../blocs/login/login_bloc.dart';
 import '../blocs/login/login_event.dart';
 import '../blocs/login/login_state.dart';
@@ -28,32 +31,15 @@ class _LoginPageState extends State<LoginPage> {
   final TextEditingController _passwordController = TextEditingController();
   bool _obscurePassword = true;
   bool _rememberMe = false;
-
-  // We'll create the bloc lazily in build; OK for simple apps.
-  LoginBloc _createBloc() {
-    final client = Supabase.instance.client;
-    final remote = AuthRemoteDataSource(client);
-    final repo = AuthRepositoryImpl(remote);
-    return LoginBloc(
-      signInWithEmail: SignInWithEmail(repo),
-      signInWithGoogle: SignInWithGoogle(repo),
-      getCurrentUser: GetCurrentUser(repo),
-    );
-  }
+  final AuthController _authController = sl();
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider<LoginBloc>(
-      create: (_) => _createBloc(),
+      create: (_) => sl<LoginBloc>(),
       child: BlocListener<LoginBloc, LoginState>(
         listener: (context, state) {
-          if (state is LoginSuccess) {
-            // Navigate to form page after successful login
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const ContinueWithGoogle()),
-            );
-          } else if (state is LoginFailure) {
+          if (state is LoginFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message)),
             );
@@ -290,8 +276,7 @@ class _LoginPageState extends State<LoginPage> {
         icon: Image.asset('src/features/login&register/images/google.png', height: 20),
         label: const Text('Continue with Google'),
         onPressed: () async {
-          final authController = AuthController();
-          await authController.signInWithGoogle(context);
+          await _authController.signInWithGoogle();
         },
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 14),

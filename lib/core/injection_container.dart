@@ -10,7 +10,8 @@ import 'package:himtika_mobile_information/features/auth/domain/usecases/sign_in
 import 'package:himtika_mobile_information/features/auth/domain/usecases/sign_out.dart';
 import 'package:himtika_mobile_information/features/auth/domain/usecases/sign_up_with_email.dart';
 import 'package:himtika_mobile_information/features/auth/presentation/blocs/login/login_bloc.dart';
-// Import use case baru
+import 'package:himtika_mobile_information/features/auth/application/auth_controller.dart';
+import 'package:himtika_mobile_information/features/auth/domain/usecases/check_user_profile_completeness.dart';
 import 'package:himtika_mobile_information/features/auth/domain/usecases/get_profile_form_data.dart';
 import 'package:himtika_mobile_information/features/auth/domain/usecases/submit_profile_form.dart';
 import 'package:himtika_mobile_information/features/auth/presentation/blocs/profile_form/form_bloc.dart';
@@ -22,8 +23,7 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton<SupabaseClient>(() => Supabase.instance.client);
 
   // Data sources
-  sl.registerLazySingleton<AuthRemoteDataSource>(
-      () => AuthRemoteDataSource(sl<SupabaseClient>()));
+  sl.registerLazySingleton<AuthRemoteDataSource>(() => AuthRemoteDataSource());
 
   // Repository
   sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(sl<AuthRemoteDataSource>()));
@@ -34,10 +34,11 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => SignUpWithEmail(sl<AuthRepository>()));
   sl.registerLazySingleton(() => SignOut(sl<AuthRepository>()));
   sl.registerLazySingleton(() => GetCurrentUser(sl<AuthRepository>()));
-  // Daftarkan use case baru
+  
+  // FIX: Hapus duplikasi dari sini. Cukup daftarkan sekali.
   sl.registerLazySingleton(() => GetProfileFormData(sl<AuthRepository>(), sl<SupabaseClient>()));
   sl.registerLazySingleton(() => SubmitProfileForm(sl<AuthRepository>(), sl<SupabaseClient>()));
-
+  sl.registerLazySingleton(() => CheckUserProfileCompleteness(sl<AuthRepository>()));
 
   // BLoCs
   sl.registerFactory(() => LoginBloc(
@@ -50,4 +51,7 @@ Future<void> initDependencies() async {
         getProfileFormData: sl<GetProfileFormData>(),
         submitProfileForm: sl<SubmitProfileForm>(),
       ));
+
+  // Application Controllers
+  sl.registerLazySingleton(() => AuthController());
 }
