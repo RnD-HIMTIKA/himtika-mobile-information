@@ -24,18 +24,18 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   Future<void> _onLoginWithEmail(LoginWithEmail event, Emitter<LoginState> emit) async {
     emit(LoginLoading());
     try {
-      // lakukan sign-in (kita tidak bergantung pada struktur AuthResponse)
+      // 1. Panggil use case sign in
       await signInWithEmail(event.email, event.password);
 
-      // verifikasi via getCurrentUser() yang sudah menangani mapping public.users
+      // 2. Panggil use case untuk verifikasi user
       final user = await getCurrentUser();
       if (user != null) {
         emit(LoginSuccess());
       } else {
-        // Bisa disesuaikan pesan; ini menangani kasus login gagal / email belum terverifikasi
-        emit(const LoginFailure('Login gagal — cek email & password atau verifikasi email Anda.'));
+        emit(const LoginFailure('Login gagal. Periksa kembali email dan password Anda.'));
       }
     } catch (e) {
+      // Tangkap error dari use case
       emit(LoginFailure(e.toString()));
     }
   }
@@ -43,28 +43,25 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   Future<void> _onLoginWithGoogle(LoginWithGoogle event, Emitter<LoginState> emit) async {
     emit(LoginLoading());
     try {
-      // trigger OAuth flow (redirect). Usecase membuka intent/browser.
+      // 1. Panggil use case untuk memulai alur OAuth
       await signInWithGoogle();
-
-      // Polling singkat untuk menunggu Supabase mengisi session setelah redirect
-      final int maxAttempts = 12; // coba selama ~6 detik (12 * 500ms)
-      final Duration delayBetween = const Duration(milliseconds: 500);
-      bool found = false;
-
-      for (int i = 0; i < maxAttempts; i++) {
-        final user = await getCurrentUser();
-        if (user != null) {
-          found = true;
-          break;
-        }
-        await Future.delayed(delayBetween);
+      
+      // 2. Verifikasi (bisa dipindahkan ke use case juga)
+      // Untuk saat ini, kita biarkan di sini sebagai bagian dari flow UI
+      bool userFound = false;
+      for (int i = 0; i < 10; i++) { // Coba selama 5 detik
+          await Future.delayed(const Duration(milliseconds: 500));
+          final user = await getCurrentUser();
+          if (user != null) {
+              userFound = true;
+              break;
+          }
       }
 
-      if (found) {
-        emit(LoginSuccess());
+      if (userFound) {
+          emit(LoginSuccess());
       } else {
-        emit(const LoginFailure(
-            'Selesaikan proses Google sign-in (cek browser/intent). Jika sudah, tutup dan coba lagi.'));
+          emit(const LoginFailure('Gagal memverifikasi sesi Google. Silakan coba lagi.'));
       }
     } catch (e) {
       emit(LoginFailure(e.toString()));

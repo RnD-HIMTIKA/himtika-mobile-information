@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'package:himtika_mobile_information/core/injection_container.dart';
 import '../blocs/profile_form/form_bloc.dart';
 import '../blocs/profile_form/form_event.dart';
 import '../blocs/profile_form/form_state.dart';
@@ -187,7 +188,8 @@ class _ContinueWithGoogleState extends State<ContinueWithGoogle> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => ProfileFormBloc(supabase)..add(const ProfileFormStarted()),
+      // FIX: Gunakan sl() untuk membuat instance BLoC dengan dependencies yang sudah di-inject
+      create: (_) => sl<ProfileFormBloc>()..add(const ProfileFormStarted()),
       child: BlocConsumer<ProfileFormBloc, ProfileFormState>(
         listenWhen: (prev, curr) =>
             prev.status != curr.status ||

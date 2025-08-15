@@ -10,18 +10,22 @@ import 'package:himtika_mobile_information/features/auth/domain/usecases/sign_in
 import 'package:himtika_mobile_information/features/auth/domain/usecases/sign_out.dart';
 import 'package:himtika_mobile_information/features/auth/domain/usecases/sign_up_with_email.dart';
 import 'package:himtika_mobile_information/features/auth/presentation/blocs/login/login_bloc.dart';
+// Import use case baru
+import 'package:himtika_mobile_information/features/auth/domain/usecases/get_profile_form_data.dart';
+import 'package:himtika_mobile_information/features/auth/domain/usecases/submit_profile_form.dart';
+import 'package:himtika_mobile_information/features/auth/presentation/blocs/profile_form/form_bloc.dart';
 
 final GetIt sl = GetIt.instance;
 
 Future<void> initDependencies() async {
-  // Supabase client (already initialized elsewhere)
+  // Supabase client
   sl.registerLazySingleton<SupabaseClient>(() => Supabase.instance.client);
 
   // Data sources
   sl.registerLazySingleton<AuthRemoteDataSource>(
       () => AuthRemoteDataSource(sl<SupabaseClient>()));
 
-  // Repository (bind to interface)
+  // Repository
   sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(sl<AuthRemoteDataSource>()));
 
   // Usecases
@@ -30,13 +34,20 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => SignUpWithEmail(sl<AuthRepository>()));
   sl.registerLazySingleton(() => SignOut(sl<AuthRepository>()));
   sl.registerLazySingleton(() => GetCurrentUser(sl<AuthRepository>()));
+  // Daftarkan use case baru
+  sl.registerLazySingleton(() => GetProfileFormData(sl<AuthRepository>(), sl<SupabaseClient>()));
+  sl.registerLazySingleton(() => SubmitProfileForm(sl<AuthRepository>(), sl<SupabaseClient>()));
 
-  // BLoCs (factory so UI gets new instance when needed)
+
+  // BLoCs
   sl.registerFactory(() => LoginBloc(
         signInWithEmail: sl<SignInWithEmail>(),
         signInWithGoogle: sl<SignInWithGoogle>(),
         getCurrentUser: sl<GetCurrentUser>(),
       ));
 
-  // (Nanti: register ProfileFormBloc, AdminPanelBloc, dsb)
+  sl.registerFactory(() => ProfileFormBloc(
+        getProfileFormData: sl<GetProfileFormData>(),
+        submitProfileForm: sl<SubmitProfileForm>(),
+      ));
 }
