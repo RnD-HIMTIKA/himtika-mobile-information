@@ -49,7 +49,8 @@ class AuthRemoteDataSource {
     // Gunakan auth helper
     await SupabaseAuthHelper.auth.signInWithOAuth(
       supabase.OAuthProvider.google,
-      // redirectTo sesuaikan jika perlu untuk deep linking
+      // FIX: Tambahkan redirectTo secara eksplisit
+      redirectTo: 'io.supabase.flutter://login-callback',
     );
   }
 
