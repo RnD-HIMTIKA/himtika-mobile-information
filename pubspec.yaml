@@ -86,9 +86,10 @@ flutter:
     - src/features/home/icons/home.png
     - src/features/home/icons/chat.png
     - src/features/home/icons/message.png
-    - src/features/home/icons/profile.png 
+    - src/features/home/icons/profile.png
 
     - src/features/AdminPanel/images/dashboard.png
+    
     - src/features/login&register/images/logo.png
     - src/features/login&register/images/himtika.png
     - src/features/login&register/images/google.png
@@ -99,6 +100,10 @@ flutter:
     - src/features/login&register/images/ilustrasi2.png
     - src/features/login&register/images/ilustrasi3.png
     - src/features/login&register/images/ilustrasi4.png
+
+    - src/features/calendar/images/pattern.png
+    - src/features/calendar/images/assets.png
+
 
   #   - images/a_dot_ham.jpeg
 

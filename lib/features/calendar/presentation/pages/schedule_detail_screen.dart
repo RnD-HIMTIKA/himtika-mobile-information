@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:himtika_mobile_information/features/calendar/presentation/pages/calendar_screen.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'dart:collection';
 
@@ -79,32 +80,70 @@ class _ScheduleDetailScreenState extends State<ScheduleDetailScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A237E),
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(widget.workspaceTitle, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: Text(
+          widget.workspaceTitle,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white),
-          onPressed: () => Navigator.of(context).pop(),
+          icon: Image.asset(
+            "src/features/login&register/images/arrow_back.png",
+            width: 24,
+            height: 24, 
+            color: Color(0xFF31b7fe),
+          ),
+          onPressed: (){
+            Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CalendarScreen()),
+              );
+          },
         ),
       ),
-      body: Stack(
-        children: [
-          // LAYER 1: Konten Atas
-          _TopContent(
-            focusedDay: _focusedDay,
-            selectedDay: _selectedDay,
-            onDaySelected: _onDaySelected,
-            eventLoader: _getEventsForDay,
-            onPageChanged: (focusedDay) {
-              setState(() { _focusedDay = focusedDay; });
-            },
-            onAddEventPressed: () => _showCreateEventDialog(context),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF333C66), Color(0xFF2D365E)
+            ],
           ),
-          // LAYER 2: Panel Putih Jadwal
-          _ScheduleSheet(selectedEvents: _selectedEvents),
-        ],
+          image: DecorationImage(
+            image: AssetImage("src/features/calendar/images/pattern.png"),
+            fit: BoxFit.cover,
+            opacity: 0.5, // biar motifnya halus
+          ),
+        ),
+        child: Padding(
+          // ini yang bikin konten turun ke bawah header
+          padding: EdgeInsets.only(
+            top: kToolbarHeight + MediaQuery.of(context).padding.top,
+          ),
+          child: Stack(
+            children: [
+              _TopContent(
+                focusedDay: _focusedDay,
+                selectedDay: _selectedDay,
+                onDaySelected: _onDaySelected,
+                eventLoader: _getEventsForDay,
+                onPageChanged: (focusedDay) {
+                  setState(() {
+                    _focusedDay = focusedDay;
+                  });
+                },
+                onAddEventPressed: () => _showCreateEventDialog(context),
+              ),
+              _ScheduleSheet(selectedEvents: _selectedEvents),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -145,14 +184,14 @@ class _TopContent extends StatelessWidget {
                 onPressed: () {},
                 icon: const Icon(Icons.share, size: 16),
                 label: const Text("Bagikan"),
-                style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: Colors.white.withOpacity(0.2), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), elevation: 0),
+                style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: Color(0xFF199df5).withValues(alpha:0.8), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), elevation: 0),
               ),
               const SizedBox(width: 12),
               ElevatedButton.icon(
                 onPressed: () {},
                 icon: const Icon(Icons.info_outline, size: 16),
                 label: const Text("Informasi"),
-                style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: Colors.white.withOpacity(0.2), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), elevation: 0),
+                style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: Color(0xFF8f8e92).withValues(alpha:0.8), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), elevation: 0),
               ),
             ],
           ),
@@ -169,7 +208,7 @@ class _TopContent extends StatelessWidget {
               onPageChanged: onPageChanged,
               headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true, titleTextStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
               calendarStyle: CalendarStyle(
-                todayDecoration: BoxDecoration(color: Colors.blue.withOpacity(0.5), shape: BoxShape.circle),
+                todayDecoration: BoxDecoration(color: Colors.blue.withValues(alpha:0.5), shape: BoxShape.circle),
                 selectedDecoration: BoxDecoration(color: Colors.blue.shade600, shape: BoxShape.circle),
                 weekendTextStyle: const TextStyle(color: Colors.red),
                 markerDecoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
@@ -182,7 +221,7 @@ class _TopContent extends StatelessWidget {
             child: ElevatedButton(
               onPressed: onAddEventPressed,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue.shade600,
+                backgroundColor: Color(0xFF1e9cf0),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -211,9 +250,17 @@ class _ScheduleSheet extends StatelessWidget {
       maxChildSize: 0.8,
       builder: (context, scrollController) {
         return Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha:0.15),
+                blurRadius: 10,
+                spreadRadius: 2,
+                offset: const Offset(0, -2),
+              ),
+            ],
           ),
           child: ValueListenableBuilder<List<Map>>(
             valueListenable: selectedEvents,
@@ -222,15 +269,36 @@ class _ScheduleSheet extends StatelessWidget {
                 controller: scrollController,
                 padding: const EdgeInsets.all(24),
                 children: [
-                  Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey[300], borderRadius: BorderRadius.circular(2)))),
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 16),
-                  const Center(child: Text("Jadwal Kegiatan Kamu", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold))),
-                  const Center(child: Icon(Icons.keyboard_arrow_down, color: Colors.grey)),
+                  const Center(
+                    child: Text(
+                      "Jadwal Kegiatan Kamu",
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  const Center(
+                    child: Icon(Icons.keyboard_arrow_down, color: Colors.grey),
+                  ),
                   const SizedBox(height: 24),
                   if (value.isEmpty)
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 40.0),
-                      child: Center(child: Text("Tidak ada kegiatan pada tanggal ini.", style: TextStyle(color: Colors.grey))),
+                      child: Center(
+                        child: Text(
+                          "Tidak ada kegiatan pada tanggal ini.",
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                      ),
                     )
                   else
                     ...value.map((schedule) {
@@ -260,27 +328,61 @@ class _ScheduleEventCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 4,
-      shadowColor: Colors.grey.withOpacity(0.15),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return Container(
       margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade200,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha:0.2), // warna shadow
+            offset: const Offset(0, 4), // posisi shadow (0 = center, 4 ke bawah)
+            blurRadius: 6, // seberapa blur
+            spreadRadius: 0, // seberapa luas
+          ),
+        ],
+      ),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
         child: Row(
           children: [
             SizedBox(
               width: 60,
-              child: Text(time, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, height: 1.4)),
+              child: Text(
+                time,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                  height: 1.4,
+                ),
+              ),
             ),
-            Container(height: 50, width: 1, color: Colors.grey.shade300, margin: const EdgeInsets.symmetric(horizontal: 16)),
+            Container(
+              height: 50,
+              width: 1,
+              color: Colors.grey.shade300,
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+            ),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  Text(detail, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                  Text(
+                    detail,
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 12,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -345,7 +447,7 @@ class _CreateEventDialog extends StatelessWidget {
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               elevation: 0,
             ),
-            child: const Text('Buat Event'), // Dulu 'Buat Workspace', sekarang 'Buat Event'
+            child: const Text('Buat Event'),
           ),
         ),
       ],
