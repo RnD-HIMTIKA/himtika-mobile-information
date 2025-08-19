@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'onboarding.dart';
+import 'otp_verification.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -31,21 +33,28 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _redirect() async {
-    // Tunggu sebentar agar listener di main.dart punya waktu untuk bekerja
     await Future.delayed(const Duration(seconds: 3));
 
-    // Cek setelah delay, apakah kita masih di halaman splash?
-    // Jika ya, berarti tidak ada sesi aktif dan listener tidak melakukan apa-apa.
-    // Maka, kita perlu bernavigasi secara manual.
     if (mounted) {
+      final prefs = await SharedPreferences.getInstance();
+      final verificationEmail = prefs.getString('verification_email');
+
+      // 1. Cek apakah ada proses verifikasi yang tertunda
+      if (verificationEmail != null) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (context) => OTPVerificationPage(email: verificationEmail)),
+        );
+        return; // Hentikan eksekusi
+      }
+
+      // 2. Jika tidak ada, lanjutkan ke logika sesi seperti biasa
       final session = Supabase.instance.client.auth.currentSession;
       if (session == null) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const Onboarding()),
         );
       }
-      // Jika session ADA, berarti listener di main.dart SUDAH atau SEDANG
-      // menangani navigasi. Jadi, splash screen tidak perlu melakukan apa-apa.
+      // Jika sesi ADA, listener di main.dart akan mengambil alih.
     }
   }
 

@@ -6,7 +6,7 @@ class GetAllRoles {
 
   GetAllRoles(this.repository);
 
-  Future<List<Role>> call(String userId) async {
-    return await repository.getAllRoles(userId);
+  Future<List<Role>> call() async {
+    return await repository.getAllRoles();
   }
 }

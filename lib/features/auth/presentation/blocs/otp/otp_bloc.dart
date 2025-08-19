@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:equatable/equatable.dart';
 import '../../../domain/usecases/resend_signup_otp.dart';
 import '../../../domain/usecases/verify_otp.dart';
@@ -27,6 +28,11 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
     emit(OtpVerificationLoading());
     try {
       await _verifyOtp(email: event.email, token: event.otp);
+
+      // HAPUS STATUS SETELAH VERIFIKASI BERHASIL
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('verification_email');
+      
       emit(OtpVerificationSuccess());
     } catch (e) {
       emit(OtpVerificationFailure(e.toString()));
