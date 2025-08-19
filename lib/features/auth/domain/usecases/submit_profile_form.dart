@@ -1,7 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../repositories/auth_repository.dart';
 
-// Use case untuk validasi dan submit form
+/// Use case untuk validasi dan submit form
 class SubmitProfileForm {
   final AuthRepository repository;
   final SupabaseClient client;
@@ -12,23 +12,25 @@ class SubmitProfileForm {
     // 1. Validasi Input
     _validateInputs(params);
 
-    // 2. Normalisasi
+    // 2. Normalisasi Data
     final normalizedUsername = params.username.trim();
     final normalizedPhone = _normalizePhone(params.phone.trim());
     final isoDob = _toIsoDateOrNull(params.dob.trim());
     final kelas = params.isFromUnsika ? (params.kelas ?? '').trim() : null;
 
     final authUser = client.auth.currentUser;
-    if (authUser == null) throw Exception('User not authenticated');
+    if (authUser == null) {
+      throw Exception('Pengguna tidak terautentikasi.');
+    }
 
-    // 3. Cek Duplikasi Username & Telepon
+    // 3. Cek Duplikasi
     await _checkDuplicates(normalizedUsername, normalizedPhone!, authUser.id);
 
     // 4. Dapatkan User ID dari tabel public.users
     final userRow = await client.from('users').select('id').eq('auth_id', authUser.id).single();
     final String userId = userRow['id'] as String;
 
-    // 5. Handle Role 'Kelas' jika dari Unsika
+    // 5. Handle Role 'Kelas'
     if (params.isFromUnsika && kelas != null && kelas.isNotEmpty) {
       await _handleClassRole(userId, kelas);
     }
@@ -39,36 +41,52 @@ class SubmitProfileForm {
       'username': normalizedUsername,
       'phone_number': normalizedPhone,
     };
-    if (isoDob != null) payload['date_of_birth'] = isoDob;
+    if (isoDob != null) {
+      payload['date_of_birth'] = isoDob;
+    }
 
     await repository.updateProfile(authUser.id, payload);
   }
 
-  // Semua helper dipindahkan ke sini
   void _validateInputs(SubmitProfileFormParams p) {
-    if (p.fullName.trim().length < 2) throw Exception('Nama lengkap minimal 2 karakter.');
+    if (p.fullName.trim().length < 2) {
+      throw Exception('Nama lengkap minimal 2 karakter.');
+    }
+    if (p.username.trim().isEmpty) {
+      throw Exception('Username wajib diisi.');
+    }
+    if (_hasSQLInjection(p.fullName) || _hasSQLInjection(p.username)) {
+        throw Exception('Input terdeteksi tidak aman.');
+    }
     if (!RegExp(r'^[a-zA-Z0-9._]{3,20}$').hasMatch(p.username.trim())) {
-      throw Exception('Username hanya boleh huruf/angka/._ dan 3–20 karakter.');
+      throw Exception('Username hanya boleh huruf, angka, titik, atau underscore dengan panjang 3–20 karakter.');
     }
     final normalizedPhone = _normalizePhone(p.phone.trim());
     if (normalizedPhone == null) {
-      throw Exception('Nomor telepon harus 10–15 digit, mulai dengan 0.');
+      throw Exception('Nomor telepon harus 10–15 digit dan dimulai dengan 0.');
     }
-    // FIX: Cek null pada 'kelas' sebelum memanggil .trim()
-    if (p.isFromUnsika) {
-      final kelas = p.kelas; // Assign ke variabel lokal untuk promosi tipe
-      if (kelas == null || kelas.trim().isEmpty) {
-        throw Exception('Silakan pilih Kelas.');
-      }
+    if (p.isFromUnsika && (p.kelas == null || p.kelas!.trim().isEmpty)) {
+      throw Exception('Silakan pilih Kelas Anda.');
     }
   }
 
   Future<void> _checkDuplicates(String username, String phone, String currentAuthId) async {
     final unameDup = await client.from('users').select('auth_id').ilike('username', username).neq('auth_id', currentAuthId).maybeSingle();
-    if (unameDup != null) throw Exception('Username sudah digunakan.');
+    if (unameDup != null) {
+      throw Exception('Username telah digunakan di akun lain.');
+    }
 
     final phoneDup = await client.from('users').select('auth_id').eq('phone_number', phone).neq('auth_id', currentAuthId).maybeSingle();
-    if (phoneDup != null) throw Exception('Nomor telepon sudah digunakan.');
+    if (phoneDup != null) {
+      throw Exception('Nomor telepon telah digunakan di akun lain.');
+    }
+  }
+
+  bool _hasSQLInjection(String input) {
+    final pattern = RegExp(
+        r"(?:')|(?:--)|(/\*)|(\*/)|(;)|(\b(SELECT|INSERT|DELETE|UPDATE|DROP|UNION|OR)\b)",
+        caseSensitive: false);
+    return pattern.hasMatch(input);
   }
 
   Future<void> _handleClassRole(String userId, String kelas) async {
@@ -92,17 +110,17 @@ class SubmitProfileForm {
   }
 
   String? _toIsoDateOrNull(String ddmmyyyy) {
+    if (ddmmyyyy.isEmpty) return null;
     final p = ddmmyyyy.split('/');
     if (p.length != 3) return null;
     final d = int.tryParse(p[0]);
     final m = int.tryParse(p[1]);
     final y = int.tryParse(p[2]);
     if (d == null || m == null || y == null) return null;
-    return '${y}-${m.toString().padLeft(2, '0')}-${d.toString().padLeft(2, '0')}';
+    return '$y-${m.toString().padLeft(2, '0')}-${d.toString().padLeft(2, '0')}';
   }
 }
 
-// Class untuk menampung parameter yang dibutuhkan use case
 class SubmitProfileFormParams {
   final String fullName;
   final String username;

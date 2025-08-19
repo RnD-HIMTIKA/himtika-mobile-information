@@ -18,7 +18,7 @@ class RolesRemoteDatasource {
         .select('roles(*)')
         .eq('user_id', userId);
 
-    if (response == null || response.isEmpty) return [];
+    if (response.isEmpty) return [];
 
     return (response as List).map((e) {
       final roleData = e['roles'];

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:himtika_mobile_information/core/injection_container.dart';
 import '../blocs/profile_form/form_bloc.dart';
@@ -10,16 +9,31 @@ import '../blocs/profile_form/form_state.dart';
 
 import 'register_success.dart';
 
-class ContinueWithGoogle extends StatefulWidget {
-  const ContinueWithGoogle({super.key});
+// Widget ini sekarang hanya bertanggung jawab untuk menyediakan BLoC.
+class ContinueWithGoogle extends StatelessWidget {
+  final bool fromOAuth;
+  const ContinueWithGoogle({super.key, required this.fromOAuth});
 
   @override
-  State<ContinueWithGoogle> createState() => _ContinueWithGoogleState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => sl<ProfileFormBloc>(),
+      child: _FormContent(fromOAuth: fromOAuth),
+    );
+  }
 }
 
-class _ContinueWithGoogleState extends State<ContinueWithGoogle> {
-  final supabase = Supabase.instance.client;
+// Semua UI dan stateful logic berada di dalam widget ini.
+class _FormContent extends StatefulWidget {
+  final bool fromOAuth;
+  const _FormContent({required this.fromOAuth});
 
+  @override
+  State<_FormContent> createState() => _FormContentState();
+}
+
+class _FormContentState extends State<_FormContent> {
+  // Semua controller dan state yang sebelumnya ada, dikembalikan ke sini.
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
@@ -30,6 +44,20 @@ class _ContinueWithGoogleState extends State<ContinueWithGoogle> {
   final TextEditingController _fakultasController = TextEditingController();
   final TextEditingController _prodiController = TextEditingController();
   String? _selectedKelas;
+  
+  final _formStep1Key = GlobalKey<FormState>();
+  final _formStep2Key = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    // Perbaikan error: event dipanggil setelah frame pertama selesai di-render.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        context.read<ProfileFormBloc>().add(const ProfileFormStarted());
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -54,82 +82,251 @@ class _ContinueWithGoogleState extends State<ContinueWithGoogle> {
 
     if (picked != null) {
       setState(() {
-        _dateOfBirthController.text =
-            '${picked.day}/${picked.month}/${picked.year}';
+        _dateOfBirthController.text = '${picked.day}/${picked.month}/${picked.year}';
       });
+      // Memvalidasi ulang form setelah tanggal dipilih.
+      _formStep1Key.currentState?.validate();
     }
   }
 
-  /// Cek SQL injection sederhana
-  bool _hasSQLInjection(String input) {
-    final pattern = RegExp(
-        r"(?:')|(?:--)|(/\*)|(\*/)|(;)|(\b(SELECT|INSERT|DELETE|UPDATE|DROP|UNION|OR)\b)",
-        caseSensitive: false);
-    return pattern.hasMatch(input);
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<ProfileFormBloc, ProfileFormState>(
+      // listenWhen membuat listener lebih efisien, hanya berjalan saat kondisi terpenuhi.
+      listenWhen: (previous, current) {
+        // Jalankan listener jika status berubah ATAU jika ada pesan error baru.
+        return previous.status != current.status || (current.errorMessage != null && previous.errorMessage != current.errorMessage);
+      },
+      listener: (context, state) {
+        // 1. Logika prefill data
+        if (state.status == ProfileFormStatus.loaded) {
+          _emailController.text = state.email ?? '';
+          _angkatanController.text = state.angkatan ?? '';
+          _fakultasController.text = state.fakultas ?? '';
+          _prodiController.text = state.prodi ?? '';
+          
+          // Jaga agar username yang diketik pengguna tidak terhapus
+          if (_usernameController.text.isEmpty) {
+            _usernameController.text = state.username ?? '';
+          }
+        }
+
+        // 2. Logika menampilkan pesan error
+        // Tampilkan SnackBar setiap kali ada errorMessage di state.
+        if (state.errorMessage != null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.errorMessage!),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+
+        // 3. Logika navigasi saat sukses
+        if (state.status == ProfileFormStatus.success) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => RegisterSuccess(fromOAuth: widget.fromOAuth)),
+          );
+        }
+      },
+      builder: (context, state) {
+        final isProcessing = state.status == ProfileFormStatus.loading;
+
+        return Scaffold(
+          body: LayoutBuilder(
+            builder: (context, constraints) {
+              return Stack(
+                children: [
+                  Column(
+                    children: [
+                      Container(
+                        height: constraints.maxHeight * 0.6,
+                        color: const Color(0xFF0175C8),
+                      ),
+                      Expanded(child: Container(color: Colors.white)),
+                    ],
+                  ),
+                  SafeArea(
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          left: 16,
+                          right: 16,
+                          bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+                        ),
+                        child: Column(
+                          children: [
+                            const SizedBox(height: 16),
+                            _buildHeader(),
+                            const SizedBox(height: 24),
+                            ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 400),
+                              child: LinearProgressIndicator(
+                                value: state.totalSteps == 0 ? 0 : ((state.currentStep + 1) / state.totalSteps),
+                                minHeight: 6,
+                                color: Colors.white,
+                                backgroundColor: Colors.white24,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxWidth: 400,
+                                maxHeight: MediaQuery.of(context).size.height * 0.65,
+                              ),
+                              child: Card(
+                                color: Colors.grey[100],
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 4,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(24),
+                                  child: isProcessing
+                                      ? const Center(child: CircularProgressIndicator())
+                                      : Stepper(
+                                          controlsBuilder: (BuildContext context, ControlsDetails details) {
+                                            final formState = context.watch<ProfileFormBloc>().state;
+                                            
+                                            // Tampilkan loading jika sedang validasi ATAU submit
+                                            if (formState.status == ProfileFormStatus.validating ||
+                                                formState.status == ProfileFormStatus.submitting) {
+                                              return const Center(child: Padding(
+                                                padding: EdgeInsets.all(8.0),
+                                                child: CircularProgressIndicator(),
+                                              ));
+                                            }
+                                            
+                                            // Jika tidak loading, tampilkan tombol seperti biasa
+                                            return Row(
+                                              mainAxisAlignment: MainAxisAlignment.end,
+                                              children: <Widget>[
+                                                if (formState.currentStep > 0)
+                                                  TextButton(
+                                                    onPressed: details.onStepCancel,
+                                                    child: const Text('KEMBALI'),
+                                                  ),
+                                                const SizedBox(width: 12),
+                                                ElevatedButton(
+                                                  onPressed: details.onStepContinue,
+                                                  child: Text(formState.currentStep == _getSteps(context, formState).length - 1 ? 'SIMPAN' : 'LANJUT'),
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                          type: StepperType.vertical,
+                                          currentStep: state.currentStep,
+                                          onStepContinue: () {
+                                            final state = context.read<ProfileFormBloc>().state;
+                                            final isLastStep = state.currentStep == _getSteps(context, state).length - 1;
+
+                                            // Jika ini adalah langkah terakhir (baik untuk user Unsika di hal 2, maupun non-Unsika di hal 1)
+                                            if (isLastStep) {
+                                              // Validasi form lokal untuk langkah terakhir terlebih dahulu
+                                              if (state.isFromUnsika) {
+                                                if (!(_formStep2Key.currentState?.validate() ?? false)) return;
+                                              } else {
+                                                if (!(_formStep1Key.currentState?.validate() ?? false)) return;
+                                              }
+                                              
+                                              // Jika valid, langsung panggil event submit
+                                              context.read<ProfileFormBloc>().add(
+                                                    ProfileFormSubmitted(
+                                                      fullName: _nameController.text,
+                                                      username: _usernameController.text,
+                                                      email: _emailController.text,
+                                                      phone: _phoneNumberController.text,
+                                                      dob: _dateOfBirthController.text,
+                                                      kelas: _selectedKelas,
+                                                    ),
+                                                  );
+                                            } 
+                                            // Jika ini BUKAN langkah terakhir (hanya mungkin untuk user Unsika di hal 1)
+                                            else {
+                                              // Panggil event untuk validasi lengkap (termasuk cek duplikasi ke server)
+                                              context.read<ProfileFormBloc>().add(
+                                                    ProfileFormValidateStep1(
+                                                      fullName: _nameController.text,
+                                                      username: _usernameController.text,
+                                                      phone: _phoneNumberController.text,
+                                                      dob: _dateOfBirthController.text,
+                                                    ),
+                                                  );
+                                            }
+                                          },
+                                          onStepCancel: () {
+                                            if (state.currentStep > 0) {
+                                              context.read<ProfileFormBloc>().add(const ProfileFormPrevStep());
+                                            }
+                                          },
+                                          steps: _getSteps(context, state),
+                                        ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
   }
 
-  /// Cek email & username unik di Supabase
-  Future<String?> _checkDuplicateUser(String email, String username) async {
-    final usernameCheck = await supabase
-        .from('users')
-        .select()
-        .eq('username', username)
-        .maybeSingle();
-
-    if (usernameCheck != null) {
-      return "Username sudah digunakan.";
-    }
-
-    return null;
-  }
-
+  // Semua metode pembantu UI dikembalikan ke sini.
   List<Step> _getSteps(BuildContext context, ProfileFormState state) {
     final steps = <Step>[
       Step(
         title: const Text('Identitas Diri'),
-        content: SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.5,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildTextField('Nama Lengkap', _nameController),
-                const SizedBox(height: 16),
-                _buildTextField('Username', _usernameController),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  'Email',
-                  _emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  readOnly: true,
+        content: Form(
+          key: _formStep1Key,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildTextFormField('Nama Lengkap', _nameController),
+              const SizedBox(height: 16),
+              _buildTextFormField('Username', _usernameController),
+              const SizedBox(height: 16),
+              _buildTextFormField(
+                'Email',
+                _emailController,
+                keyboardType: TextInputType.emailAddress,
+                readOnly: true, // Email dibuat read-only
+                validator: null,
+              ),
+              const SizedBox(height: 16),
+              _buildTextFormField(
+                'Phone Number',
+                _phoneNumberController,
+                keyboardType: TextInputType.phone,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _dateOfBirthController,
+                readOnly: true,
+                onTap: () => _selectDate(context),
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Tanggal lahir tidak boleh kosong.';
+                  }
+                  return null;
+                },
+                decoration: InputDecoration(
+                  labelText: 'Date of Birth',
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  suffixIcon: const Icon(Icons.calendar_today),
                 ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  'Phone Number',
-                  _phoneNumberController,
-                  keyboardType: TextInputType.phone,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: _dateOfBirthController,
-                  readOnly: true,
-                  onTap: () => _selectDate(context),
-                  decoration: InputDecoration(
-                    labelText: 'Date of Birth',
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    suffixIcon: const Icon(Icons.calendar_today),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
         isActive: state.currentStep >= 0,
@@ -140,8 +337,9 @@ class _ContinueWithGoogleState extends State<ContinueWithGoogle> {
     if (state.isFromUnsika) {
       steps.add(
         Step(
-          title: const Text('Informasi'),
-          content: SingleChildScrollView(  // Added for safety if content grows
+          title: const Text('Informasi Akademik'),
+          content: Form(
+            key: _formStep2Key,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -153,13 +351,17 @@ class _ContinueWithGoogleState extends State<ContinueWithGoogle> {
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   value: _selectedKelas,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Silakan pilih kelas Anda.';
+                    }
+                    return null;
+                  },
                   decoration: InputDecoration(
                     labelText: 'Kelas',
                     filled: true,
                     fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   items: ['A', 'B', 'C', 'D', 'E', 'F']
                       .map((kelas) => DropdownMenuItem<String>(
@@ -181,197 +383,7 @@ class _ContinueWithGoogleState extends State<ContinueWithGoogle> {
         ),
       );
     }
-
     return steps;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(
-      // FIX: Gunakan sl() untuk membuat instance BLoC dengan dependencies yang sudah di-inject
-      create: (_) => sl<ProfileFormBloc>()..add(const ProfileFormStarted()),
-      child: BlocConsumer<ProfileFormBloc, ProfileFormState>(
-        listenWhen: (prev, curr) =>
-            prev.status != curr.status ||
-            prev.email != curr.email ||
-            prev.username != curr.username,
-        listener: (context, state) {
-          if (state.status == ProfileFormStatus.loaded) {
-            _emailController.text = state.email ?? '';
-            _usernameController.text = state.username ?? '';
-            _angkatanController.text = state.angkatan ?? '';
-            _fakultasController.text = state.fakultas ?? '';
-            _prodiController.text = state.prodi ?? '';
-          }
-
-          if (state.status == ProfileFormStatus.success) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => const RegisterSuccess()),
-            );
-          }
-
-          if (state.status == ProfileFormStatus.failure &&
-              (state.errorMessage ?? '').isNotEmpty) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.errorMessage!)),
-            );
-          }
-        },
-        builder: (context, state) {
-          final isLoading = state.status == ProfileFormStatus.loading ||
-              state.status == ProfileFormStatus.submitting;
-
-          return Scaffold(
-            body: LayoutBuilder(
-              builder: (context, constraints) {
-                return Stack(
-                  children: [
-                    Column(
-                      children: [
-                        Container(
-                          height: constraints.maxHeight * 0.6,
-                          color: const Color(0xFF0175C8),
-                        ),
-                        Expanded(child: Container(color: Colors.white)),
-                      ],
-                    ),
-                    SafeArea(
-                      child: SingleChildScrollView(
-                        child: Padding(
-                          padding: EdgeInsets.only(
-                            left: 16,
-                            right: 16,
-                            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-                          ),
-                          child: Column(
-                            children: [
-                              const SizedBox(height: 16),
-                              _buildHeader(),
-                              const SizedBox(height: 24),
-                              ConstrainedBox(
-                                constraints: const BoxConstraints(maxWidth: 400),
-                                child: LinearProgressIndicator(
-                                  value: (state.totalSteps ?? 1) == 0
-                                      ? 0
-                                      : ((state.currentStep + 1) /
-                                          (state.totalSteps ?? 1)),
-                                  minHeight: 6,
-                                  color: Colors.white,
-                                  backgroundColor: Colors.white24,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              ConstrainedBox(
-                                constraints: BoxConstraints(
-                                  maxWidth: 400,
-                                  maxHeight: MediaQuery.of(context).size.height * 0.6,  // Added to bound Stepper height
-                                ),
-                                child: Card(
-                                  color: Colors.grey[100],
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  elevation: 4,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(24),
-                                    child: isLoading
-                                        ? const Center(child: CircularProgressIndicator())
-                                        : Stepper(
-                                            type: StepperType.horizontal,
-                                            currentStep: state.currentStep,
-                                            onStepContinue: () async {
-                                              final steps = _getSteps(context, state);
-                                              final lastIndex = steps.length - 1;
-
-                                              if (state.currentStep == 0) {
-                                                if (_nameController.text.trim().isEmpty ||
-                                                    _usernameController.text.trim().isEmpty ||
-                                                    _phoneNumberController.text.trim().isEmpty) {
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    const SnackBar(
-                                                        content: Text('Semua field wajib diisi')),
-                                                  );
-                                                  return;
-                                                }
-
-                                                if (_hasSQLInjection(_nameController.text) ||
-                                                    _hasSQLInjection(_usernameController.text)) {
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    const SnackBar(
-                                                        content: Text('Input terdeteksi tidak aman')),
-                                                  );
-                                                  return;
-                                                }
-
-                                                if (_phoneNumberController.text.length < 10 ||
-                                                    _phoneNumberController.text.length > 15) {
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    const SnackBar(
-                                                        content: Text('Nomor telepon tidak valid')),
-                                                  );
-                                                  return;
-                                                }
-
-                                                final duplicateMsg =
-                                                    await _checkDuplicateUser(
-                                                        _emailController.text.trim(),
-                                                        _usernameController.text.trim());
-                                                if (duplicateMsg != null) {
-                                                  ScaffoldMessenger.of(context).showSnackBar(
-                                                    SnackBar(content: Text(duplicateMsg)),
-                                                  );
-                                                  return;
-                                                }
-                                              }
-
-                                              if (state.currentStep < lastIndex) {
-                                                context
-                                                    .read<ProfileFormBloc>()
-                                                    .add(const ProfileFormNextStep());
-                                              } else {
-                                                context.read<ProfileFormBloc>().add(
-                                                      ProfileFormSubmitted(
-                                                        fullName:
-                                                            _nameController.text.trim(),
-                                                        username:
-                                                            _usernameController.text.trim(),
-                                                        email:
-                                                            _emailController.text.trim(),
-                                                        phone: _phoneNumberController.text
-                                                            .trim(),
-                                                        dob: _dateOfBirthController.text
-                                                            .trim(),
-                                                        kelas: _selectedKelas,
-                                                      ),
-                                                    );
-                                              }
-                                            },
-                                            onStepCancel: () {
-                                              if (state.currentStep > 0) {
-                                                context
-                                                    .read<ProfileFormBloc>()
-                                                    .add(const ProfileFormPrevStep());
-                                              }
-                                            },
-                                            steps: _getSteps(context, state),
-                                          ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              },
-            ),
-          );
-        },
-      ),
-    );
   }
 
   Widget _buildHeader() {
@@ -405,23 +417,49 @@ class _ContinueWithGoogleState extends State<ContinueWithGoogle> {
       ],
     );
   }
-
+  
+  // Menggunakan TextFormField untuk field yang read-only agar tetap terlihat konsisten
   Widget _buildTextField(
+    String label,
+    TextEditingController controller, {
+    bool readOnly = false,
+  }) {
+    return TextFormField(
+      controller: controller,
+      readOnly: readOnly,
+      decoration: InputDecoration(
+        labelText: label,
+        filled: true,
+        fillColor: readOnly ? Colors.grey[200] : Colors.white,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  Widget _buildTextFormField(
     String label,
     TextEditingController controller, {
     TextInputType keyboardType = TextInputType.text,
     List<TextInputFormatter>? inputFormatters,
     bool readOnly = false,
+    String? Function(String?)? validator,
   }) {
-    return TextField(
+    return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
       readOnly: readOnly,
+      validator: validator ??
+          (value) {
+            if (value == null || value.trim().isEmpty) {
+              return '$label tidak boleh kosong.';
+            }
+            return null;
+          },
       decoration: InputDecoration(
         labelText: label,
         filled: true,
-        fillColor: Colors.white,
+        fillColor: readOnly ? Colors.grey[200] : Colors.white,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );

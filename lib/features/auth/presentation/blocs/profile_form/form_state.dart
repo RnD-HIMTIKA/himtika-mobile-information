@@ -1,6 +1,14 @@
 import 'package:equatable/equatable.dart';
 
-enum ProfileFormStatus { initial, loading, loaded, submitting, success, failure }
+enum ProfileFormStatus { 
+  initial, 
+  loading, 
+  loaded, 
+  validating, // Status saat validasi step 1 berjalan
+  submitting, 
+  success, 
+  failure 
+}
 
 class ProfileFormState extends Equatable {
   final ProfileFormStatus status;

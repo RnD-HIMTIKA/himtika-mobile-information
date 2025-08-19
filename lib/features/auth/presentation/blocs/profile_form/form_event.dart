@@ -44,3 +44,21 @@ class ProfileFormSubmitted extends ProfileFormEvent {
   @override
   List<Object?> get props => [fullName, username, email, phone, dob, kelas];
 }
+
+/// Event untuk memvalidasi data di langkah 1 sebelum lanjut ke langkah 2.
+class ProfileFormValidateStep1 extends ProfileFormEvent {
+  final String fullName;
+  final String username;
+  final String phone;
+  final String dob;
+
+  const ProfileFormValidateStep1({
+    required this.fullName,
+    required this.username,
+    required this.phone,
+    required this.dob,
+  });
+
+  @override
+  List<Object?> get props => [fullName, username, phone, dob];
+}

@@ -15,4 +15,8 @@ abstract class AuthRepository {
   Future<void> signOut();
 
   Future<void> updateProfile(String authId, Map<String, dynamic> changes);
+
+  Future<void> verifyOtp(String email, String token);
+  
+  Future<void> resendSignUpOtp(String email);
 }

@@ -4,11 +4,16 @@ import 'dashboard.dart';
 import 'hicode.dart';
 import 'kontakdosen.dart';
 
+import 'package:himtika_mobile_information/core/injection_container.dart'; // Import sl
+import 'package:himtika_mobile_information/features/auth/application/auth_controller.dart'; // Import AuthController
+
 class Sidebar extends StatelessWidget {
   const Sidebar({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final authController = sl<AuthController>();
+
     return Theme(
       data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
       child: Drawer(
@@ -94,11 +99,25 @@ class Sidebar extends StatelessWidget {
                       );
                     },
                   ),
+
+                  const Divider(color: Colors.white30), // Pemisah
+
+                  // TAMBAHKAN TOMBOL SIGN OUT DI SINI
+                  ListTile(
+                    leading: const Icon(Icons.logout, color: Colors.redAccent),
+                    title: const Text('Sign Out', style: TextStyle(color: Colors.redAccent)),
+                    onTap: () {
+                      // Tutup sidebar dulu
+                      Navigator.pop(context); 
+                      // Panggil fungsi signOut
+                      authController.signOut();
+                    },
+                  ),
                 ],
               ),
             ),
 
-            // Tombol Close di Pojok Kanan Atas
+            // Tombol Close di Pojok Kanan Atas 
             Positioned(
               top: 16,
               right: 8,

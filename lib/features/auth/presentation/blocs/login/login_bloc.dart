@@ -1,6 +1,8 @@
 // features/auth/presentation/blocs/login/login_bloc.dart
 import 'dart:async';
 import 'package:bloc/bloc.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'login_event.dart';
 import 'login_state.dart';
 import '../../../domain/usecases/sign_in_with_email.dart';
@@ -16,26 +18,42 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     required this.signInWithEmail,
     required this.signInWithGoogle,
     required this.getCurrentUser,
-  }) : super(LoginInitial()) {
+  }) : super(const LoginInitial()) {
     on<LoginWithEmail>(_onLoginWithEmail);
     on<LoginWithGoogle>(_onLoginWithGoogle);
+    on<LoadRememberMeData>(_onLoadRememberMeData);
   }
 
   Future<void> _onLoginWithEmail(LoginWithEmail event, Emitter<LoginState> emit) async {
     emit(LoginLoading());
     try {
-      // 1. Panggil use case sign in
       await signInWithEmail(event.email, event.password);
-
-      // 2. Panggil use case untuk verifikasi user
       final user = await getCurrentUser();
+
       if (user != null) {
+        // Simpan atau hapus kredensial berdasarkan pilihan "Remember Me"
+        final prefs = await SharedPreferences.getInstance();
+        if (event.rememberMe) {
+          await prefs.setString('email', event.email);
+          await prefs.setString('password', event.password);
+          await prefs.setBool('rememberMe', true);
+        } else {
+          await prefs.remove('email');
+          await prefs.remove('password');
+          await prefs.setBool('rememberMe', false);
+        }
         emit(LoginSuccess());
       } else {
-        emit(const LoginFailure('Login gagal. Periksa kembali email dan password Anda.'));
+        // Ini tidak akan pernah tercapai jika signInWithEmail throw error, tapi sebagai fallback
+        emit(const LoginFailure('Login gagal. Terjadi kesalahan tidak diketahui.'));
+      }
+    } on AuthException catch (e) {
+      if (e.message.toLowerCase().contains('invalid login credentials')) {
+        emit(const LoginFailure('Email dan Password tidak cocok.'));
+      } else {
+        emit(LoginFailure(e.message));
       }
     } catch (e) {
-      // Tangkap error dari use case
       emit(LoginFailure(e.toString()));
     }
   }
@@ -43,28 +61,21 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
   Future<void> _onLoginWithGoogle(LoginWithGoogle event, Emitter<LoginState> emit) async {
     emit(LoginLoading());
     try {
-      // 1. Panggil use case untuk memulai alur OAuth
       await signInWithGoogle();
-      
-      // 2. Verifikasi (bisa dipindahkan ke use case juga)
-      // Untuk saat ini, kita biarkan di sini sebagai bagian dari flow UI
-      bool userFound = false;
-      for (int i = 0; i < 10; i++) { // Coba selama 5 detik
-          await Future.delayed(const Duration(milliseconds: 500));
-          final user = await getCurrentUser();
-          if (user != null) {
-              userFound = true;
-              break;
-          }
-      }
-
-      if (userFound) {
-          emit(LoginSuccess());
-      } else {
-          emit(const LoginFailure('Gagal memverifikasi sesi Google. Silakan coba lagi.'));
-      }
+      // Navigasi akan di-handle oleh listener di main.dart
     } catch (e) {
       emit(LoginFailure(e.toString()));
+    }
+  }
+
+  Future<void> _onLoadRememberMeData(LoadRememberMeData event, Emitter<LoginState> emit) async {
+    final prefs = await SharedPreferences.getInstance();
+    final email = prefs.getString('email');
+    final password = prefs.getString('password');
+    final rememberMe = prefs.getBool('rememberMe') ?? false;
+
+    if (rememberMe && email != null && password != null) {
+      emit(LoginInitial(email: email, password: password, rememberMe: rememberMe));
     }
   }
 }

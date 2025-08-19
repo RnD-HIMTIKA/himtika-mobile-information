@@ -62,4 +62,19 @@ class AuthRemoteDataSource {
 
   /// get current session user (raw auth user)
   supabase.User? getCurrentAuthUser() => SupabaseAuthHelper.auth.currentUser;
+
+  Future<void> verifyOtp(String email, String token) async {
+    await SupabaseAuthHelper.auth.verifyOTP(
+      type: supabase.OtpType.signup,
+      token: token,
+      email: email,
+    );
+  }
+
+  Future<void> resendSignUpOtp(String email) async {
+    await SupabaseAuthHelper.auth.resend(
+      type: supabase.OtpType.signup,
+      email: email,
+    );
+  }
 }

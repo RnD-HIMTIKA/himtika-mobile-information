@@ -4,7 +4,7 @@ import '../../../core/injection_container.dart';
 import '../../../main.dart'; // Import main.dart untuk mengakses navigatorKey
 import '../domain/usecases/check_user_profile_completeness.dart';
 import '../presentation/pages/form.dart';
-import '../presentation/pages/register_success.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/presentation/pages/dashboard.dart';
 
 class AuthController {
   final _supabase = Supabase.instance.client;
@@ -17,7 +17,6 @@ class AuthController {
   Future<void> checkAuthAndNavigate() async {
     final context = navigatorKey.currentContext;
     
-    // INI KUNCI DEBUGGINGNYA
     if (context == null) {
       debugPrint("[AuthController] FAILED: Navigator context is not available at the moment of the call.");
       return;
@@ -33,13 +32,15 @@ class AuthController {
       final isProfileComplete = await _checkUserProfileCompleteness();
 
       if (isProfileComplete) {
+        // Alur Login Langsung (dari OAuth/sesi ada) -> Langsung ke Homepage
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const RegisterSuccess()),
+          MaterialPageRoute(builder: (_) => const Dashboard()), // Langsung ke Dashboard
           (route) => false,
         );
       } else {
+        // Alur Mengisi Form (dari OAuth/sesi ada) -> Ke Form
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const ContinueWithGoogle()),
+          MaterialPageRoute(builder: (_) => const ContinueWithGoogle(fromOAuth: true)), // Tandai dari OAuth
           (route) => false,
         );
       }
@@ -47,6 +48,16 @@ class AuthController {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error memeriksa profil: ${e.toString()}')),
       );
+    }
+  }
+
+  Future<void> signOut() async {
+    try {
+      await _supabase.auth.signOut();
+      // Navigasi akan ditangani oleh listener onAuthStateChange di main.dart
+    } catch (e) {
+      // Handle error jika sign out gagal
+      debugPrint("Error signing out: ${e.toString()}");
     }
   }
 }
