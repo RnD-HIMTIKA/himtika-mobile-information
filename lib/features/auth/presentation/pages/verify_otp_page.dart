@@ -3,9 +3,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'dart:async';
 import '../../../../core/injection_container.dart';
 import '../blocs/verify_reset_otp/verify_reset_otp_bloc.dart';
+import '../blocs/forgot_password/forgot_password_bloc.dart';
 import 'reset_password_page.dart';
 import 'forgot_password_page.dart';
-import 'package:himtika_mobile_information/features/auth/presentation/blocs/forgot_password/forgot_password_bloc.dart';
+import 'register.dart';
 
 class VerifyOtpPage extends StatefulWidget {
   final String email;
@@ -61,11 +62,9 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
       context.read<VerifyResetOtpBloc>().add(VerifyResetOtpSubmitted(email: widget.email, token: otp));
     }
   }
-  
+
   void _onResendPressed(BuildContext context) {
     if (_secondsRemaining == 0) {
-      // Untuk resend, kita bisa memicu kembali event dari ForgotPasswordBloc
-      // Ini lebih sederhana daripada membuat use case baru
       context.read<ForgotPasswordBloc>().add(ForgotPasswordSubmitted(widget.email));
       _startTimer();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -79,7 +78,6 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
     return MultiBlocProvider(
       providers: [
         BlocProvider(create: (_) => sl<VerifyResetOtpBloc>()),
-        // Sediakan ForgotPasswordBloc agar bisa diakses untuk resend
         BlocProvider(create: (_) => sl<ForgotPasswordBloc>()),
       ],
       child: BlocListener<VerifyResetOtpBloc, VerifyResetOtpState>(
@@ -102,6 +100,8 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
             final state = context.watch<VerifyResetOtpBloc>().state;
             return Scaffold(
               body: Container(
+                width: double.infinity,
+                height: double.infinity,
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
@@ -133,6 +133,59 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
           },
         ),
       ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    return Stack(
+      children: [
+        Align(
+          alignment: Alignment.topLeft,
+          child: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.white),
+            onPressed: () {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => const RegisterPage()),
+              );
+            },
+          ),
+        ),
+        Align(
+          alignment: Alignment.topRight,
+          child: Padding(
+            padding: const EdgeInsets.only(right: 4, top: 24),
+            child: Image.asset(
+              'src/features/login&register/images/bintang.png',
+              height: 36,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTitle() {
+    return Column(
+      children: [
+        Center(
+          child: Image.asset(
+            'src/features/login&register/images/himtika.png',
+            height: 60,
+          ),
+        ),
+        const SizedBox(height: 10),
+        const Text(
+          'Periksa Email Anda',
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: Colors.white),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Kami telah mengirimkan kode ke\n${widget.email}',
+          textAlign: TextAlign.center,
+          style: const TextStyle(fontSize: 14, color: Colors.white),
+        ),
+      ],
     );
   }
 
@@ -171,7 +224,7 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
                 }
                 if (value.isNotEmpty && index == 5) {
                   _focusNodes[index].unfocus();
-                  _onOtpSubmitted(context); 
+                  _onOtpSubmitted(context);
                 }
               },
             ),
@@ -217,42 +270,6 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
                 style: const TextStyle(color: Colors.white),
               ),
       ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context) {
-    return Stack(
-      children: [
-        Align(
-          alignment: Alignment.topLeft,
-          child: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const ForgotPasswordPage()),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTitle() {
-    return Column(
-      children: [
-        const Text(
-          'Verifikasi Kode',
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold, color: Colors.white),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Kami telah mengirimkan kode ke\n${widget.email}',
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 14, color: Colors.white),
-        ),
-      ],
     );
   }
 }

@@ -75,6 +75,51 @@ class _RegisterPageState extends State<RegisterPage> {
                                     height: 58,
                                   ),
                                 ),
+                                // Ganti bagian judul dan bintang
+                                const SizedBox(height: 4),
+                                Stack(
+                                  children: [
+                                    Center(
+                                      child: Column(
+                                        children: const [
+                                          Text(
+                                            'Create your new',
+                                            style: TextStyle(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Account',
+                                            style: TextStyle(
+                                              fontSize: 24,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+
+                                    // Bintang di pojok kanan
+                                    Positioned(
+                                      right: 24,
+                                      top: 0,
+                                      child: Image.asset(
+                                        'src/features/login&register/images/bintang.png',
+                                        height: 36,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                const Text(
+                                  'Sign up to unlock all features',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(fontSize: 14, color: Colors.white),
+                                ),
+
                                 const SizedBox(height: 24),
                                 ConstrainedBox(
                                   constraints: const BoxConstraints(maxWidth: 400),
