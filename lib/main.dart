@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:himtika_mobile_information/features/auth/presentation/pages/password_changed_page.dart';
+import 'package:himtika_mobile_information/features/auth/presentation/pages/register_success.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -75,7 +77,7 @@ class _MyAppState extends State<MyApp> {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(primarySwatch: Colors.blue),
         // Kita mulai dari splash, yang akan menunggu keputusan dari listener
-        home: const SplashScreen(),
+        home: const PasswordChangedPage(),
       ),
     );
   }

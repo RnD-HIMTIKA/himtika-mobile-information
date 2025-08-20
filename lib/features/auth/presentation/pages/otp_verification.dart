@@ -103,6 +103,8 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
             final state = context.watch<OtpBloc>().state;
             return Scaffold(
               body: Container(
+                width: double.infinity,
+                height: double.infinity,
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
@@ -242,7 +244,7 @@ class _OTPVerificationPageState extends State<OTPVerificationPage> {
         Align(
           alignment: Alignment.topRight,
           child: Padding(
-            padding: const EdgeInsets.only(right: 4, top: 8),
+            padding: const EdgeInsets.only(right: 4, top: 24),
             child: Image.asset(
               'src/features/login&register/images/bintang.png',
               height: 36,
