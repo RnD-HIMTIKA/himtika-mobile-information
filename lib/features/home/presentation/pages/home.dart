@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:himtika_mobile_information/features/calendar/presentation/pages/calendar_screen.dart';
 import 'package:himtika_mobile_information/features/home/presentation/pages/sidebar_home.dart';
 import '../bloc/home_bloc.dart';
 import '../bloc/home_event.dart';
@@ -151,7 +152,12 @@ class HomePage extends StatelessWidget {
                                       "src/features/home/icons/hiagenda.svg",
                                       "HiAgenda",
                                       [Color(0xFFDBF6BF), Color(0xFFDBF6BF)],
-                                      () {}, //redirect
+                                      () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (_) => const CalendarScreen()),
+                                        );
+                                      },
                                     ),
                                   _menuItem(
                                       "src/features/home/icons/hispace.svg",
