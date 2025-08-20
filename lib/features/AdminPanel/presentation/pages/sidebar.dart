@@ -4,6 +4,7 @@ import 'dashboard.dart';
 import 'hicode.dart';
 import 'kontakdosen.dart';
 
+import 'package:himtika_mobile_information/features/home/presentation/pages/home.dart';
 import 'package:himtika_mobile_information/core/injection_container.dart'; // Import sl
 import 'package:himtika_mobile_information/features/auth/application/auth_controller.dart'; // Import AuthController
 
@@ -107,10 +108,10 @@ class Sidebar extends StatelessWidget {
                     leading: const Icon(Icons.logout, color: Colors.redAccent),
                     title: const Text('Sign Out', style: TextStyle(color: Colors.redAccent)),
                     onTap: () {
-                      // Tutup sidebar dulu
-                      Navigator.pop(context); 
-                      // Panggil fungsi signOut
-                      authController.signOut();
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const HomePage()),
+                      );
                     },
                   ),
                 ],
