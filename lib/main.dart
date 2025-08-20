@@ -6,11 +6,8 @@ import 'core/supabase_config.dart';
 import 'core/injection_container.dart';
 import 'features/auth/application/auth_controller.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/adminpanel_bloc.dart';
-import 'package:himtika_mobile_information/features/auth/presentation/blocs/login/login_bloc.dart';
 import 'package:himtika_mobile_information/features/auth/presentation/pages/splash.dart';
-import 'package:himtika_mobile_information/features/auth/presentation/pages/onboarding.dart'; // Import Onboarding
-
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+import 'core/supabase_config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -73,8 +70,6 @@ class _MyAppState extends State<MyApp> {
         navigatorKey: navigatorKey,
         title: 'HIMTIKA Mobile Information',
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(primarySwatch: Colors.blue),
-        // Kita mulai dari splash, yang akan menunggu keputusan dari listener
         home: const SplashScreen(),
       ),
     );
