@@ -11,12 +11,12 @@ abstract class AuthRepository {
 
   // OAuth redirect flow — jadi Future<void>
   Future<void> signInWithGoogle();
-
   Future<void> signOut();
-
   Future<void> updateProfile(String authId, Map<String, dynamic> changes);
-
   Future<void> verifyOtp(String email, String token);
-  
   Future<void> resendSignUpOtp(String email);
+
+  Future<void> sendPasswordResetOtp(String email);
+  Future<void> verifyPasswordResetOtp(String email, String token);
+  Future<void> updateUserPassword(String newPassword);
 }
