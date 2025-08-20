@@ -6,7 +6,11 @@ import 'core/supabase_config.dart';
 import 'core/injection_container.dart';
 import 'features/auth/application/auth_controller.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/adminpanel_bloc.dart';
+<<<<<<< HEAD
 import 'package:himtika_mobile_information/features/auth/presentation/pages/splash.dart';
+=======
+import 'package:himtika_mobile_information/features/home/presentation/pages/home.dart';
+>>>>>>> FeatHomePage
 import 'core/supabase_config.dart';
 
 void main() async {
@@ -70,7 +74,11 @@ class _MyAppState extends State<MyApp> {
         navigatorKey: navigatorKey,
         title: 'HIMTIKA Mobile Information',
         debugShowCheckedModeBanner: false,
+<<<<<<< HEAD
         home: const SplashScreen(),
+=======
+        home: HomePage(),
+>>>>>>> FeatHomePage
       ),
     );
   }
