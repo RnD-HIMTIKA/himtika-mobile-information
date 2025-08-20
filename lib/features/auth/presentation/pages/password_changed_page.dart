@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:himtika_mobile_information/features/auth/presentation/pages/login.dart';
 
 class PasswordChangedPage extends StatelessWidget {
   const PasswordChangedPage({super.key});
@@ -30,7 +31,10 @@ class PasswordChangedPage extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton(
                       onPressed: () {
-                        Navigator.pushNamedAndRemoveUntil(context, '/login', (_) => false);
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(builder: (context) => const LoginPage()),
+                        );
                       },
                       child: const Text('Back to Login'),
                     ),

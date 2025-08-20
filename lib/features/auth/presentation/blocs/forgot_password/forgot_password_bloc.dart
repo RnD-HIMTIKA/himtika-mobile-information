@@ -1,9 +1,16 @@
+import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'forgot_password_event.dart';
-import 'forgot_password_state.dart';
+import '../../../domain/usecases/send_password_reset_otp.dart';
+
+part 'forgot_password_event.dart';
+part 'forgot_password_state.dart';
 
 class ForgotPasswordBloc extends Bloc<ForgotPasswordEvent, ForgotPasswordState> {
-  ForgotPasswordBloc() : super(ForgotPasswordInitial()) {
+  final SendPasswordResetOtp _sendPasswordResetOtp;
+
+  ForgotPasswordBloc({required SendPasswordResetOtp sendPasswordResetOtp})
+      : _sendPasswordResetOtp = sendPasswordResetOtp,
+        super(ForgotPasswordInitial()) {
     on<ForgotPasswordSubmitted>(_onSubmitted);
   }
 
@@ -12,21 +19,12 @@ class ForgotPasswordBloc extends Bloc<ForgotPasswordEvent, ForgotPasswordState> 
     Emitter<ForgotPasswordState> emit,
   ) async {
     emit(ForgotPasswordLoading());
-
     try {
-      // Simulasi API request (ganti dengan call ke repository atau API sebenarnya)
-      await Future.delayed(const Duration(seconds: 2));
-
-      // Validasi sederhana (bisa kamu ganti dengan logika dari backend)
-      if (event.email.isEmpty || !event.email.contains('@')) {
-        emit(const ForgotPasswordFailure('Invalid email address.'));
-        return;
-      }
-
-      // Jika berhasil
-      emit(ForgotPasswordSuccess());
+      await _sendPasswordResetOtp(event.email);
+      emit(ForgotPasswordSuccess(email: event.email));
     } catch (e) {
-      emit(ForgotPasswordFailure('Something went wrong. Please try again.'));
+      // Tangkap semua jenis error dari use case dan tampilkan pesannya
+      emit(ForgotPasswordFailure(e.toString().replaceFirst('Exception: ', '')));
     }
   }
 }
