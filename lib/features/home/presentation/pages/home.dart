@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:himtika_mobile_information/features/home/presentation/pages/sidebar_home.dart';
 import '../bloc/home_bloc.dart';
 import '../bloc/home_event.dart';
 import '../bloc/home_state.dart';
@@ -13,6 +14,7 @@ class HomePage extends StatelessWidget {
     return BlocProvider(
       create: (_) => HomeBloc()..add(LoadHomeData()),
       child: Scaffold(
+        endDrawer: const SidebarHome(),
         body: SafeArea(
           child: BlocBuilder<HomeBloc, HomeState>(
             builder: (context, state) {
@@ -74,7 +76,7 @@ class HomePage extends StatelessWidget {
                                 icon:
                                     const Icon(Icons.menu, color: Colors.white),
                                 onPressed: () {
-                                  // Aksi ketika icon menu ditekan
+                                  Scaffold.of(context).openEndDrawer();
                                 },
                               ),
                             ],
