@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:himtika_mobile_information/features/login&register/forgot_password/presentation/pages/verify_otp_page.dart';
-import 'package:himtika_mobile_information/features/login&register/presentation/pages/login.dart';
-import 'package:himtika_mobile_information/features/login&register/presentation/pages/register.dart';
-import '../bloc/forgot_password_bloc.dart';
-import '../bloc/forgot_password_event.dart';
-import '../bloc/forgot_password_state.dart';
+import 'package:himtika_mobile_information/features/auth/presentation/pages/verify_otp_page.dart';
+import 'package:himtika_mobile_information/features/auth/presentation/pages/login.dart';
+import 'package:himtika_mobile_information/features/auth/presentation/pages/register.dart';
+import '../blocs/forgot_password/forgot_password_bloc.dart';
+import '../blocs/forgot_password/forgot_password_event.dart';
+import '../blocs/forgot_password/forgot_password_state.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});

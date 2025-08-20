@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:himtika_mobile_information/features/home/presentation/pages/home.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/injection_container.dart';
 import '../../../main.dart'; // Import main.dart untuk mengakses navigatorKey
 import '../domain/usecases/check_user_profile_completeness.dart';
 import '../presentation/pages/form.dart';
-import 'package:himtika_mobile_information/features/AdminPanel/presentation/pages/dashboard.dart';
 
 class AuthController {
   final _supabase = Supabase.instance.client;
@@ -34,7 +34,7 @@ class AuthController {
       if (isProfileComplete) {
         // Alur Login Langsung (dari OAuth/sesi ada) -> Langsung ke Homepage
         Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (_) => const Dashboard()), // Langsung ke Dashboard
+          MaterialPageRoute(builder: (_) => const HomePage()),
           (route) => false,
         );
       } else {

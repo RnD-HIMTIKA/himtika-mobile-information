@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:himtika_mobile_information/features/AdminPanel/presentation/pages/dashboard.dart'; // Placeholder untuk Homepage
+import 'package:himtika_mobile_information/features/home/presentation/pages/home.dart';
 import 'login.dart';
 
 class RegisterSuccess extends StatelessWidget {
@@ -26,7 +26,7 @@ class RegisterSuccess extends StatelessWidget {
         // Arahkan ke homepage (saat ini menggunakan Dashboard sebagai placeholder)
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const Dashboard()),
+          MaterialPageRoute(builder: (context) => const HomePage()),
         );
       } else {
         // Arahkan kembali ke halaman login

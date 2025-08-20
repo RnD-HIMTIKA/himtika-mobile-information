@@ -78,9 +78,7 @@ flutter:
 
   # To add assets to your application, add an assets section, like this:
   assets:
-<<<<<<< HEAD
     - .env
-=======
   # Home
     - src/features/home/images/pattern.png
     - src/features/home/icons/himtika.png
@@ -96,7 +94,6 @@ flutter:
     - src/features/home/icons/message.png
     - src/features/home/icons/profile.png 
 
->>>>>>> FeatHomePage
     - src/features/AdminPanel/images/dashboard.png
     - src/features/login&register/images/logo.png
     - src/features/login&register/images/himtika.png

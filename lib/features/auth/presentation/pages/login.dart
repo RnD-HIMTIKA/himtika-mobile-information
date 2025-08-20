@@ -10,6 +10,7 @@ import '../blocs/login/login_state.dart';
 
 import 'onboarding.dart';
 import 'register.dart';
+import 'forgot_password_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -202,7 +203,12 @@ class _LoginPageState extends State<LoginPage> {
                                                 ],
                                               ),
                                               TextButton(
-                                                onPressed: () {},
+                                                onPressed: () {
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(builder: (context) => const ForgotPasswordPage()),
+                                                  );
+                                                },
                                                 child: const Text('Forgot Password?'),
                                               ),
                                             ],
