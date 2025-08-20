@@ -49,6 +49,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
   flutter_svg: ^2.0.9
+  table_calendar: ^3.2.0
 
 dev_dependencies:
   flutter_test:
@@ -92,9 +93,10 @@ flutter:
     - src/features/home/icons/home.png
     - src/features/home/icons/chat.png
     - src/features/home/icons/message.png
-    - src/features/home/icons/profile.png 
+    - src/features/home/icons/profile.png
 
     - src/features/AdminPanel/images/dashboard.png
+    
     - src/features/login&register/images/logo.png
     - src/features/login&register/images/himtika.png
     - src/features/login&register/images/google.png
@@ -105,6 +107,10 @@ flutter:
     - src/features/login&register/images/ilustrasi2.png
     - src/features/login&register/images/ilustrasi3.png
     - src/features/login&register/images/ilustrasi4.png
+
+    - src/features/calendar/images/pattern.png
+    - src/features/calendar/images/assets.png
+
 
   #   - images/a_dot_ham.jpeg
 
