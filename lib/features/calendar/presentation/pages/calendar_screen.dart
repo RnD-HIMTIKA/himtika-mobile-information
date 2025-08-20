@@ -15,15 +15,19 @@ class CalendarScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: CircleAvatar(
-          backgroundColor: Colors.transparent,
+        leadingWidth: 72, // kasih ruang lebih
+        leading: Padding(
+          padding: EdgeInsets.only(
+            top: MediaQuery.of(context).padding.top + 25, // tambahin offset biar pas
+            left: 4,
+          ),
           child: IconButton(
             padding: EdgeInsets.zero, // biar nggak ada jarak tambahan
             icon: Image.asset(
               "src/features/login&register/images/arrow_back.png", 
               color: Color(0xFF31b7fe),           
-              width: 24,
-              height: 24,
+              width: 32,
+              height: 32,
             ),
             onPressed: () {
               Navigator.push(
@@ -75,7 +79,7 @@ class _BackgroundContent extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: MediaQuery.of(context).padding.top),
+            SizedBox(height: MediaQuery.of(context).padding.top + 30),
             const Text(
               'Plan Your Days, Own Your Time',
               style: TextStyle(
@@ -85,16 +89,16 @@ class _BackgroundContent extends StatelessWidget {
                 height: 1.2,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 18),
             Text(
               'Easily create, manage, and share your schedule—stay organized and never miss a thing.',
               style: TextStyle(
                 color: Colors.white.withValues(alpha:0.8),
-                fontSize: 16,
+                fontSize: 18,
                 height: 1.5,
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 40),
             Center(
               child: Image.asset('src/features/calendar/images/assets.png'),
             ),

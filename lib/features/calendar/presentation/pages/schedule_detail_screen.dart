@@ -82,28 +82,38 @@ class _ScheduleDetailScreenState extends State<ScheduleDetailScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text(
-          widget.workspaceTitle,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
+        toolbarHeight: 80,
+        title: Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text(
+            widget.workspaceTitle,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 32,
+            ),
           ),
         ),
+        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: Image.asset(
-            "src/features/login&register/images/arrow_back.png",
-            width: 24,
-            height: 24, 
-            color: Color(0xFF31b7fe),
-          ),
-          onPressed: (){
-            Navigator.push(
+        leadingWidth: 72,
+        leading: Padding(
+          padding: const EdgeInsets.only(top: 8, left: 4),
+          child: IconButton(
+            icon: Image.asset(
+              "src/features/login&register/images/arrow_back.png",
+              width: 32,
+              height: 32,
+              color: const Color(0xFF31b7fe),
+            ),
+            onPressed: () {
+              Navigator.pop(
                 context,
                 MaterialPageRoute(builder: (context) => const CalendarScreen()),
               );
-          },
+            },
+          ),
         ),
       ),
       body: Container(
@@ -174,10 +184,10 @@ class _TopContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-       padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Column(
         children: [
-          const SizedBox(height: 16),
+          const SizedBox(height: 45),
           Row(
             children: [
               ElevatedButton.icon(
@@ -195,7 +205,7 @@ class _TopContent extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           Container(
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
             child: TableCalendar(
@@ -215,7 +225,7 @@ class _TopContent extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -336,7 +346,7 @@ class _ScheduleEventCard extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha:0.2), // warna shadow
-            offset: const Offset(0, 4), // posisi shadow (0 = center, 4 ke bawah)
+            offset: const Offset(0, 4),
             blurRadius: 6, // seberapa blur
             spreadRadius: 0, // seberapa luas
           ),
