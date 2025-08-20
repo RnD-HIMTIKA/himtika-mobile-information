@@ -130,37 +130,53 @@ class HomePage extends StatelessWidget {
                                 crossAxisCount: 4,
                                 children: [
                                   _menuItem(
-                                      "src/features/home/icons/himtika.png",
-                                      "HIMTIKA",
-                                      [Color(0xFF32B7FF), Color(0xFF32B7FF)]),
+                                    "src/features/home/icons/himtika.png",
+                                    "HIMTIKA",
+                                    [Color(0xFF32B7FF), Color(0xFF32B7FF)],
+                                    () {}, //redirect
+                                  ),
                                   _menuItem(
                                       "src/features/home/icons/hicode.svg",
                                       "HiCode",
-                                      [Color(0xFF333C66), Color(0xFF2D365E)]),
+                                      [Color(0xFF333C66), Color(0xFF2D365E)],
+                                      () {}, //redirect
+                                    ),
                                   _menuItem(
                                       "src/features/home/icons/hiconnect.svg",
                                       "HiConnect",
-                                      [Color(0xFFFFC107), Color(0xFFFFC107)]),
+                                      [Color(0xFFFFC107), Color(0xFFFFC107)],
+                                      () {}, //redirect
+                                    ),
                                   _menuItem(
                                       "src/features/home/icons/hiagenda.svg",
                                       "HiAgenda",
-                                      [Color(0xFFDBF6BF), Color(0xFFDBF6BF)]),
+                                      [Color(0xFFDBF6BF), Color(0xFFDBF6BF)],
+                                      () {}, //redirect
+                                    ),
                                   _menuItem(
                                       "src/features/home/icons/hispace.svg",
                                       "HiSpace",
-                                      [Color(0xFF402DAE), Color(0xFFBD63D1)]),
+                                      [Color(0xFF402DAE), Color(0xFFBD63D1)],
+                                      () {}, //redirect
+                                    ),
                                   _menuItem(
                                       "src/features/home/icons/kontak.svg",
                                       "Kontak Dosen",
-                                      [Color(0xFFF4BF75), Color(0xFFF4BF75)]),
+                                      [Color(0xFFF4BF75), Color(0xFFF4BF75)],
+                                      () {}, //redirect
+                                    ),
                                   _menuItem(
                                       "src/features/home/icons/event.svg",
                                       "Event",
-                                      [Color(0xFF4CAF50), Color(0xFF4CAF50)]),
+                                      [Color(0xFF4CAF50), Color(0xFF4CAF50)],
+                                      () {}, //redirect
+                                    ),
                                   _menuItem(
                                       "src/features/home/icons/more.svg",
                                       "More",
-                                      [Color(0xFFF7F7F7), Color(0xFFF7F7F7)]),
+                                      [Color(0xFFF7F7F7), Color(0xFFF7F7F7)],
+                                      () {}, //redirect
+                                    ),
                                 ],
                               ),
                             ),
@@ -176,6 +192,7 @@ class HomePage extends StatelessWidget {
                               style: TextStyle(
                                   fontSize: 16, fontWeight: FontWeight.bold)),
                         ),
+                        const SizedBox(height: 8),
                         SizedBox(
                           height: 100,
                           child: ListView.builder(
@@ -191,8 +208,6 @@ class HomePage extends StatelessWidget {
                             ),
                           ),
                         ),
-
-                        const SizedBox(height: 24),
                       ],
                     ),
                   ),
@@ -264,33 +279,37 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _menuItem(String assetPath, String label, List<Color> gradientColors) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: gradientColors,
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+  Widget _menuItem(String assetPath, String label, List<Color> gradientColors, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: gradientColors,
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              borderRadius: BorderRadius.circular(12),
             ),
-            borderRadius: BorderRadius.circular(12),
+            padding: const EdgeInsets.all(8),
+            child: _buildImage(assetPath),
           ),
-          padding: const EdgeInsets.all(8),
-          child: _buildImage(assetPath),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 12),
-        ),
-      ],
+          const SizedBox(height: 6),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 12),
+          ),
+        ],
+      ),
     );
   }
+
 
   Widget _buildImage(String assetPath) {
     if (assetPath.toLowerCase().endsWith('.svg')) {
