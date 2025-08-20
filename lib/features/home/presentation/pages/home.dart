@@ -37,7 +37,8 @@ class HomePage extends StatelessWidget {
                       children: [
                         // Header
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 20),
                           decoration: const BoxDecoration(
                             color: Colors.blue,
                             borderRadius: BorderRadius.only(
@@ -70,7 +71,8 @@ class HomePage extends StatelessWidget {
                                 ],
                               ),
                               IconButton(
-                                icon: const Icon(Icons.menu, color: Colors.white),
+                                icon:
+                                    const Icon(Icons.menu, color: Colors.white),
                                 onPressed: () {
                                   // Aksi ketika icon menu ditekan
                                 },
@@ -84,7 +86,9 @@ class HomePage extends StatelessWidget {
                         // Terbaru
                         const Padding(
                           padding: EdgeInsets.symmetric(horizontal: 16),
-                          child: Text("Terbaru", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          child: Text("Terbaru",
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
                         ),
                         const SizedBox(height: 8),
                         SizedBox(
@@ -107,7 +111,8 @@ class HomePage extends StatelessWidget {
 
                         // Menu Grid
                         Padding(
-                          padding: const EdgeInsets.all(16.0), // jarak luar card
+                          padding:
+                              const EdgeInsets.all(16.0), // jarak luar card
                           child: Card(
                             color: Colors.white,
                             elevation: 2,
@@ -115,33 +120,59 @@ class HomePage extends StatelessWidget {
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Padding(
-                              padding: const EdgeInsets.all(12.0), // jarak dalam card
+                              padding: const EdgeInsets.all(
+                                  12.0), // jarak dalam card
                               child: GridView.count(
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
                                 crossAxisCount: 4,
                                 children: [
-                                  _menuItem("src/features/home/icons/himtika.png", "HIMTIKA", [Color(0xFF32B7FF), Color(0xFF32B7FF)]),
-                                  _menuItem("src/features/home/icons/hicode.svg", "HiCode", [Color(0xFF333C66), Color(0xFF2D365E)]),
-                                  _menuItem("src/features/home/icons/hiconnect.svg", "HiConnect", [Color(0xFFFFC107), Color(0xFFFFC107)]),
-                                  _menuItem("src/features/home/icons/hiagenda.svg", "HiAgenda", [Color(0xFFDBF6BF), Color(0xFFDBF6BF)]),
-                                  _menuItem("src/features/home/icons/hispace.svg", "HiSpace", [Color(0xFF402DAE), Color(0xFFBD63D1)]),
-                                  _menuItem("src/features/home/icons/kontak.svg", "Kontak Dosen", [Color(0xFFF4BF75), Color(0xFFF4BF75)]),
-                                  _menuItem("src/features/home/icons/event.svg", "Event", [Color(0xFF4CAF50), Color(0xFF4CAF50)]),
-                                  _menuItem("src/features/home/icons/more.svg", "More", [Color(0xFFF7F7F7), Color(0xFFF7F7F7)]),
+                                  _menuItem(
+                                      "src/features/home/icons/himtika.png",
+                                      "HIMTIKA",
+                                      [Color(0xFF32B7FF), Color(0xFF32B7FF)]),
+                                  _menuItem(
+                                      "src/features/home/icons/hicode.svg",
+                                      "HiCode",
+                                      [Color(0xFF333C66), Color(0xFF2D365E)]),
+                                  _menuItem(
+                                      "src/features/home/icons/hiconnect.svg",
+                                      "HiConnect",
+                                      [Color(0xFFFFC107), Color(0xFFFFC107)]),
+                                  _menuItem(
+                                      "src/features/home/icons/hiagenda.svg",
+                                      "HiAgenda",
+                                      [Color(0xFFDBF6BF), Color(0xFFDBF6BF)]),
+                                  _menuItem(
+                                      "src/features/home/icons/hispace.svg",
+                                      "HiSpace",
+                                      [Color(0xFF402DAE), Color(0xFFBD63D1)]),
+                                  _menuItem(
+                                      "src/features/home/icons/kontak.svg",
+                                      "Kontak Dosen",
+                                      [Color(0xFFF4BF75), Color(0xFFF4BF75)]),
+                                  _menuItem(
+                                      "src/features/home/icons/event.svg",
+                                      "Event",
+                                      [Color(0xFF4CAF50), Color(0xFF4CAF50)]),
+                                  _menuItem(
+                                      "src/features/home/icons/more.svg",
+                                      "More",
+                                      [Color(0xFFF7F7F7), Color(0xFFF7F7F7)]),
                                 ],
                               ),
                             ),
                           ),
                         ),
 
-
                         const SizedBox(height: 24),
 
                         // Divisi
                         const Padding(
                           padding: EdgeInsets.symmetric(horizontal: 16),
-                          child: Text("Divisi", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          child: Text("Divisi",
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold)),
                         ),
                         SizedBox(
                           height: 100,
@@ -168,68 +199,68 @@ class HomePage extends StatelessWidget {
             },
           ),
         ),
-       bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
+        bottomNavigationBar: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                spreadRadius: 0,
+                blurRadius: 8,
+              ),
+            ],
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black12,
-              spreadRadius: 0,
-              blurRadius: 8,
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: Colors.black,
-          unselectedItemColor: Colors.black,
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          showSelectedLabels: false,
-          showUnselectedLabels: false,
-          items: [
-            BottomNavigationBarItem(
-              icon: Image.asset(
-                "src/features/home/icons/home.png",
-                width: 24,
-                height: 24,
+          child: BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
+            selectedItemColor: Colors.black,
+            unselectedItemColor: Colors.black,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            showSelectedLabels: false,
+            showUnselectedLabels: false,
+            items: [
+              BottomNavigationBarItem(
+                icon: Image.asset(
+                  "src/features/home/icons/home.png",
+                  width: 24,
+                  height: 24,
+                ),
+                label: "",
               ),
-              label: "",
-            ),
-            BottomNavigationBarItem(
-              icon: Image.asset(
-                "src/features/home/icons/chat.png",
-                width: 24,
-                height: 24,
+              BottomNavigationBarItem(
+                icon: Image.asset(
+                  "src/features/home/icons/chat.png",
+                  width: 24,
+                  height: 24,
+                ),
+                label: "",
               ),
-              label: "",
-            ),
-            BottomNavigationBarItem(
-              icon: Image.asset(
-                "src/features/home/icons/message.png",
-                width: 24,
-                height: 24,
+              BottomNavigationBarItem(
+                icon: Image.asset(
+                  "src/features/home/icons/message.png",
+                  width: 24,
+                  height: 24,
+                ),
+                label: "",
               ),
-              label: "",
-            ),
-            BottomNavigationBarItem(
-              icon: Image.asset(
-                "src/features/home/icons/profile.png",
-                width: 24,
-                height: 24,
+              BottomNavigationBarItem(
+                icon: Image.asset(
+                  "src/features/home/icons/profile.png",
+                  width: 24,
+                  height: 24,
+                ),
+                label: "",
               ),
-              label: "",
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _menuItem(String assetPath, String label, List<Color> gradientColors) {
     return Column(
@@ -272,5 +303,4 @@ class HomePage extends StatelessWidget {
       );
     }
   }
-
 }

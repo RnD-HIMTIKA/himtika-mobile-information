@@ -1,47 +1,63 @@
 import '../../domain/entities/role.dart';
 import '../../domain/entities/permission.dart';
-import '../../domain/entities/user_role.dart';
-import '../../domain/entities/role_permission.dart';
 import '../../domain/repositories/roles_repository.dart';
 import '../datasources/roles_remote_datasource.dart';
-import '../mappers/role_mapper.dart';
-import '../mappers/permission_mapper.dart';
-import '../mappers/user_role_mapper.dart';
-import '../mappers/role_permission_mapper.dart';
 
+// RepositoryImpl sekarang bertanggung jawab untuk mapping data mentah ke Entity.
 class RolesRepositoryImpl implements RolesRepository {
   final RolesRemoteDatasource remoteDatasource;
 
   RolesRepositoryImpl(this.remoteDatasource);
 
   @override
-  Future<List<Role>> getAllRoles(String userId) async {
-    final models = await remoteDatasource.getAllRoles(userId);
-    return models.map(RoleMapper.toEntity).toList();
+  Future<List<Role>> getAllRoles() async {
+    final data = await remoteDatasource.getAllRoles();
+    return data.map((json) => Role(
+      id: json['id'],
+      name: json['name'],
+      groupName: json['group_name'],
+    )).toList();
   }
 
   @override
-  Future<void> assignRole(String userId, String roleId) async {
-    await remoteDatasource.assignRole(userId, roleId);
+  Future<List<Role>> getRolesByUser(String userId) async {
+    final data = await remoteDatasource.getRolesByUser(userId);
+    // Data yang dikembalikan adalah list, di mana setiap elemen punya key 'roles'
+    return data.map((item) => Role(
+      id: item['roles']['id'],
+      name: item['roles']['name'],
+      groupName: item['roles']['group_name'],
+    )).toList();
   }
 
   @override
-  Future<void> revokeRole(String userId, String roleId) async {
-    await remoteDatasource.revokeRole(userId, roleId);
+  Future<void> assignRoleToUser(String userId, String roleId) async {
+    await remoteDatasource.assignRoleToUser(userId, roleId);
+  }
+
+  @override
+  Future<void> revokeRoleFromUser(String userId, String roleId) async {
+    await remoteDatasource.revokeRoleFromUser(userId, roleId);
   }
 
   @override
   Future<List<Permission>> getUserPermissions(String userId) async {
-    final models = await remoteDatasource.getUserPermissions(userId);
-    return models.map(PermissionMapper.toEntity).toList();
+    final data = await remoteDatasource.getUserPermissions(userId);
+    return data.map((json) => Permission(
+      featureName: json['feature_name'],
+      actionName: json['action_name'],
+    )).toList();
   }
 
   @override
-  Future<List<UserRole>> getUserRoles(String userId) async {
-    final models = await remoteDatasource.getUserRoles(userId);
-    return models.map(UserRoleMapper.toEntity).toList();
+  Future<List<Permission>> getPermissionsByRole(String roleId) async {
+    final data = await remoteDatasource.getPermissionsByRole(roleId);
+    return data.map((json) => Permission(
+      featureName: json['feature_name'],
+      actionName: json['action_name'],
+    )).toList();
   }
-
+  
   @override
   Future<void> assignPermissionToRole(String roleId, String permissionId) async {
     await remoteDatasource.assignPermissionToRole(roleId, permissionId);
@@ -50,17 +66,5 @@ class RolesRepositoryImpl implements RolesRepository {
   @override
   Future<void> revokePermissionFromRole(String roleId, String permissionId) async {
     await remoteDatasource.revokePermissionFromRole(roleId, permissionId);
-  }
-
-  @override
-  Future<List<RolePermission>> getPermissionsByRoleId(String roleId) async {
-    final models = await remoteDatasource.getPermissionsByRoleId(roleId);
-    return models.map(RolePermissionMapper.toEntity).toList();
-  }
-
-  @override
-  Future<List<Permission>> getPermissionsByRole(String roleId) async {
-    final models = await remoteDatasource.getPermissionsByRole(roleId);
-    return models.map(PermissionMapper.toEntity).toList();
   }
 }
