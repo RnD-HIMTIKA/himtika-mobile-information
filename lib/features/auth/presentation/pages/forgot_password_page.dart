@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:himtika_mobile_information/features/auth/presentation/pages/verify_otp_page.dart';
-import 'package:himtika_mobile_information/features/auth/presentation/pages/login.dart';
-import 'package:himtika_mobile_information/features/auth/presentation/pages/register.dart';
 import '../../../../core/injection_container.dart';
 import '../blocs/forgot_password/forgot_password_bloc.dart';
+import 'verify_otp_page.dart';
+import 'login.dart';
+import 'register.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
   const ForgotPasswordPage({super.key});
+
   @override
   State<ForgotPasswordPage> createState() => _ForgotPasswordPageState();
 }
@@ -18,32 +19,26 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => sl<ForgotPasswordBloc>(), // PERBAIKAN: Gunakan GetIt
+      create: (_) => sl<ForgotPasswordBloc>(),
       child: Scaffold(
         body: LayoutBuilder(
           builder: (context, constraints) {
-            // UI Anda yang sudah ada tidak berubah. Kita bungkus dengan BlocConsumer.
             return BlocConsumer<ForgotPasswordBloc, ForgotPasswordState>(
               listener: (context, state) {
                 if (state is ForgotPasswordSuccess) {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      // Teruskan email ke halaman selanjutnya
                       builder: (context) => VerifyOtpPage(email: state.email),
                     ),
                   );
                 } else if (state is ForgotPasswordFailure) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                        content: Text(state.message),
-                        backgroundColor: Colors.red),
+                    SnackBar(content: Text(state.message), backgroundColor: Colors.red),
                   );
                 }
               },
               builder: (context, state) {
-                // ... (seluruh kode UI Anda dari Stack sampai akhir,
-                // pastikan onPressed ElevatedButton memanggil BLoC seperti di bawah)
                 return Stack(
                   children: [
                     // Background biru atas dan putih bawah
@@ -53,26 +48,22 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           height: constraints.maxHeight * 0.5,
                           color: const Color(0xFF0175C8),
                         ),
-                        Expanded(
-                          child: Container(color: Colors.white),
-                        ),
+                        Expanded(child: Container(color: Colors.white)),
                       ],
                     ),
+
                     // Konten utama
                     SafeArea(
                       child: SingleChildScrollView(
                         child: ConstrainedBox(
-                          constraints:
-                              BoxConstraints(minHeight: constraints.maxHeight),
+                          constraints: BoxConstraints(minHeight: constraints.maxHeight),
                           child: IntrinsicHeight(
                             child: Center(
                               child: Padding(
                                 padding: EdgeInsets.only(
                                   left: 16,
                                   right: 16,
-                                  bottom:
-                                      MediaQuery.of(context).viewInsets.bottom +
-                                          16,
+                                  bottom: MediaQuery.of(context).viewInsets.bottom + 16,
                                 ),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.center,
@@ -81,19 +72,15 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
                                     // Tombol Back & Bintang
                                     Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                          horizontal: 16, vertical: 8),
+                                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                       child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
                                           GestureDetector(
                                             onTap: () {
                                               Navigator.push(
                                                 context,
-                                                MaterialPageRoute(
-                                                    builder: (context) =>
-                                                        const LoginPage()),
+                                                MaterialPageRoute(builder: (context) => const LoginPage()),
                                               );
                                             },
                                             child: Image.asset(
@@ -109,11 +96,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                         ],
                                       ),
                                     ),
+
                                     const SizedBox(height: 64),
 
-                                    // Judul dan deskripsi
-                                    Column(
-                                      children: const [
+                                    // Judul & deskripsi
+                                    const Column(
+                                      children: [
                                         Text(
                                           'Forgot Password?',
                                           style: TextStyle(
@@ -126,26 +114,22 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                         Text(
                                           'Don\'t worry! It happens. Please enter the\nemail associated with your account.',
                                           textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                              fontSize: 14,
-                                              color: Colors.white),
+                                          style: TextStyle(fontSize: 14, color: Colors.white),
                                         ),
                                       ],
                                     ),
 
                                     const SizedBox(height: 18),
 
-                                    // Kartu email input + tombol + sign up
+                                    // Kartu form email
                                     Expanded(
                                       child: Center(
                                         child: ConstrainedBox(
-                                          constraints: const BoxConstraints(
-                                              maxWidth: 400),
+                                          constraints: const BoxConstraints(maxWidth: 400),
                                           child: Card(
                                             color: Colors.grey[100],
                                             shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(16),
+                                              borderRadius: BorderRadius.circular(16),
                                             ),
                                             elevation: 4,
                                             child: Padding(
@@ -154,128 +138,63 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
                                                   TextField(
-                                                    controller:
-                                                        _emailController,
-                                                    keyboardType: TextInputType
-                                                        .emailAddress,
-                                                    decoration:
-                                                        const InputDecoration(
+                                                    controller: _emailController,
+                                                    keyboardType: TextInputType.emailAddress,
+                                                    decoration: const InputDecoration(
                                                       labelText: 'Enter Email',
-                                                      border:
-                                                          OutlineInputBorder(),
+                                                      border: OutlineInputBorder(),
                                                     ),
                                                   ),
                                                   const SizedBox(height: 24),
 
-                                                  // Button submit
-                                                  BlocConsumer<
-                                                      ForgotPasswordBloc,
-                                                      ForgotPasswordState>(
-                                                    listener: (context, state) {
-                                                      if (state
-                                                          is ForgotPasswordSuccess) {
-                                                        Navigator.push(
-                                                          context,
-                                                          MaterialPageRoute(
-                                                            builder: (context) =>
-                                                                const VerifyOtpPage(
-                                                                    email:
-                                                                        "user@example.com"),
-                                                          ),
-                                                        );
-                                                      } else if (state
-                                                          is ForgotPasswordFailure) {
-                                                        ScaffoldMessenger.of(
-                                                                context)
-                                                            .showSnackBar(
-                                                          SnackBar(
-                                                              content: Text(state
-                                                                  .message)),
-                                                        );
-                                                      }
-                                                    },
-                                                    builder: (context, state) {
-                                                      return SizedBox(
-                                                        width: double.infinity,
-                                                        height: 48,
-                                                        child: ElevatedButton(
-                                                          onPressed: state
-                                                                  is ForgotPasswordLoading
-                                                              ? null
-                                                              : () {
-                                                                  final email =
-                                                                      _emailController
-                                                                          .text
-                                                                          .trim();
-                                                                  context
-                                                                      .read<
-                                                                          ForgotPasswordBloc>()
-                                                                      .add(
-                                                                        ForgotPasswordSubmitted(
-                                                                            email),
-                                                                      );
-                                                                },
-                                                          style: ElevatedButton
-                                                              .styleFrom(
-                                                            backgroundColor:
-                                                                const Color(
-                                                                    0xFF1791E4),
-                                                            shape:
-                                                                RoundedRectangleBorder(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          12),
-                                                            ),
-                                                          ),
-                                                          child: state
-                                                                  is ForgotPasswordLoading
-                                                              ? const CircularProgressIndicator(
-                                                                  color: Colors
-                                                                      .white)
-                                                              : const Text(
-                                                                  "Submit",
-                                                                  style:
-                                                                      TextStyle(
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold,
-                                                                    color: Colors
-                                                                        .white,
-                                                                  ),
-                                                                ),
+                                                  SizedBox(
+                                                    width: double.infinity,
+                                                    height: 48,
+                                                    child: ElevatedButton(
+                                                      onPressed: state is ForgotPasswordLoading
+                                                          ? null
+                                                          : () {
+                                                              final email = _emailController.text.trim();
+                                                              context.read<ForgotPasswordBloc>().add(
+                                                                    ForgotPasswordSubmitted(email),
+                                                                  );
+                                                            },
+                                                      style: ElevatedButton.styleFrom(
+                                                        backgroundColor: const Color(0xFF1791E4),
+                                                        shape: RoundedRectangleBorder(
+                                                          borderRadius: BorderRadius.circular(12),
                                                         ),
-                                                      );
-                                                    },
+                                                      ),
+                                                      child: state is ForgotPasswordLoading
+                                                          ? const CircularProgressIndicator(color: Colors.white)
+                                                          : const Text(
+                                                              'Submit',
+                                                              style: TextStyle(
+                                                                fontWeight: FontWeight.bold,
+                                                                color: Colors.white,
+                                                              ),
+                                                            ),
+                                                    ),
                                                   ),
 
                                                   const SizedBox(height: 16),
 
-                                                  // Sign up DITEMPATKAN DI DALAM CARD
                                                   Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .center,
+                                                    mainAxisAlignment: MainAxisAlignment.center,
                                                     children: [
-                                                      const Text(
-                                                          "Don't have an account? "),
+                                                      const Text("Don't have an account? "),
                                                       GestureDetector(
                                                         onTap: () {
                                                           Navigator.push(
                                                             context,
-                                                            MaterialPageRoute(
-                                                                builder:
-                                                                    (context) =>
-                                                                        const RegisterPage()),
+                                                            MaterialPageRoute(builder: (context) => const RegisterPage()),
                                                           );
                                                         },
                                                         child: const Text(
                                                           'Sign Up',
                                                           style: TextStyle(
-                                                            color: Colors
-                                                                .blueAccent,
-                                                            fontWeight:
-                                                                FontWeight.bold,
+                                                            color: Colors.blueAccent,
+                                                            fontWeight: FontWeight.bold,
                                                           ),
                                                         ),
                                                       ),
@@ -288,6 +207,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                         ),
                                       ),
                                     ),
+
                                     const Spacer(),
                                   ],
                                 ),

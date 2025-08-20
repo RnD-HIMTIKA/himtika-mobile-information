@@ -6,7 +6,6 @@ import '../blocs/verify_reset_otp/verify_reset_otp_bloc.dart';
 import '../blocs/forgot_password/forgot_password_bloc.dart';
 import 'reset_password_page.dart';
 import 'forgot_password_page.dart';
-import 'register.dart';
 
 class VerifyOtpPage extends StatefulWidget {
   final String email;
@@ -60,11 +59,18 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
     final otp = _controllers.map((c) => c.text).join();
     if (otp.length == 6) {
       context.read<VerifyResetOtpBloc>().add(VerifyResetOtpSubmitted(email: widget.email, token: otp));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('OTP harus 6 digit'), backgroundColor: Colors.red),
+      );
     }
   }
 
   void _onResendPressed(BuildContext context) {
     if (_secondsRemaining == 0) {
+      // Clear OTP fields saat resend untuk menghindari input lama
+      for (var controller in _controllers) controller.clear();
+      _focusNodes[0].requestFocus();
       context.read<ForgotPasswordBloc>().add(ForgotPasswordSubmitted(widget.email));
       _startTimer();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -145,7 +151,7 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () {
               Navigator.of(context).pushReplacement(
-                MaterialPageRoute(builder: (context) => const RegisterPage()),
+                MaterialPageRoute(builder: (context) => const ForgotPasswordPage()),
               );
             },
           ),
