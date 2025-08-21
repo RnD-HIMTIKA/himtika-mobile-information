@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:himtika_mobile_information/features/calendar/presentation/pages/calendar_screen.dart';
+import 'package:himtika_mobile_information/features/home/presentation/pages/sidebar_home.dart';
 import '../bloc/home_bloc.dart';
 import '../bloc/home_event.dart';
 import '../bloc/home_state.dart';
@@ -13,6 +15,7 @@ class HomePage extends StatelessWidget {
     return BlocProvider(
       create: (_) => HomeBloc()..add(LoadHomeData()),
       child: Scaffold(
+        endDrawer: const SidebarHome(),
         body: SafeArea(
           child: BlocBuilder<HomeBloc, HomeState>(
             builder: (context, state) {
@@ -74,7 +77,7 @@ class HomePage extends StatelessWidget {
                                 icon:
                                     const Icon(Icons.menu, color: Colors.white),
                                 onPressed: () {
-                                  // Aksi ketika icon menu ditekan
+                                  Scaffold.of(context).openEndDrawer();
                                 },
                               ),
                             ],
@@ -128,37 +131,58 @@ class HomePage extends StatelessWidget {
                                 crossAxisCount: 4,
                                 children: [
                                   _menuItem(
-                                      "src/features/home/icons/himtika.png",
-                                      "HIMTIKA",
-                                      [Color(0xFF32B7FF), Color(0xFF32B7FF)]),
+                                    "src/features/home/icons/himtika.png",
+                                    "HIMTIKA",
+                                    [Color(0xFF32B7FF), Color(0xFF32B7FF)],
+                                    () {}, //redirect
+                                  ),
                                   _menuItem(
                                       "src/features/home/icons/hicode.svg",
                                       "HiCode",
-                                      [Color(0xFF333C66), Color(0xFF2D365E)]),
+                                      [Color(0xFF333C66), Color(0xFF2D365E)],
+                                      () {}, //redirect
+                                    ),
                                   _menuItem(
                                       "src/features/home/icons/hiconnect.svg",
                                       "HiConnect",
-                                      [Color(0xFFFFC107), Color(0xFFFFC107)]),
+                                      [Color(0xFFFFC107), Color(0xFFFFC107)],
+                                      () {}, //redirect
+                                    ),
                                   _menuItem(
                                       "src/features/home/icons/hiagenda.svg",
                                       "HiAgenda",
-                                      [Color(0xFFDBF6BF), Color(0xFFDBF6BF)]),
+                                      [Color(0xFFDBF6BF), Color(0xFFDBF6BF)],
+                                      () {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(builder: (_) => const CalendarScreen()),
+                                        );
+                                      },
+                                    ),
                                   _menuItem(
                                       "src/features/home/icons/hispace.svg",
                                       "HiSpace",
-                                      [Color(0xFF402DAE), Color(0xFFBD63D1)]),
+                                      [Color(0xFF402DAE), Color(0xFFBD63D1)],
+                                      () {}, //redirect
+                                    ),
                                   _menuItem(
                                       "src/features/home/icons/kontak.svg",
                                       "Kontak Dosen",
-                                      [Color(0xFFF4BF75), Color(0xFFF4BF75)]),
+                                      [Color(0xFFF4BF75), Color(0xFFF4BF75)],
+                                      () {}, //redirect
+                                    ),
                                   _menuItem(
                                       "src/features/home/icons/event.svg",
                                       "Event",
-                                      [Color(0xFF4CAF50), Color(0xFF4CAF50)]),
+                                      [Color(0xFF4CAF50), Color(0xFF4CAF50)],
+                                      () {}, //redirect
+                                    ),
                                   _menuItem(
                                       "src/features/home/icons/more.svg",
                                       "More",
-                                      [Color(0xFFF7F7F7), Color(0xFFF7F7F7)]),
+                                      [Color(0xFFF7F7F7), Color(0xFFF7F7F7)],
+                                      () {}, //redirect
+                                    ),
                                 ],
                               ),
                             ),
@@ -174,6 +198,7 @@ class HomePage extends StatelessWidget {
                               style: TextStyle(
                                   fontSize: 16, fontWeight: FontWeight.bold)),
                         ),
+                        const SizedBox(height: 8),
                         SizedBox(
                           height: 100,
                           child: ListView.builder(
@@ -189,8 +214,6 @@ class HomePage extends StatelessWidget {
                             ),
                           ),
                         ),
-
-                        const SizedBox(height: 24),
                       ],
                     ),
                   ),
@@ -262,33 +285,37 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _menuItem(String assetPath, String label, List<Color> gradientColors) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: gradientColors,
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+  Widget _menuItem(String assetPath, String label, List<Color> gradientColors, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: gradientColors,
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              borderRadius: BorderRadius.circular(12),
             ),
-            borderRadius: BorderRadius.circular(12),
+            padding: const EdgeInsets.all(8),
+            child: _buildImage(assetPath),
           ),
-          padding: const EdgeInsets.all(8),
-          child: _buildImage(assetPath),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          label,
-          textAlign: TextAlign.center,
-          style: const TextStyle(fontSize: 12),
-        ),
-      ],
+          const SizedBox(height: 6),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 12),
+          ),
+        ],
+      ),
     );
   }
+
 
   Widget _buildImage(String assetPath) {
     if (assetPath.toLowerCase().endsWith('.svg')) {

@@ -317,7 +317,7 @@ class _ScheduleSheet extends StatelessWidget {
                         title: schedule['title'] as String,
                         detail: schedule['detail'] as String,
                       );
-                    }).toList(),
+                    }),
                 ],
               );
             },

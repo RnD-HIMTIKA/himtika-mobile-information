@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
-import 'roles.dart';
-import 'dashboard.dart';
-import 'hicode.dart';
-import 'kontakdosen.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/presentation/pages/dashboard.dart';
 
-import 'package:himtika_mobile_information/features/home/presentation/pages/home.dart';
 import 'package:himtika_mobile_information/core/injection_container.dart'; // Import sl
 import 'package:himtika_mobile_information/features/auth/application/auth_controller.dart'; // Import AuthController
 
-class Sidebar extends StatelessWidget {
-  const Sidebar({super.key});
+class SidebarHome extends StatelessWidget {
+  const SidebarHome({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -61,42 +57,17 @@ class Sidebar extends StatelessWidget {
 
                   // Menu
                   ListTile(
-                    leading: const Icon(Icons.dashboard, color: Colors.white),
-                    title: const Text('Dashboard', style: TextStyle(color: Colors.white)),
-                    onTap: () {
-                      Navigator.pushReplacement(
-                        context,
-                        MaterialPageRoute(builder: (context) => const Dashboard()),
-                      );
-                    },
+                    leading: const Icon(Icons.person, color: Colors.white),
+                    title: const Text('Profil', style: TextStyle(color: Colors.white)),
+                    onTap: () {},
                   ),
                   ListTile(
                     leading: const Icon(Icons.people, color: Colors.white),
-                    title: const Text('Roles', style: TextStyle(color: Colors.white)),
+                    title: const Text('Admin', style: TextStyle(color: Colors.white)),
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const RolesPage()),
-                      );
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.contacts, color: Colors.white),
-                    title: const Text('Kontak Dosen', style: TextStyle(color: Colors.white)),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const Kontakdosen()),
-                      );
-                    },
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.book, color: Colors.white),
-                    title: const Text('HiCode', style: TextStyle(color: Colors.white)),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const Hicode()),
+                        MaterialPageRoute(builder: (context) => const Dashboard()),
                       );
                     },
                   ),
@@ -108,10 +79,10 @@ class Sidebar extends StatelessWidget {
                     leading: const Icon(Icons.logout, color: Colors.redAccent),
                     title: const Text('Sign Out', style: TextStyle(color: Colors.redAccent)),
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const HomePage()),
-                      );
+                      // Tutup sidebar dulu
+                      Navigator.pop(context); 
+                      // Panggil fungsi signOut
+                      authController.signOut();
                     },
                   ),
                 ],
@@ -121,7 +92,7 @@ class Sidebar extends StatelessWidget {
             // Tombol Close di Pojok Kanan Atas 
             Positioned(
               top: 16,
-              right: 8,
+              left: 8,
               child: IconButton(
                 icon: const Icon(Icons.close, color: Colors.white),
                 onPressed: () {

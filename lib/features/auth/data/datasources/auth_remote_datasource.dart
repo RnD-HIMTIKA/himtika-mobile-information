@@ -77,4 +77,24 @@ class AuthRemoteDataSource {
       email: email,
     );
   }
+
+  Future<void> sendPasswordResetOtp(String email) async {
+    await SupabaseAuthHelper.auth.resetPasswordForEmail(email);
+  }
+
+  Future<void> verifyPasswordResetOtp(String email, String token) async {
+    // Fungsi ini akan memverifikasi OTP dan menyiapkan sesi untuk update password
+    await SupabaseAuthHelper.auth.verifyOTP(
+      type: supabase.OtpType.recovery,
+      token: token,
+      email: email,
+    );
+  }
+
+  Future<void> updateUserPassword(String newPassword) async {
+    // Fungsi ini hanya bisa dipanggil setelah verifyPasswordResetOtp berhasil
+    await SupabaseAuthHelper.auth.updateUser(
+      supabase.UserAttributes(password: newPassword),
+    );
+  }
 }

@@ -21,6 +21,12 @@ import 'package:himtika_mobile_information/features/auth/domain/usecases/resend_
 import 'package:himtika_mobile_information/features/auth/domain/usecases/verify_otp.dart';
 import 'package:himtika_mobile_information/features/auth/presentation/blocs/otp/otp_bloc.dart';
 import 'package:himtika_mobile_information/features/auth/presentation/blocs/registration/registration_bloc.dart';
+import 'package:himtika_mobile_information/features/auth/domain/usecases/send_password_reset_otp.dart';
+import 'package:himtika_mobile_information/features/auth/domain/usecases/verify_password_reset_otp.dart';
+import 'package:himtika_mobile_information/features/auth/domain/usecases/update_user_password.dart';
+import 'package:himtika_mobile_information/features/auth/presentation/blocs/forgot_password/forgot_password_bloc.dart';
+import 'package:himtika_mobile_information/features/auth/presentation/blocs/verify_reset_otp/verify_reset_otp_bloc.dart';
+import 'package:himtika_mobile_information/features/auth/presentation/blocs/reset_password/reset_password_bloc.dart';
 
 // --- Roles Imports ---
 import 'package:himtika_mobile_information/features/roles/data/datasources/roles_remote_datasource.dart';
@@ -60,6 +66,9 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => SubmitProfileForm(sl<AuthRepository>(), sl<SupabaseClient>()));
   sl.registerLazySingleton(() => CheckUserProfileCompleteness(sl<AuthRepository>()));
   sl.registerLazySingleton(() => ValidateProfileStep1(sl<SupabaseClient>()));
+  sl.registerLazySingleton(() => SendPasswordResetOtp(sl<AuthRepository>(), sl<SupabaseClient>()));
+  sl.registerLazySingleton(() => VerifyPasswordResetOtp(sl<AuthRepository>()));
+  sl.registerLazySingleton(() => UpdateUserPassword(sl<AuthRepository>()));
   // BLoCs
   sl.registerFactory(() => LoginBloc(
         signInWithEmail: sl<SignInWithEmail>(),
@@ -76,6 +85,10 @@ Future<void> initDependencies() async {
         verifyOtp: sl<VerifyOtp>(),
         resendSignUpOtp: sl<ResendSignUpOtp>(),
       ));
+
+  sl.registerFactory(() => ForgotPasswordBloc(sendPasswordResetOtp: sl<SendPasswordResetOtp>()));
+  sl.registerFactory(() => VerifyResetOtpBloc(verifyPasswordResetOtp: sl<VerifyPasswordResetOtp>()));
+  sl.registerFactory(() => ResetPasswordBloc(updateUserPassword: sl<UpdateUserPassword>()));
   // Controller
   sl.registerLazySingleton(() => AuthController());
 
