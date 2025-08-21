@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:himtika_mobile_information/features/calendar/presentation/pages/calendar_screen.dart';
 import 'package:himtika_mobile_information/features/home/presentation/pages/home.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,7 +9,7 @@ import 'features/auth/application/auth_controller.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/adminpanel_bloc.dart';
 import 'package:himtika_mobile_information/features/auth/presentation/blocs/login/login_bloc.dart';
 import 'package:himtika_mobile_information/features/auth/presentation/pages/splash.dart';
-import 'package:himtika_mobile_information/features/auth/presentation/pages/onboarding.dart'; // Import Onboarding
+import 'package:himtika_mobile_information/features/auth/presentation/pages/onboarding.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -77,7 +76,7 @@ class _MyAppState extends State<MyApp> {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(primarySwatch: Colors.blue),
         // Kita mulai dari splash, yang akan menunggu keputusan dari listener
-        home: const HomePage(),
+        home: const SplashScreen(),
       ),
     );
   }

@@ -234,7 +234,13 @@ class _WorkspaceSheet extends StatelessWidget {
                               child: FloatingActionButton(
                                 onPressed: () => showDialog(
                                   context: context,
-                                  builder: (context) => const _CreateWorkspaceDialog(),
+                                  builder: (dialogContext) {
+                                    // PERBAIKAN DI SINI
+                                    return BlocProvider.value(
+                                      value: BlocProvider.of<WorkspaceBloc>(context),
+                                      child: const _CreateWorkspaceDialog(),
+                                    );
+                                  },
                                 ),
                                 backgroundColor: Colors.blue.shade600,
                                 foregroundColor: Colors.white,
@@ -412,8 +418,23 @@ class _WorkspaceCard extends StatelessWidget {
 // ===========================================================================
 // DIALOG BUAT WORKSPACE
 // ===========================================================================
-class _CreateWorkspaceDialog extends StatelessWidget {
+class _CreateWorkspaceDialog extends StatefulWidget {
   const _CreateWorkspaceDialog();
+
+  @override
+  State<_CreateWorkspaceDialog> createState() => _CreateWorkspaceDialogState();
+}
+
+class _CreateWorkspaceDialogState extends State<_CreateWorkspaceDialog> {
+  final _titleController = TextEditingController();
+  final _descriptionController = TextEditingController();
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -434,6 +455,7 @@ class _CreateWorkspaceDialog extends StatelessWidget {
           const Text('Judul', style: TextStyle(fontWeight: FontWeight.w500)),
           const SizedBox(height: 8),
           TextField(
+            controller: _titleController, // Gunakan controller
             decoration: InputDecoration(
               hintText: 'Masukkan Judul Workspace',
               border: OutlineInputBorder(
@@ -450,6 +472,7 @@ class _CreateWorkspaceDialog extends StatelessWidget {
           const Text('Deskripsi', style: TextStyle(fontWeight: FontWeight.w500)),
           const SizedBox(height: 8),
           TextField(
+            controller: _descriptionController, // Gunakan controller
             decoration: InputDecoration(
               hintText: 'Masukkan Deskripsi Workspace',
               border: OutlineInputBorder(
@@ -469,7 +492,16 @@ class _CreateWorkspaceDialog extends StatelessWidget {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              // Panggil event BLoC dengan data dari controller
+              context.read<WorkspaceBloc>().add(
+                    CreateWorkspaceSubmitted(
+                      title: _titleController.text,
+                      description: _descriptionController.text,
+                    ),
+                  );
+              Navigator.of(context).pop(); // Tutup dialog
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blue.shade600,
               foregroundColor: Colors.white,

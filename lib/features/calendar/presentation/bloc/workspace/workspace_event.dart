@@ -7,3 +7,18 @@ abstract class WorkspaceEvent extends Equatable {
 }
 
 class LoadMyWorkspaces extends WorkspaceEvent {}
+
+// Event untuk membuat workspace
+
+class CreateWorkspaceSubmitted extends WorkspaceEvent {
+  final String title;
+  final String description;
+
+  const CreateWorkspaceSubmitted({
+    required this.title,
+    required this.description,
+  });
+
+  @override
+  List<Object> get props => [title, description];
+}

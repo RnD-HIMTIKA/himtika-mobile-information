@@ -24,4 +24,11 @@ class CalendarRemoteDatasource {
         
     return List<Map<String, dynamic>>.from(data);
   }
+
+  Future<void> createWorkspace({required String title, required String description}) async {
+    await _client.rpc('create_new_workspace', params: {
+      'p_title': title,
+      'p_description': description,
+    });
+  }
 }

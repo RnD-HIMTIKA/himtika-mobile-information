@@ -10,16 +10,31 @@ class CalendarRepositoryImpl implements CalendarRepository {
   @override
   Future<List<Workspace>> getMyWorkspaces() async {
     final data = await remoteDatasource.getMyWorkspaces();
+    
     // Mapping dari data mentah (Map) ke Entity (Workspace)
     return data.map((item) {
-      final workspaceData = item['user_workspace'];
+      // Pastikan 'user_workspace' tidak null
+      final workspaceData = item['user_workspace'] as Map<String, dynamic>?;
+      if (workspaceData == null) {
+        // Lewati item ini jika datanya tidak valid
+        return null;
+      }
+
       return Workspace(
-        id: workspaceData['id'],
-        title: workspaceData['title'],
-        description: workspaceData['description'],
-        ownerId: workspaceData['owner_id'],
-        createdAt: DateTime.parse(workspaceData['created_at']),
+        id: workspaceData['id'] ?? '', // Beri default jika null
+        title: workspaceData['title'] ?? 'Tanpa Judul', // Beri default jika null
+        description: workspaceData['description'] ?? '', // Beri default jika null
+        ownerId: workspaceData['owner_id'] ?? '', // Beri default jika null
+        // Perbaiki nama kolom dan tangani kemungkinan null
+        lastUpdated: workspaceData['last_updated'] != null
+            ? DateTime.parse(workspaceData['last_updated'])
+            : null,
       );
-    }).toList();
+    }).whereType<Workspace>().toList(); // Filter semua hasil null
+  }
+
+  @override
+  Future<void> createWorkspace({required String title, required String description}) async {
+    await remoteDatasource.createWorkspace(title: title, description: description);
   }
 }

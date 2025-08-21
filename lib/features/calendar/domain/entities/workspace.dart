@@ -5,16 +5,16 @@ class Workspace extends Equatable {
   final String title;
   final String description;
   final String ownerId;
-  final DateTime createdAt;
+  final DateTime? lastUpdated; // Diubah dari createdAt dan dibuat nullable
 
   const Workspace({
     required this.id,
     required this.title,
     required this.description,
     required this.ownerId,
-    required this.createdAt,
+    this.lastUpdated,
   });
 
   @override
-  List<Object?> get props => [id, title, description, ownerId, createdAt];
+  List<Object?> get props => [id, title, description, ownerId, lastUpdated];
 }
