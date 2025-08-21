@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:himtika_mobile_information/features/home/presentation/pages/home.dart';
+import '../../../../core/injection_container.dart';
+import '../bloc/workspace/workspace_bloc.dart';
 import 'schedule_detail_screen.dart';
 
 // ===========================================================================
@@ -10,43 +13,42 @@ class CalendarScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.transparent, // Warna biru tua sebagai dasar
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leadingWidth: 72, // kasih ruang lebih
-        leading: Padding(
-          padding: EdgeInsets.only(
-            top: MediaQuery.of(context).padding.top + 25, // tambahin offset biar pas
-            left: 4,
-          ),
-          child: IconButton(
-            padding: EdgeInsets.zero, // biar nggak ada jarak tambahan
-            icon: Image.asset(
-              "src/features/login&register/images/arrow_back.png", 
-              color: Color(0xFF31b7fe),           
-              width: 32,
-              height: 32,
+    return BlocProvider(
+      create: (_) => sl<WorkspaceBloc>()..add(LoadMyWorkspaces()),
+      child: Scaffold(
+        backgroundColor: Colors.transparent, // Warna biru tua sebagai dasar
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: CircleAvatar(
+            backgroundColor: Colors.transparent,
+            child: IconButton(
+              padding: EdgeInsets.zero, // biar nggak ada jarak tambahan
+              icon: Image.asset(
+                "src/features/login&register/images/arrow_back.png",
+                color: Color(0xFF31b7fe),
+                width: 24,
+                height: 24,
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const HomePage()),
+                );
+              },
             ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const HomePage()),
-              );
-            },
           ),
         ),
-      ),
-      extendBodyBehindAppBar: true,
-      body: Stack(
-        children: const [
-          // LAYER 1: Background Biru dengan Teks dan Ilustrasi
-          _BackgroundContent(),
+        extendBodyBehindAppBar: true,
+        body: Stack(
+          children: const [
+            // LAYER 1: Background Biru dengan Teks dan Ilustrasi
+            _BackgroundContent(),
 
-          // LAYER 2: Panel Putih yang Bisa Digeser
-          _WorkspaceSheet(),
-        ],
+            // LAYER 2: Panel Putih yang Bisa Digeser
+            _WorkspaceSheet(),
+          ],
+        ),
       ),
     );
   }
@@ -79,7 +81,7 @@ class _BackgroundContent extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SizedBox(height: MediaQuery.of(context).padding.top + 30),
+            SizedBox(height: MediaQuery.of(context).padding.top),
             const Text(
               'Plan Your Days, Own Your Time',
               style: TextStyle(
@@ -89,16 +91,16 @@ class _BackgroundContent extends StatelessWidget {
                 height: 1.2,
               ),
             ),
-            const SizedBox(height: 18),
+            const SizedBox(height: 12),
             Text(
               'Easily create, manage, and share your schedule—stay organized and never miss a thing.',
               style: TextStyle(
-                color: Colors.white.withValues(alpha:0.8),
-                fontSize: 18,
+                color: Colors.white.withValues(alpha: 0.8),
+                fontSize: 16,
                 height: 1.5,
               ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 10),
             Center(
               child: Image.asset('src/features/calendar/images/assets.png'),
             ),
@@ -109,7 +111,6 @@ class _BackgroundContent extends StatelessWidget {
   }
 }
 
-
 // ===========================================================================
 // PANEL WORKSPACE (DRAGGABLE + STICKY HEADER)
 // ===========================================================================
@@ -118,130 +119,134 @@ class _WorkspaceSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Data Dummy
-    final dummyWorkspaces = [
-      {'id': '1', 'title': 'Kuliah', 'description': 'Jadwal mata kuliah kelas 4E Informatika'},
-      {'id': '2', 'title': 'Deadline', 'description': 'Deadline Tugas kuliah'},
-      {'id': '3', 'title': 'Milestone', 'description': 'Target selesai project'},
-    ];
-
     return DraggableScrollableSheet(
       initialChildSize: 0.2,
       minChildSize: 0.2,
       maxChildSize: 0.9,
-      builder: (BuildContext context, ScrollController scrollController) {        
+      builder: (BuildContext context, ScrollController scrollController) {
         return ClipRRect(
           borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
           child: Container(
             color: Colors.white,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final isExpanded = constraints.maxHeight >
-                    MediaQuery.of(context).size.height * 0.3;
+            child: BlocBuilder<WorkspaceBloc, WorkspaceState>(
+              builder: (context, state) {
+                if (state.status == WorkspaceStatus.loading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (state.status == WorkspaceStatus.failure) {
+                  return Center(child: Text('Gagal memuat data: ${state.errorMessage}'));
+                }
 
-                return Stack(
-                  children: [
-                    // CustomScrollView + SliverPersistentHeader agar header sticky
-                    CustomScrollView(
-                      controller: scrollController,
-                      slivers: [
-                        // HEADER STICKY: saat pinned/overlaps → background solid (putih)
-                        SliverPersistentHeader(
-                          pinned: true,
-                          delegate: _StickyHeaderDelegate(
-                            minHeight: 92, // tinggi tetap supaya stabil
-                            maxHeight: 92,
-                            child: Container(
-                              // Konten header + handle
-                              padding: const EdgeInsets.only(top: 12, bottom: 8),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  // handle
-                                  Container(
-                                    width: 40,
-                                    height: 4,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[300],
-                                      borderRadius: BorderRadius.circular(2),
-                                    ),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  const Text(
-                                    "Workspace Kamu",
-                                    style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isExpanded = constraints.maxHeight >
+                        MediaQuery.of(context).size.height * 0.3;
 
-                        // ISI LIST (muncul saat panel dibuka) — pakai SliverList agar tidak overflow
-                        if (isExpanded && dummyWorkspaces.isEmpty)
-                          SliverPadding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            sliver: SliverToBoxAdapter(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 40.0),
-                                child: Center(
-                                  child: Text(
-                                    "Kamu belum punya workspace",
-                                    style: TextStyle(color: Colors.grey, fontSize: 16),
+                    return Stack(
+                      children: [
+                        // CustomScrollView + SliverPersistentHeader agar header sticky
+                        CustomScrollView(
+                          controller: scrollController,
+                          slivers: [
+                            // HEADER STICKY: saat pinned/overlaps → background solid (putih)
+                            SliverPersistentHeader(
+                              pinned: true,
+                              delegate: _StickyHeaderDelegate(
+                                minHeight: 92, // tinggi tetap supaya stabil
+                                maxHeight: 92,
+                                child: Container(
+                                  // Konten header + handle
+                                  padding: const EdgeInsets.only(top: 12, bottom: 8),
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      // handle
+                                      Container(
+                                        width: 40,
+                                        height: 4,
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey[300],
+                                          borderRadius: BorderRadius.circular(2),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      const Text(
+                                        "Workspace Kamu",
+                                        style: TextStyle(
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
+                                    ],
                                   ),
                                 ),
                               ),
                             ),
-                          )
-                        else if (isExpanded)
-                          SliverPadding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            sliver: SliverList.separated(
-                              itemCount: dummyWorkspaces.length,
-                              separatorBuilder: (_, __) => const SizedBox(height: 16),
-                              itemBuilder: (context, index) {
-                                final ws = dummyWorkspaces[index];
-                                return _WorkspaceCard(
-                                  workspaceId: ws['id'] as String,
-                                  title: ws['title'] as String,
-                                  description: ws['description'] as String,
-                                );
-                              },
-                            ),
-                          )
-                        else
-                          const SliverToBoxAdapter(child: SizedBox.shrink()),
 
-                        // Spacer bawah agar tidak ketutup FAB
-                        const SliverToBoxAdapter(child: SizedBox(height: 100)),
-                      ],
-                    ),
+                            // ISI LIST (muncul saat panel dibuka) — pakai SliverList agar tidak overflow
+                            if (isExpanded && state.workspaces.isEmpty)
+                              SliverPadding(
+                                padding: const EdgeInsets.symmetric(horizontal: 24),
+                                sliver: SliverToBoxAdapter(
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 40.0),
+                                    child: Center(
+                                      child: Text(
+                                        "Kamu belum punya workspace",
+                                        style: TextStyle(color: Colors.grey, fontSize: 16),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              )
+                            else if (isExpanded)
+                              SliverPadding(
+                                padding: const EdgeInsets.symmetric(horizontal: 24),
+                                sliver: SliverList.separated(
+                                  itemCount: state.workspaces.length,
+                                  separatorBuilder: (_, __) => const SizedBox(height: 16),
+                                  itemBuilder: (context, index) {
+                                    final ws = state.workspaces[index];
+                                    return _WorkspaceCard(
+                                      workspaceId: ws.id,
+                                      title: ws.title,
+                                      description: ws.description,
+                                    );
+                                  },
+                                ),
+                              )
+                            else
+                              const SliverToBoxAdapter(child: SizedBox.shrink()),
 
-                    // TOMBOL TAMBAH (muncul hanya saat panel dibuka)
-                    if (isExpanded)
-                      Positioned(
-                        bottom: 30,
-                        left: 24,
-                        right: 24,
-                        child: Center(
-                          child: FloatingActionButton(
-                            onPressed: () => showDialog(
-                              context: context,
-                              builder: (context) => const _CreateWorkspaceDialog(),
-                            ),
-                            backgroundColor: Colors.blue.shade600,
-                            foregroundColor: Colors.white,
-                            shape: const CircleBorder(),
-                            elevation: 10,
-                            child: const Icon(Icons.add, size: 32),
-                          ),
+                            // Spacer bawah agar tidak ketutup FAB
+                            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                          ],
                         ),
-                      ),
-                  ],
+
+                        // TOMBOL TAMBAH (muncul hanya saat panel dibuka)
+                        if (isExpanded)
+                          Positioned(
+                            bottom: 30,
+                            left: 24,
+                            right: 24,
+                            child: Center(
+                              child: FloatingActionButton(
+                                onPressed: () => showDialog(
+                                  context: context,
+                                  builder: (context) => const _CreateWorkspaceDialog(),
+                                ),
+                                backgroundColor: Colors.blue.shade600,
+                                foregroundColor: Colors.white,
+                                shape: const CircleBorder(),
+                                elevation: 10,
+                                child: const Icon(Icons.add, size: 32),
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
                 );
               },
             ),
@@ -324,7 +329,7 @@ class _WorkspaceCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha:0.2), // warna shadow
+            color: Colors.black.withValues(alpha: 0.2), // warna shadow
             offset: const Offset(0, 4), // posisi shadow (0 = center, 4 ke bawah)
             blurRadius: 6, // seberapa blur
             spreadRadius: 0, // seberapa luas
@@ -370,7 +375,7 @@ class _WorkspaceCard extends StatelessWidget {
               LayoutBuilder(
                 builder: (context, constraints) {
                   // kurangi lebar icon + padding dari total width
-                  double maxWidth = constraints.maxWidth - 48 - 8; 
+                  double maxWidth = constraints.maxWidth - 48 - 8;
                   return ConstrainedBox(
                     constraints: BoxConstraints(maxWidth: maxWidth),
                     child: Text(

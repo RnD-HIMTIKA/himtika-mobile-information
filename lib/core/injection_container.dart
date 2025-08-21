@@ -42,6 +42,12 @@ import 'package:himtika_mobile_information/features/roles/domain/usecases/revoke
 import 'package:himtika_mobile_information/features/roles/domain/usecases/revoke_role.dart';
 import 'package:himtika_mobile_information/features/roles/application/roles_controller/roles_controller.dart';
 
+// --- Calendar Imports ---
+import 'package:himtika_mobile_information/features/calendar/data/datasources/calendar_remote_datasource.dart';
+import 'package:himtika_mobile_information/features/calendar/data/repositories/calendar_repository_impl.dart';
+import 'package:himtika_mobile_information/features/calendar/domain/repositories/calendar_repository.dart';
+import 'package:himtika_mobile_information/features/calendar/domain/usecases/get_my_workspaces.dart';
+import 'package:himtika_mobile_information/features/calendar/presentation/bloc/workspace/workspace_bloc.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -115,4 +121,14 @@ Future<void> initDependencies() async {
         getAllRoles: sl<GetAllRoles>(),
         getRolesByUser: sl<GetRolesByUser>(),
       ));
+
+  // ==================== CALENDAR FEATURE ====================
+  // Datasource
+  sl.registerLazySingleton<CalendarRemoteDatasource>(() => CalendarRemoteDatasource(sl(), sl<GetCurrentUser>()));
+  // Repository
+  sl.registerLazySingleton<CalendarRepository>(() => CalendarRepositoryImpl(sl()));
+  // Usecases
+  sl.registerLazySingleton(() => GetMyWorkspaces(sl()));
+  // BLoC
+  sl.registerFactory(() => WorkspaceBloc(getMyWorkspaces: sl()));
 }
