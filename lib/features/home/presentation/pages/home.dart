@@ -12,6 +12,12 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    // Hitung childAspectRatio agar tinggi item proporsional
+    final double gridItemWidth = (screenWidth - 32 - (3 * 8)) / 4; // padding + spacing
+    final double gridItemHeight = 100; // tinggi target item
+    final double childAspectRatio = gridItemWidth / gridItemHeight;
+
     return BlocProvider(
       create: (_) => HomeBloc()..add(LoadHomeData()),
       child: Scaffold(
@@ -40,8 +46,7 @@ class HomePage extends StatelessWidget {
                       children: [
                         // Header
                         Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 20),
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                           decoration: const BoxDecoration(
                             color: Colors.blue,
                             borderRadius: BorderRadius.only(
@@ -58,10 +63,7 @@ class HomePage extends StatelessWidget {
                                 children: [
                                   const Text(
                                     "Selamat Datang,",
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 14,
-                                    ),
+                                    style: TextStyle(color: Colors.white, fontSize: 14),
                                   ),
                                   Text(
                                     state.username,
@@ -74,8 +76,7 @@ class HomePage extends StatelessWidget {
                                 ],
                               ),
                               IconButton(
-                                icon:
-                                    const Icon(Icons.menu, color: Colors.white),
+                                icon: const Icon(Icons.menu, color: Colors.white),
                                 onPressed: () {
                                   Scaffold.of(context).openEndDrawer();
                                 },
@@ -89,9 +90,10 @@ class HomePage extends StatelessWidget {
                         // Terbaru
                         const Padding(
                           padding: EdgeInsets.symmetric(horizontal: 16),
-                          child: Text("Terbaru",
-                              style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                          child: Text(
+                            "Terbaru",
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
                         ),
                         const SizedBox(height: 8),
                         SizedBox(
@@ -114,8 +116,7 @@ class HomePage extends StatelessWidget {
 
                         // Menu Grid
                         Padding(
-                          padding:
-                              const EdgeInsets.all(16.0), // jarak luar card
+                          padding: const EdgeInsets.all(16.0),
                           child: Card(
                             color: Colors.white,
                             elevation: 2,
@@ -123,66 +124,68 @@ class HomePage extends StatelessWidget {
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Padding(
-                              padding: const EdgeInsets.all(
-                                  12.0), // jarak dalam card
+                              padding: const EdgeInsets.all(12.0),
                               child: GridView.count(
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
                                 crossAxisCount: 4,
+                                crossAxisSpacing: 8,
+                                mainAxisSpacing: 8,
+                                childAspectRatio: childAspectRatio,
                                 children: [
                                   _menuItem(
                                     "src/features/home/icons/himtika.png",
                                     "HIMTIKA",
                                     [Color(0xFF32B7FF), Color(0xFF32B7FF)],
-                                    () {}, //redirect
+                                    () {},
                                   ),
                                   _menuItem(
-                                      "src/features/home/icons/hicode.svg",
-                                      "HiCode",
-                                      [Color(0xFF333C66), Color(0xFF2D365E)],
-                                      () {}, //redirect
-                                    ),
+                                    "src/features/home/icons/hicode.svg",
+                                    "HiCode",
+                                    [Color(0xFF333C66), Color(0xFF2D365E)],
+                                    () {},
+                                  ),
                                   _menuItem(
-                                      "src/features/home/icons/hiconnect.svg",
-                                      "HiConnect",
-                                      [Color(0xFFFFC107), Color(0xFFFFC107)],
-                                      () {}, //redirect
-                                    ),
+                                    "src/features/home/icons/hiconnect.svg",
+                                    "HiConnect",
+                                    [Color(0xFFFFC107), Color(0xFFFFC107)],
+                                    () {},
+                                  ),
                                   _menuItem(
-                                      "src/features/home/icons/hiagenda.svg",
-                                      "HiAgenda",
-                                      [Color(0xFFDBF6BF), Color(0xFFDBF6BF)],
-                                      () {
-                                        Navigator.push(
-                                          context,
-                                          MaterialPageRoute(builder: (_) => const CalendarScreen()),
-                                        );
-                                      },
-                                    ),
+                                    "src/features/home/icons/hiagenda.svg",
+                                    "HiAgenda",
+                                    [Color(0xFFDBF6BF), Color(0xFFDBF6BF)],
+                                    () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (_) => const CalendarScreen()),
+                                      );
+                                    },
+                                  ),
                                   _menuItem(
-                                      "src/features/home/icons/hispace.svg",
-                                      "HiSpace",
-                                      [Color(0xFF402DAE), Color(0xFFBD63D1)],
-                                      () {}, //redirect
-                                    ),
+                                    "src/features/home/icons/hispace.svg",
+                                    "HiSpace",
+                                    [Color(0xFF402DAE), Color(0xFFBD63D1)],
+                                    () {},
+                                  ),
                                   _menuItem(
-                                      "src/features/home/icons/kontak.svg",
-                                      "Kontak Dosen",
-                                      [Color(0xFFF4BF75), Color(0xFFF4BF75)],
-                                      () {}, //redirect
-                                    ),
+                                    "src/features/home/icons/kontak.svg",
+                                    "Kontak Dosen",
+                                    [Color(0xFFF4BF75), Color(0xFFF4BF75)],
+                                    () {},
+                                  ),
                                   _menuItem(
-                                      "src/features/home/icons/event.svg",
-                                      "Event",
-                                      [Color(0xFF4CAF50), Color(0xFF4CAF50)],
-                                      () {}, //redirect
-                                    ),
+                                    "src/features/home/icons/event.svg",
+                                    "Event",
+                                    [Color(0xFF4CAF50), Color(0xFF4CAF50)],
+                                    () {},
+                                  ),
                                   _menuItem(
-                                      "src/features/home/icons/more.svg",
-                                      "More",
-                                      [Color(0xFFF7F7F7), Color(0xFFF7F7F7)],
-                                      () {}, //redirect
-                                    ),
+                                    "src/features/home/icons/more.svg",
+                                    "More",
+                                    [Color(0xFFF7F7F7), Color(0xFFF7F7F7)],
+                                    () {},
+                                  ),
                                 ],
                               ),
                             ),
@@ -194,9 +197,10 @@ class HomePage extends StatelessWidget {
                         // Divisi
                         const Padding(
                           padding: EdgeInsets.symmetric(horizontal: 16),
-                          child: Text("Divisi",
-                              style: TextStyle(
-                                  fontSize: 16, fontWeight: FontWeight.bold)),
+                          child: Text(
+                            "Divisi",
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
                         ),
                         const SizedBox(height: 8),
                         SizedBox(
