@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/pages/hicode_screen.dart';
 import 'package:himtika_mobile_information/features/home/presentation/pages/home.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -76,7 +77,7 @@ class _MyAppState extends State<MyApp> {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(primarySwatch: Colors.blue),
         // Kita mulai dari splash, yang akan menunggu keputusan dari listener
-        home: const HomePage(),
+        home: const HicodeScreen(),
       ),
     );
   }

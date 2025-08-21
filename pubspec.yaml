@@ -111,6 +111,15 @@ flutter:
     - src/features/calendar/images/pattern.png
     - src/features/calendar/images/assets.png
 
+    - src/features/hicode/icon/html.png
+    - src/features/hicode/icon/css.png
+    - src/features/hicode/icon/js.png
+    - src/features/hicode/icon/cpp.png
+    - src/features/hicode/images/html.png
+    - src/features/hicode/images/css.png
+    - src/features/hicode/images/js.png
+    - src/features/hicode/images/cpp.png
+
 
   #   - images/a_dot_ham.jpeg
 
