@@ -33,3 +33,18 @@ class CreateEventSubmitted extends EventEvent {
   @override
   List<Object?> get props => [workspaceId, title, description, startTime, endTime];
 }
+
+class UpdateEventSubmitted extends EventEvent {
+  final Event event;
+  const UpdateEventSubmitted(this.event);
+  @override
+  List<Object> get props => [event];
+}
+
+class DeleteEventPressed extends EventEvent {
+  final String eventId;
+  final String workspaceId; // Dibutuhkan untuk me-refresh data
+  const DeleteEventPressed(this.eventId, this.workspaceId);
+  @override
+  List<Object> get props => [eventId, workspaceId];
+}

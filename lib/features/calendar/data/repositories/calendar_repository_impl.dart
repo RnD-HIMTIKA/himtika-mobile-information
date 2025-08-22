@@ -104,4 +104,14 @@ class CalendarRepositoryImpl implements CalendarRepository {
       endTime: endTime,
     );
   }
+
+  @override
+  Future<void> updateEvent(Event event) async {
+    await remoteDatasource.updateEvent(event);
+  }
+
+  @override
+  Future<void> deleteEvent(String eventId) async {
+    await remoteDatasource.deleteEvent(eventId);
+  }
 }

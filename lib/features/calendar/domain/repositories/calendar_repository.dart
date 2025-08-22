@@ -17,4 +17,6 @@ abstract class CalendarRepository {
     required DateTime startTime,
     required DateTime endTime,
   });
+  Future<void> updateEvent(Event event);
+  Future<void> deleteEvent(String eventId);
 }

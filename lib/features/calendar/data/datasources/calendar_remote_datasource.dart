@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:himtika_mobile_information/features/auth/domain/usecases/get_current_user.dart';
+import 'package:himtika_mobile_information/features/calendar/domain/entities/event.dart';
 
 class CalendarRemoteDatasource {
   final SupabaseClient _client;
@@ -41,7 +42,7 @@ class CalendarRemoteDatasource {
     return List<Map<String, dynamic>>.from(data);
   }
 
-  // Metode baru untuk mengambil events
+  // Metode untuk mengambil events
   Future<List<Map<String, dynamic>>> getEvents(String workspaceId) async {
     // RLS akan memastikan pengguna hanya bisa mengambil event dari workspace
     // di mana ia adalah anggota.
@@ -53,7 +54,7 @@ class CalendarRemoteDatasource {
     return List<Map<String, dynamic>>.from(data);
   }
 
-  // Metode baru untuk membuat event
+  // Metode untuk membuat event
   Future<void> createEvent({
     required String workspaceId,
     required String title,
@@ -72,5 +73,26 @@ class CalendarRemoteDatasource {
       'start_time': startTime.toIso8601String(),
       'end_time': endTime.toIso8601String(),
     });
+  }
+
+  // Metode untuk mengupdate event
+  Future<void> updateEvent(Event event) async {
+    await _client
+        .from('events')
+        .update({
+          'title': event.title,
+          'description': event.description,
+          'start_time': event.startTime.toIso8601String(),
+          'end_time': event.endTime.toIso8601String(),
+        })
+        .match({'id': event.id});
+  }
+
+  // Metode untuk menghapus event
+  Future<void> deleteEvent(String eventId) async {
+    await _client
+        .from('events')
+        .delete()
+        .match({'id': eventId});
   }
 }
