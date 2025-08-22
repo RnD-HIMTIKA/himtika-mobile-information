@@ -278,17 +278,16 @@ class _LeaderboardCard extends StatelessWidget {
       ),
       // 1. Widget utama adalah Row (Ikon di kiri, konten di kanan)
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          // Ikon tetap di paling kiri
+          // Ikon di paling kiri
           Image.asset('src/features/hicode/images/leaderboard.png', width: 90, height: 90),
           const SizedBox(width: 16),
 
           // 'Expanded' memastikan Column ini mengisi sisa ruang
           Expanded(
-            // 2. Column ini sekarang berisi teks DAN tombol
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start, // Rata kiri
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Teks Judul
                 const Text("Leaderboard",
@@ -298,21 +297,13 @@ class _LeaderboardCard extends StatelessWidget {
 
                 // Teks Paragraf
                 const Text(
-                    "Lihat kapabilitas yang sudah\nmenyelesaikan tugas akhir dan\nmeraih skor terbaik!",
-                    style: TextStyle(color: Color(0xFF1A1C1E), fontSize: 13)),
-                const SizedBox(height: 12), // Jarak dari teks ke tombol
+                    "Lihat kapabilitas yang sudah menyelesaikan tugas akhir dan meraih skor terbaik!",
+                    style: TextStyle(color: Colors.grey, fontSize: 12)),
+                const SizedBox(height: 12),
 
-                // 3. Tombol dipindahkan ke sini
+                // Tombol
                 ElevatedButton(
                   onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    backgroundColor: const Color(0xFF81EAFF),
-                    foregroundColor: const Color(0xFF006EBD),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                  ),
                   child: const Text("Lihat Selengkapnya"),
                 ),
               ],
