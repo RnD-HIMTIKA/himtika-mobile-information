@@ -281,7 +281,7 @@ class _LeaderboardCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Ikon tetap di paling kiri
-          Image.asset('src/features/hicode/images/leaderboard.png', width: 120, height: 120),
+          Image.asset('src/features/hicode/images/leaderboard.png', width: 90, height: 90),
           const SizedBox(width: 16),
 
           // 'Expanded' memastikan Column ini mengisi sisa ruang
@@ -298,8 +298,8 @@ class _LeaderboardCard extends StatelessWidget {
 
                 // Teks Paragraf
                 const Text(
-                    "Lihat kapabilitas yang sudah\n menyelesaikan tugas akhir dan\n meraih skor terbaik!",
-                    style: TextStyle(color: Color(0xFF1A1C1E), fontSize: 14)),
+                    "Lihat kapabilitas yang sudah\nmenyelesaikan tugas akhir dan\nmeraih skor terbaik!",
+                    style: TextStyle(color: Color(0xFF1A1C1E), fontSize: 13)),
                 const SizedBox(height: 12), // Jarak dari teks ke tombol
 
                 // 3. Tombol dipindahkan ke sini
