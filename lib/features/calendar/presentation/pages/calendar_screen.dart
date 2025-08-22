@@ -4,6 +4,7 @@ import 'package:himtika_mobile_information/features/home/presentation/pages/home
 import '../../../../core/injection_container.dart';
 import '../bloc/workspace/workspace_bloc.dart';
 import 'schedule_detail_screen.dart';
+import '../../../auth/domain/entities/user.dart';
 
 // ===========================================================================
 // HALAMAN 1: CALENDAR SCREEN (DENGAN TATA LETAK TOMBOL DINAMIS)
@@ -207,11 +208,12 @@ class _WorkspaceSheet extends StatelessWidget {
                                   itemCount: state.workspaces.length,
                                   separatorBuilder: (_, __) => const SizedBox(height: 16),
                                   itemBuilder: (context, index) {
-                                    final ws = state.workspaces[index];
+                                    final wsWithMembers = state.workspaces[index];
                                     return _WorkspaceCard(
-                                      workspaceId: ws.id,
-                                      title: ws.title,
-                                      description: ws.description,
+                                      workspaceId: wsWithMembers.workspace.id,
+                                      title: wsWithMembers.workspace.title,
+                                      description: wsWithMembers.workspace.description,
+                                      members: wsWithMembers.members, // Kirim daftar anggota
                                     );
                                   },
                                 ),
@@ -320,11 +322,13 @@ class _WorkspaceCard extends StatelessWidget {
   final String workspaceId;
   final String title;
   final String description;
+  final List<User> members; // Terima daftar anggota
 
   const _WorkspaceCard({
     required this.workspaceId,
     required this.title,
     required this.description,
+    required this.members,
   });
 
   @override
@@ -393,24 +397,66 @@ class _WorkspaceCard extends StatelessWidget {
                 },
               ),
               const SizedBox(height: 16),
-              Row(
-                children: [
-                  const CircleAvatar(radius: 12, backgroundColor: Colors.orange),
-                  const SizedBox(width: 4),
-                  const CircleAvatar(radius: 12, backgroundColor: Colors.green),
-                  const SizedBox(width: 4),
-                  const CircleAvatar(radius: 12, backgroundColor: Colors.purple),
-                  const SizedBox(width: 8),
-                  Text(
-                    "3 Orang bersama anda",
-                    style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
-                  ),
-                ],
-              ),
+              
+              // Baris avatar dan jumlah anggota dinamis
+              _buildMembersRow(),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildMembersRow() {
+    if (members.isEmpty) {
+      return const SizedBox.shrink(); // Jangan tampilkan apa-apa jika tidak ada anggota
+    }
+
+    const maxAvatars = 3;
+    final displayedMembers = members.take(maxAvatars).toList();
+    final remainingCount = members.length - maxAvatars;
+
+    return Row(
+      children: [
+        // Tumpukan Avatar
+        SizedBox(
+          width: (maxAvatars * 18.0), // Lebar tumpukan avatar
+          height: 24,
+          child: Stack(
+            children: List.generate(displayedMembers.length, (index) {
+              final member = displayedMembers[index];
+              return Positioned(
+                left: (index * 14.0),
+                child: CircleAvatar(
+                  radius: 12,
+                  backgroundColor: Colors.white,
+                  child: CircleAvatar(
+                    radius: 10,
+                    backgroundImage: (member.profileUrl != null && member.profileUrl!.isNotEmpty)
+                        ? NetworkImage(member.profileUrl!)
+                        : null,
+                    // Tambahkan fallback ke ikon jika tidak ada gambar
+                    child: (member.profileUrl == null || member.profileUrl!.isEmpty)
+                        ? const Icon(Icons.person, size: 12)
+                        : null,
+                  ),
+                ),
+              );
+            }),
+          ),
+        ),
+        const SizedBox(width: 8),
+        // Teks jumlah anggota
+        Expanded(
+          child: Text(
+            remainingCount > 0
+                ? "${members.length} Orang bersama anda"
+                : "${members.length} ${members.length > 1 ? 'Orang' : 'Orang'} bersama anda",
+            style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 }

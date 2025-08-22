@@ -31,4 +31,13 @@ class CalendarRemoteDatasource {
       'p_description': description,
     });
   }
+
+  //Fungsi untuk mengambil anggota dari satu workspace
+  Future<List<Map<String, dynamic>>> getMembersForWorkspace(String workspaceId) async {
+    final data = await _client
+        .from('workspace_access')
+        .select('users(*)') // Ambil semua data user yang berelasi
+        .eq('workspace_id', workspaceId);
+    return List<Map<String, dynamic>>.from(data);
+  }
 }

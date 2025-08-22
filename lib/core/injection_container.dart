@@ -127,13 +127,16 @@ Future<void> initDependencies() async {
   // Datasource
   sl.registerLazySingleton<CalendarRemoteDatasource>(() => CalendarRemoteDatasource(sl(), sl<GetCurrentUser>()));
   // Repository
-  sl.registerLazySingleton<CalendarRepository>(() => CalendarRepositoryImpl(sl()));
+  sl.registerLazySingleton<CalendarRepository>(() => CalendarRepositoryImpl(
+        remoteDatasource: sl(),
+        getCurrentUser: sl(),
+      ));
   // Usecases
   sl.registerLazySingleton(() => GetMyWorkspaces(sl()));
   sl.registerLazySingleton(() => CreateWorkspace(sl()));
   // BLoC
   sl.registerFactory(() => WorkspaceBloc(
-        getMyWorkspaces: sl(),
+        calendarRepository: sl(),
         createWorkspace: sl(),
       ));
 

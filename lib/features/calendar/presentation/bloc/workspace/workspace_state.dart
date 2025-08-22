@@ -4,7 +4,8 @@ enum WorkspaceStatus { initial, loading, loaded, failure }
 
 class WorkspaceState extends Equatable {
   final WorkspaceStatus status;
-  final List<Workspace> workspaces;
+  // Ganti tipe data list menjadi WorkspaceWithMembers
+  final List<WorkspaceWithMembers> workspaces; 
   final String? errorMessage;
 
   const WorkspaceState({
@@ -15,7 +16,7 @@ class WorkspaceState extends Equatable {
 
   WorkspaceState copyWith({
     WorkspaceStatus? status,
-    List<Workspace>? workspaces,
+    List<WorkspaceWithMembers>? workspaces,
     String? errorMessage,
   }) {
     return WorkspaceState(

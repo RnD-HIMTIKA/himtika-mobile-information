@@ -1,24 +1,26 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/entities/workspace.dart';
-import '../../../domain/usecases/get_my_workspaces.dart';
+import '../../../domain/entities/workspace_with_members.dart';
 import '../../../domain/usecases/create_workspace.dart';
+import '../../../domain/repositories/calendar_repository.dart';
 
 part 'workspace_event.dart';
 part 'workspace_state.dart';
 
 class WorkspaceBloc extends Bloc<WorkspaceEvent, WorkspaceState> {
-  final GetMyWorkspaces _getMyWorkspaces;
+  // Ganti GetMyWorkspaces menjadi CalendarRepository
+  final CalendarRepository _calendarRepository; 
   final CreateWorkspace _createWorkspace;
 
   WorkspaceBloc({
-    required GetMyWorkspaces getMyWorkspaces,
-    required CreateWorkspace createWorkspace, // Tambahkan di konstruktor
-  })  : _getMyWorkspaces = getMyWorkspaces,
+    required CalendarRepository calendarRepository,
+    required CreateWorkspace createWorkspace,
+  })  : _calendarRepository = calendarRepository,
         _createWorkspace = createWorkspace,
         super(const WorkspaceState()) {
     on<LoadMyWorkspaces>(_onLoadMyWorkspaces);
-    on<CreateWorkspaceSubmitted>(_onCreateWorkspaceSubmitted); // Daftarkan handler
+    on<CreateWorkspaceSubmitted>(_onCreateWorkspaceSubmitted);
   }
 
   Future<void> _onLoadMyWorkspaces(
@@ -27,7 +29,8 @@ class WorkspaceBloc extends Bloc<WorkspaceEvent, WorkspaceState> {
   ) async {
     emit(state.copyWith(status: WorkspaceStatus.loading));
     try {
-      final workspaces = await _getMyWorkspaces();
+      // Panggil metode repository yang baru
+      final workspaces = await _calendarRepository.getMyWorkspacesWithMembers();
       emit(state.copyWith(
         status: WorkspaceStatus.loaded,
         workspaces: workspaces,
