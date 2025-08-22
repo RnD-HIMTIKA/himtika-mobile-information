@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:himtika_mobile_information/features/hicode/presentation/bloc/hicode_bloc.dart';
+import 'package:himtika_mobile_information/features/home/presentation/pages/home.dart';
 
 class HicodeScreen extends StatelessWidget {
   const HicodeScreen({super.key});
@@ -20,7 +21,7 @@ class HicodeScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildTopIconBar(),
+                  _buildTopIconBar(context),
                   const SizedBox(height: 16),
 
                   // --- Header ---
@@ -59,13 +60,16 @@ class HicodeScreen extends StatelessWidget {
   }
   
   // Method baru untuk membuat baris ikon di bagian atas
-  Widget _buildTopIconBar() {
+  Widget _buildTopIconBar(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         IconButton(
           onPressed: () {
-            // Aksi ketika tombol kembali ditekan
+            Navigator.pop(
+              context,
+              MaterialPageRoute(builder: (context) => const HomePage()),
+            );
           },
           icon: Image.asset(
             'src/features/hicode/icon/kembali.png',
