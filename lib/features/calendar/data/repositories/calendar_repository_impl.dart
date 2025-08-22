@@ -114,4 +114,14 @@ class CalendarRepositoryImpl implements CalendarRepository {
   Future<void> deleteEvent(String eventId) async {
     await remoteDatasource.deleteEvent(eventId);
   }
+
+  @override
+  Future<void> updateWorkspace({required String workspaceId, required String title, required String description}) async {
+    await remoteDatasource.updateWorkspace(workspaceId: workspaceId, title: title, description: description);
+  }
+
+  @override
+  Future<void> deleteWorkspace(String workspaceId) async {
+    await remoteDatasource.deleteWorkspace(workspaceId);
+  }
 }

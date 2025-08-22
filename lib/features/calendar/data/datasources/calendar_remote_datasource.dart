@@ -95,4 +95,23 @@ class CalendarRemoteDatasource {
         .delete()
         .match({'id': eventId});
   }
+
+  // Metode untuk mengupdate workspace
+  Future<void> updateWorkspace({required String workspaceId, required String title, required String description}) async {
+    await _client
+        .from('user_workspace')
+        .update({
+          'title': title,
+          'description': description,
+        })
+        .match({'id': workspaceId});
+  }
+
+  // Metode untuk menghapus workspace
+  Future<void> deleteWorkspace(String workspaceId) async {
+    await _client
+        .from('user_workspace')
+        .delete()
+        .match({'id': workspaceId});
+  }
 }
