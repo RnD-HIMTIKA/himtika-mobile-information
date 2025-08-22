@@ -4,6 +4,7 @@ import '../entities/workspace.dart';
 import '../entities/workspace.dart';
 import '../entities/workspace_with_members.dart';
 import '../entities/event.dart';
+import '../entities/invitation.dart';
 
 abstract class CalendarRepository {
   Future<List<Workspace>> getMyWorkspaces();
@@ -26,4 +27,7 @@ abstract class CalendarRepository {
     required String inviteeEmail,
     required String role,
   });
+  Future<List<Invitation>> getMyInvitations();
+  Future<void> acceptInvitation(String invitationId);
+  Future<void> declineInvitation(String invitationId);
 }

@@ -1,18 +1,19 @@
 import 'package:himtika_mobile_information/features/auth/data/models/user_model.dart';
 import 'package:himtika_mobile_information/features/auth/domain/usecases/get_current_user.dart';
+import 'package:himtika_mobile_information/features/calendar/domain/entities/invitation.dart';
+import '../datasources/calendar_remote_datasource.dart';
 import '../../domain/entities/workspace.dart';
+import '../../domain/entities/event.dart';
 import '../../domain/entities/workspace_with_members.dart';
 import '../../domain/repositories/calendar_repository.dart';
-import '../datasources/calendar_remote_datasource.dart';
-import '../../domain/entities/event.dart';
 
 class CalendarRepositoryImpl implements CalendarRepository {
   final CalendarRemoteDatasource remoteDatasource;
-  final GetCurrentUser getCurrentUser; // Tambahkan dependensi ini
+  final GetCurrentUser getCurrentUser;
 
   CalendarRepositoryImpl({
     required this.remoteDatasource,
-    required this.getCurrentUser, // Perbarui konstruktor
+    required this.getCurrentUser,
   });
 
   @override
@@ -41,17 +42,11 @@ class CalendarRepositoryImpl implements CalendarRepository {
 
   @override
   Future<List<WorkspaceWithMembers>> getMyWorkspacesWithMembers() async {
-    // Dapatkan siapa pengguna saat ini terlebih dahulu
     final currentUser = await getCurrentUser();
-    if (currentUser == null) {
-      // Jika karena suatu alasan tidak ada sesi, kembalikan daftar kosong
-      return [];
-    }
+    if (currentUser == null) return [];
 
-    // 1. Dapatkan semua workspace seperti biasa
     final workspaces = await getMyWorkspaces();
     
-    // 2. Untuk setiap workspace, ambil anggotanya dan filter
     final List<WorkspaceWithMembers> result = [];
     for (final ws in workspaces) {
       final membersData = await remoteDatasource.getMembersForWorkspace(ws.id);
@@ -61,8 +56,6 @@ class CalendarRepositoryImpl implements CalendarRepository {
         return userData != null ? UserModel.fromMap(userData) : null;
       }).whereType<UserModel>().toList();
 
-      // PERBAIKAN UTAMA DI SINI:
-      // Saring daftar anggota untuk mengecualikan pengguna saat ini
       final otherMembers = allMembers.where((member) => member.id != currentUser.id).toList();
 
       result.add(WorkspaceWithMembers(workspace: ws, members: otherMembers));
@@ -126,15 +119,40 @@ class CalendarRepositoryImpl implements CalendarRepository {
   }
 
   @override
-  Future<void> inviteUserToWorkspace({
-    required String workspaceId,
-    required String inviteeEmail,
-    required String role,
-  }) async {
-    await remoteDatasource.inviteUserToWorkspace(
-      workspaceId: workspaceId,
-      inviteeEmail: inviteeEmail,
-      role: role,
-    );
+  Future<void> inviteUserToWorkspace({required String workspaceId, required String inviteeEmail, required String role}) async {
+    await remoteDatasource.inviteUserToWorkspace(workspaceId: workspaceId, inviteeEmail: inviteeEmail, role: role);
+  }
+
+  @override
+  Future<List<Invitation>> getMyInvitations() async {
+    final data = await remoteDatasource.getMyInvitations();
+    
+    // Mapping dari data mentah ke Entitas Invitation dengan penanganan null
+    return data.map((json) {
+      // Ambil data relasional dengan aman
+      final workspaceData = json['workspace'] as Map<String, dynamic>?;
+      final inviterData = json['inviter'] as Map<String, dynamic>?;
+
+      return Invitation(
+        id: json['id'],
+        workspaceId: json['workspace_id'],
+        // Berikan nilai default jika data relasional (workspace) null
+        workspaceTitle: workspaceData?['title'] ?? 'Workspace Telah Dihapus',
+        // Berikan nilai default jika data relasional (inviter) null
+        inviterName: inviterData?['full_name'] ?? 'Pengguna Tidak Dikenal',
+        roleToGrant: json['role_to_grant'],
+        createdAt: DateTime.parse(json['created_at']),
+      );
+    }).toList();
+  }
+
+  @override
+  Future<void> acceptInvitation(String invitationId) async {
+    await remoteDatasource.acceptInvitation(invitationId);
+  }
+
+  @override
+  Future<void> declineInvitation(String invitationId) async {
+    await remoteDatasource.declineInvitation(invitationId);
   }
 }

@@ -127,4 +127,32 @@ class CalendarRemoteDatasource {
       'p_role_to_grant': role,
     });
   }
+
+  // Metode untuk mengambil undangan yang ditujukan ke pengguna saat ini
+  Future<List<Map<String, dynamic>>> getMyInvitations() async {
+    final currentUser = await _getCurrentUser();
+    if (currentUser == null) throw Exception('Pengguna tidak ditemukan');
+
+    final data = await _client
+        .from('workspace_invitations')
+        .select('*, inviter:inviter_id(full_name), workspace:workspace_id(title)')
+        .eq('invitee_id', currentUser.id)
+        .eq('status', 'pending');
+        
+    return List<Map<String, dynamic>>.from(data);
+  }
+
+  // Metode untuk memanggil RPC accept
+  Future<void> acceptInvitation(String invitationId) async {
+    await _client.rpc('accept_workspace_invitation', params: {
+      'p_invitation_id': invitationId,
+    });
+  }
+
+  // Metode untuk memanggil RPC decline
+  Future<void> declineInvitation(String invitationId) async {
+    await _client.rpc('decline_workspace_invitation', params: {
+      'p_invitation_id': invitationId,
+    });
+  }
 }
