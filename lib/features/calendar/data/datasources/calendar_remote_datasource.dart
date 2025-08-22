@@ -114,4 +114,17 @@ class CalendarRemoteDatasource {
         .delete()
         .match({'id': workspaceId});
   }
+
+  // Metode untuk memanggil fungsi RPC
+  Future<void> inviteUserToWorkspace({
+    required String workspaceId,
+    required String inviteeEmail,
+    required String role,
+  }) async {
+    await _client.rpc('invite_user_to_workspace', params: {
+      'p_workspace_id': workspaceId,
+      'p_invitee_email': inviteeEmail,
+      'p_role_to_grant': role,
+    });
+  }
 }

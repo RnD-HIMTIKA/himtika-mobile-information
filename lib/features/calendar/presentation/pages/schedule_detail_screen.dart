@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:table_calendar/table_calendar.dart';
-import 'dart:collection';
 import 'package:intl/intl.dart';
+import 'dart:collection';
+
+import 'package:himtika_mobile_information/core/injection_container.dart';
 import '../bloc/event/event_bloc.dart';
+import '../bloc/share_workspace/share_workspace_bloc.dart';
 import '../../domain/entities/event.dart';
-import 'calendar_screen.dart';
 
 // ===========================================================================
 // HALAMAN 2: DETAIL JADWAL & KALENDER
@@ -228,6 +229,20 @@ class _TopContent extends StatelessWidget {
     required this.onPageChanged,
     required this.onAddEventPressed,
   });
+
+  // Fungsi untuk menampilkan dialog "Bagikan"
+  void _showShareDialog(BuildContext context, String workspaceId) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        // Cukup sediakan BLoC baru, tidak perlu meneruskan yang lama
+        return BlocProvider(
+          create: (_) => sl<ShareWorkspaceBloc>(),
+          child: _ShareWorkspaceDialog(workspaceId: workspaceId),
+        );
+      },
+    );
+  }
   
   @override
   Widget build(BuildContext context) {
@@ -239,7 +254,7 @@ class _TopContent extends StatelessWidget {
           Row(
             children: [
               ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: () => _showShareDialog(context, context.read<EventBloc>().state.events.first.workspaceId),
                 icon: const Icon(Icons.share, size: 16),
                 label: const Text("Bagikan"),
                 style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: const Color(0xFF199df5).withOpacity(0.8), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), elevation: 0),
@@ -694,6 +709,122 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
           time.format(context),
           style: const TextStyle(fontSize: 16),
         ),
+      ),
+    );
+  }
+}
+
+class _ShareWorkspaceDialog extends StatefulWidget {
+  final String workspaceId;
+  const _ShareWorkspaceDialog({required this.workspaceId});
+
+  @override
+  State<_ShareWorkspaceDialog> createState() => _ShareWorkspaceDialogState();
+}
+
+class _ShareWorkspaceDialogState extends State<_ShareWorkspaceDialog> {
+  final _emailController = TextEditingController();
+  String _selectedRole = 'viewer'; // Default role
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<ShareWorkspaceBloc, ShareWorkspaceState>(
+      listener: (context, state) {
+        if (state.status == ShareStatus.success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Undangan berhasil dikirim!'), backgroundColor: Colors.green),
+          );
+          Navigator.of(context).pop();
+        } else if (state.status == ShareStatus.failure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(state.errorMessage ?? 'Gagal mengirim undangan.'), backgroundColor: Colors.red),
+          );
+        }
+      },
+      child: AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        insetPadding: const EdgeInsets.all(24),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('Bagikan Workspace', style: TextStyle(fontWeight: FontWeight.bold)),
+            IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.of(context).pop()),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Undang Pengguna', style: TextStyle(fontWeight: FontWeight.w500)),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _emailController,
+              keyboardType: TextInputType.emailAddress,
+              decoration: InputDecoration(
+                hintText: 'Masukkan email pengguna',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text('Berikan Peran Sebagai', style: TextStyle(fontWeight: FontWeight.w500)),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              value: _selectedRole,
+              items: const [
+                DropdownMenuItem(value: 'viewer', child: Text('Pelihat (Viewer)')),
+                DropdownMenuItem(value: 'editor', child: Text('Editor')),
+              ],
+              onChanged: (value) {
+                if (value != null) {
+                  setState(() {
+                    _selectedRole = value;
+                  });
+                }
+              },
+              decoration: InputDecoration(
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+        actions: [
+          BlocBuilder<ShareWorkspaceBloc, ShareWorkspaceState>(
+            builder: (context, state) {
+              return SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: state.status == ShareStatus.loading
+                      ? null
+                      : () {
+                          context.read<ShareWorkspaceBloc>().add(
+                                InviteUserSubmitted(
+                                  workspaceId: widget.workspaceId,
+                                  email: _emailController.text.trim(),
+                                  role: _selectedRole,
+                                ),
+                              );
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue.shade600,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: state.status == ShareStatus.loading
+                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white))
+                      : const Text('Kirim Undangan'),
+                ),
+              );
+            },
+          ),
+        ],
       ),
     );
   }

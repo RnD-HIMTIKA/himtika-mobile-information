@@ -21,4 +21,9 @@ abstract class CalendarRepository {
   Future<void> deleteEvent(String eventId);
   Future<void> updateWorkspace({required String workspaceId, required String title, required String description});
   Future<void> deleteWorkspace(String workspaceId);
+  Future<void> inviteUserToWorkspace({
+    required String workspaceId,
+    required String inviteeEmail,
+    required String role,
+  });
 }
