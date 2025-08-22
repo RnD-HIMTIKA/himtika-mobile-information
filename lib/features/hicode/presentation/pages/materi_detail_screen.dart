@@ -55,40 +55,38 @@ class MaterialDetailScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  // === BAGIAN DAFTAR MATERI (SEKARANG MENJADI EXPANDED LISTVIEW) ===
+                  // === BAGIAN DAFTAR MATERI (SEKARANG MENJADI EXPANDED LISTVIEW) ===                  
                   Expanded(
-                    child: ListView.separated(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: state.subChapters.length + 1, // +1 untuk Ujian Final
-                      itemBuilder: (context, index) {
-                        // Tampilkan list sub-bab
-                        if (index < state.subChapters.length) {
-                          final subChapter = state.subChapters[index];
-                          return _SubChapterCard(
-                            iconPath: state.materialIconPath!,
-                            title: subChapter['title']!,
-                            details: subChapter['details']!,
-                            status: subChapter['status'] as SubChapterStatus,
-                          );
-                        } else {
-                          // Tampilkan card Ujian Final di paling akhir
-                          final finalExamStatus =
-                              state.finalExamStatus!['status'] as SubChapterStatus;
-                          final finalExamIconPath =
-                              (finalExamStatus == SubChapterStatus.locked)
-                                  ? 'src/features/hicode/materi/terkunci.png'
-                                  : 'src/features/hicode/materi/selesai.png';
-                          return _SubChapterCard(
-                            iconPath: finalExamIconPath,
-                            title: state.finalExamStatus!['title']!,
-                            details: state.finalExamStatus!['details']!,
-                            status: finalExamStatus,
-                          );
-                        }
-                      },
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: 12),
-                    ),
+                    child: state.filteredSubChapters.isEmpty && state.searchQuery.isNotEmpty
+                        ? SingleChildScrollView( // 1. Bungkus dengan SingleChildScrollView
+                            physics: const BouncingScrollPhysics(),
+                            child: Padding(
+                              // 2. Beri padding atas agar posisi widget-nya bagus
+                              padding: const EdgeInsets.only(top: 64.0, left: 16, right: 16),
+                              child: _buildNotFoundWidget(),
+                            ),
+                          )
+                        : ListView.separated(
+                            padding: const EdgeInsets.all(16),
+                            itemCount: state.filteredSubChapters.length + 1,
+                            itemBuilder: (context, index) {
+                              if (index < state.filteredSubChapters.length) {
+                                final subChapter = state.filteredSubChapters[index];
+                                return _SubChapterCard(
+                                  iconPath: state.materialIconPath!,
+                                  title: subChapter['title']!,
+                                  details: subChapter['details']!,
+                                  status: subChapter['status'] as SubChapterStatus,
+                                );
+                              } else {
+                                return state.searchQuery.isEmpty
+                                    ? _buildFinalExamItem(state)
+                                    : const SizedBox.shrink();
+                              }
+                            },
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(height: 12),
+                          ),
                   ),
                 ],
               );
@@ -100,6 +98,47 @@ class MaterialDetailScreen extends StatelessWidget {
   }
 
   // --- WIDGET-WIDGET PEMBANTU ---
+  
+  // Widget untuk card ujian final
+  Widget _buildFinalExamItem(MaterialDetailState state) {
+    final finalExamStatus =
+        state.finalExamStatus!['status'] as SubChapterStatus;
+    final finalExamIconPath = (finalExamStatus == SubChapterStatus.locked)
+        ? 'src/features/hicode/materi/terkunci.png'
+        : 'src/features/hicode/materi/selesai.png';
+    return _SubChapterCard(
+      iconPath: finalExamIconPath,
+      title: state.finalExamStatus!['title']!,
+      details: state.finalExamStatus!['details']!,
+      status: finalExamStatus,
+    );
+  }
+
+  // Widget untuk UI "Tidak Ditemukan"
+  Widget _buildNotFoundWidget() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset(
+            'src/features/hicode/materi/empty_box.png',
+            width: 150,
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Materi Tidak Ditemukan',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Tidak ada chapter yang sesuai dengan\npencarian Anda.',
+            style: TextStyle(color: Colors.grey.shade600),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _buildTopIconBar(BuildContext context) {
     return Row(
@@ -155,18 +194,29 @@ class MaterialDetailScreen extends StatelessWidget {
   }
 
   Widget _buildSearchBar() {
-    return TextField(
-      decoration: InputDecoration(
-        hintText: 'Search anything...',
-        prefixIcon: const Icon(Icons.search),
-        suffixIcon: const Icon(Icons.mic),
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30),
-          borderSide: BorderSide.none,
-        ),
-      ),
+    // Gunakan BlocBuilder agar bisa mengakses BLoC
+    return BlocBuilder<MaterialDetailBloc, MaterialDetailState>(
+      builder: (context, state) {
+        return TextField(
+          onChanged: (query) {
+            // Kirim event 'SearchQueryChanged' setiap kali teks berubah
+            context
+                .read<MaterialDetailBloc>()
+                .add(SearchQueryChanged(query: query));
+          },
+          decoration: InputDecoration(
+            hintText: 'Search anything...',
+            prefixIcon: const Icon(Icons.search),
+            suffixIcon: const Icon(Icons.mic),
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(30),
+              borderSide: BorderSide.none,
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -219,17 +269,20 @@ class _SubChapterCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(15),
-        border: status == SubChapterStatus.locked
-            ? Border.all(color: Colors.grey.shade300)
-            : null,
+        border: Border.all(
+          // Jika status locked, warna border abu-abu, jika tidak, warna biru bias
+          color: status == SubChapterStatus.locked
+              ? Colors.grey.shade300
+              : Colors.blue.shade100, // Warna "biru bias"
+          width: 1.5, // Atur ketebalan border
+        ),
       ),
       child: Row(
         children: [
           // --- PERUBAHAN UTAMA DI SINI ---
-          // Hapus Container pembungkus, langsung tampilkan Image.asset
           Image.asset(
             iconPath,
-            width: 40,  // Sedikit diperbesar agar terlihat bagus
+            width: 40,
             height: 40,
           ),
           const SizedBox(width: 16),

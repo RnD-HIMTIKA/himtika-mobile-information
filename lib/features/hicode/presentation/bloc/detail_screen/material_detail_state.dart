@@ -9,7 +9,9 @@ class MaterialDetailState extends Equatable {
     this.description,
     this.subChapters = const [],
     this.finalExamStatus,
-    this.materialIconPath, // 1. Tambahkan properti baru
+    this.materialIconPath,
+    this.searchQuery = '', // TAMBAHKAN INI
+    this.filteredSubChapters = const [], // TAMBAHKAN INI
   });
 
   final MaterialDetailStatus status;
@@ -17,7 +19,9 @@ class MaterialDetailState extends Equatable {
   final String? description;
   final List<Map<String, dynamic>> subChapters;
   final Map<String, dynamic>? finalExamStatus;
-  final String? materialIconPath; // Properti baru
+  final String? materialIconPath;
+  final String searchQuery; // Properti baru untuk teks pencarian
+  final List<Map<String, dynamic>> filteredSubChapters; // Properti baru untuk hasil filter
 
   MaterialDetailState copyWith({
     MaterialDetailStatus? status,
@@ -25,7 +29,9 @@ class MaterialDetailState extends Equatable {
     String? description,
     List<Map<String, dynamic>>? subChapters,
     Map<String, dynamic>? finalExamStatus,
-    String? materialIconPath, // 2. Tambahkan di copyWith
+    String? materialIconPath,
+    String? searchQuery, // TAMBAHKAN INI
+    List<Map<String, dynamic>>? filteredSubChapters, // TAMBAHKAN INI
   }) {
     return MaterialDetailState(
       status: status ?? this.status,
@@ -33,7 +39,9 @@ class MaterialDetailState extends Equatable {
       description: description ?? this.description,
       subChapters: subChapters ?? this.subChapters,
       finalExamStatus: finalExamStatus ?? this.finalExamStatus,
-      materialIconPath: materialIconPath ?? this.materialIconPath, // Tambahkan di sini
+      materialIconPath: materialIconPath ?? this.materialIconPath,
+      searchQuery: searchQuery ?? this.searchQuery,
+      filteredSubChapters: filteredSubChapters ?? this.filteredSubChapters,
     );
   }
 
@@ -44,6 +52,8 @@ class MaterialDetailState extends Equatable {
         description,
         subChapters,
         finalExamStatus,
-        materialIconPath // 3. Tambahkan di props
+        materialIconPath,
+        searchQuery, // TAMBAHKAN INI
+        filteredSubChapters, // TAMBAHKAN INI
       ];
 }
