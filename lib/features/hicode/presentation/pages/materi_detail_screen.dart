@@ -10,88 +10,95 @@ class MaterialDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Buat instance BLoC baru khusus untuk halaman ini
     return BlocProvider(
       create: (context) => MaterialDetailBloc()
-        ..add(FetchDetailData(materialId: materialId)), // Langsung panggil event
+        ..add(FetchDetailData(materialId: materialId)),
       child: Scaffold(
-        backgroundColor: Colors.grey[100],
+        backgroundColor: const Color(0xFFF5F5F5),
         body: SafeArea(
-          // 2. Gunakan BlocBuilder dengan BLoC yang baru
           child: BlocBuilder<MaterialDetailBloc, MaterialDetailState>(
             builder: (context, state) {
-              if (state.status == MaterialDetailStatus.loading) {
+              if (state.status == MaterialDetailStatus.loading || state.title == null) {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              if (state.status == MaterialDetailStatus.success) {
-
-                // Variabel dideklarasikan di sini, di luar daftar children
-                final finalExamStatus = state.finalExamStatus!['status'] as SubChapterStatus;
-                final finalExamIconPath = (finalExamStatus == SubChapterStatus.locked)
-                    ? 'src/features/hicode/materi/terkunci.png'
-                    : 'src/features/hicode/materi/selesai.png';
-
-                return SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: _buildTopIconBar(context),
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // === BAGIAN BIRU DENGAN SUDUT MELENGKUNG DI BAWAH ===
+                  Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.blue,
+                      borderRadius: BorderRadius.only(
+                        bottomLeft: Radius.circular(30),
+                        bottomRight: Radius.circular(30),
                       ),
-                      _buildHeader(
-                        title: state.title!,
-                        description: state.description!,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildSearchBar(),
-                            const SizedBox(height: 24),
-                            // List Sub Bab
-                            ListView.separated(
-                              itemCount: state.subChapters.length,
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemBuilder: (context, index) {
-                                final subChapter = state.subChapters[index];
-                                return _SubChapterCard(
-                                  iconPath: state.materialIconPath!,
-                                  title: subChapter['title']!,
-                                  details: subChapter['details']!,
-                                  status: subChapter['status'] as SubChapterStatus,
-                                );
-                              },
-                              separatorBuilder: (context, index) =>
-                                  const SizedBox(height: 12),
-                            ),
-                            const SizedBox(height: 24),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // --- TAMBAHKAN JARAK DI SINI ---
+                          const SizedBox(height: 16), // Memberi jarak atas yang sama
 
-                            // Latihan Soal Final
-                            // Gunakan variabel yang sudah dibuat di atas
-                            _SubChapterCard(
-                              iconPath: finalExamIconPath,
-                              title: state.finalExamStatus!['title']!,
-                              details: state.finalExamStatus!['details']!,
-                              status: finalExamStatus,
-                            ),
-                          ],
-                        ),
+                          _buildTopIconBar(context),
+                          const SizedBox(height: 8),
+                          _buildHeader(
+                            title: state.title!,
+                            description: state.description!,
+                          ),
+                          const SizedBox(height: 16),
+                          _buildSearchBar(),
+                          const SizedBox(height: 24),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                );
-              }
-              return const SizedBox.shrink(); // Tampilkan widget kosong jika ada error/initial
+                  // === BAGIAN DAFTAR MATERI (SEKARANG MENJADI EXPANDED LISTVIEW) ===
+                  Expanded(
+                    child: ListView.separated(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: state.subChapters.length + 1, // +1 untuk Ujian Final
+                      itemBuilder: (context, index) {
+                        // Tampilkan list sub-bab
+                        if (index < state.subChapters.length) {
+                          final subChapter = state.subChapters[index];
+                          return _SubChapterCard(
+                            iconPath: state.materialIconPath!,
+                            title: subChapter['title']!,
+                            details: subChapter['details']!,
+                            status: subChapter['status'] as SubChapterStatus,
+                          );
+                        } else {
+                          // Tampilkan card Ujian Final di paling akhir
+                          final finalExamStatus =
+                              state.finalExamStatus!['status'] as SubChapterStatus;
+                          final finalExamIconPath =
+                              (finalExamStatus == SubChapterStatus.locked)
+                                  ? 'src/features/hicode/materi/terkunci.png'
+                                  : 'src/features/hicode/materi/selesai.png';
+                          return _SubChapterCard(
+                            iconPath: finalExamIconPath,
+                            title: state.finalExamStatus!['title']!,
+                            details: state.finalExamStatus!['details']!,
+                            status: finalExamStatus,
+                          );
+                        }
+                      },
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 12),
+                    ),
+                  ),
+                ],
+              );
             },
           ),
         ),
       ),
     );
   }
+
   // --- WIDGET-WIDGET PEMBANTU ---
 
   Widget _buildTopIconBar(BuildContext context) {
@@ -106,7 +113,7 @@ class MaterialDetailScreen extends StatelessWidget {
             );
           },
           icon: Image.asset(
-            'src/features/hicode/icon/kembali.png',
+            'src/features/hicode/materi/kembali.png',
             width: 32, // Atur lebar gambar
             height: 32, // Atur tinggi gambar
           ),
@@ -118,7 +125,7 @@ class MaterialDetailScreen extends StatelessWidget {
             // Aksi ketika tombol info ditekan
           },
           icon: Image.asset(
-            'src/features/hicode/icon/informasi.png',
+            'src/features/hicode/materi/informasi.png',
             width: 28,
             height: 28,
           ),
@@ -128,16 +135,20 @@ class MaterialDetailScreen extends StatelessWidget {
   }
 
   Widget _buildHeader({required String title, required String description}) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      color: Colors.blue.shade700, // Warna biru header
+    // Hapus Container dan color dari sini
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold)),
+          Text(title,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          Text(description, style: const TextStyle(color: Colors.white, fontSize: 14)),
+          Text(description,
+              style: const TextStyle(color: Colors.white, fontSize: 14)),
         ],
       ),
     );

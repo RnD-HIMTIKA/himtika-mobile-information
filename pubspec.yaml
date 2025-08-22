@@ -132,6 +132,8 @@ flutter:
     - src/features/hicode/materi/cpp.png
     - src/features/hicode/materi/terkunci.png
     - src/features/hicode/materi/selesai.png
+    - src/features/hicode/materi/kembali.png
+    - src/features/hicode/materi/informasi.png
 
 
   #   - images/a_dot_ham.jpeg
