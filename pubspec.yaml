@@ -115,10 +115,17 @@ flutter:
     - src/features/hicode/icon/css.png
     - src/features/hicode/icon/js.png
     - src/features/hicode/icon/cpp.png
+    - src/features/hicode/icon/kembali.png
+    - src/features/hicode/icon/informasi.png
     - src/features/hicode/images/html.png
     - src/features/hicode/images/css.png
     - src/features/hicode/images/js.png
     - src/features/hicode/images/cpp.png
+    - src/features/hicode/images/pattern_card.png
+    - src/features/hicode/images/pattern_exam.png
+    - src/features/hicode/images/leaderboard.png
+    - src/features/hicode/images/dibuka.png
+    - src/features/hicode/images/ditutup.png
 
 
   #   - images/a_dot_ham.jpeg

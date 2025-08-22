@@ -20,12 +20,15 @@ class HicodeScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  _buildTopIconBar(),
+                  const SizedBox(height: 16),
+
                   // --- Header ---
                   _buildHeader(),
                   const SizedBox(height: 24),
 
                   // --- Leaderboard ---
-                  const _LeaderboardCard(), // Widget kini jadi private class
+                  const _LeaderboardCard(),
                   const SizedBox(height: 24),
 
                   // --- Kategori ---
@@ -41,7 +44,11 @@ class HicodeScreen extends StatelessWidget {
                   const SizedBox(height: 24),
                   
                   // --- Ujian Akhir ---
-                  _buildFinalExamCard(),
+                  BlocBuilder<HicodeBloc, HicodeState>(
+                    builder: (context, state) {
+                      return _buildFinalExamCard(isExamReady: state.isExamReady);
+                    },
+                  ),
                 ],
               ),
             ),
@@ -50,20 +57,68 @@ class HicodeScreen extends StatelessWidget {
       ),
     );
   }
+  
+  // Method baru untuk membuat baris ikon di bagian atas
+  Widget _buildTopIconBar() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        IconButton(
+          onPressed: () {
+            // Aksi ketika tombol kembali ditekan
+          },
+          icon: Image.asset(
+            'src/features/hicode/icon/kembali.png',
+            width: 32, // Atur lebar gambar
+            height: 32, // Atur tinggi gambar
+          ),
+        ),
+        
+        // --- UBAH BAGIAN INI JUGA ---
+        IconButton(
+          onPressed: () {
+            // Aksi ketika tombol info ditekan
+          },
+          icon: Image.asset(
+            'src/features/hicode/icon/informasi.png',
+            width: 32,
+            height: 32,
+          ),
+        ),
+      ],
+    );
+  }
 
   Widget _buildHeader() {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.blue.shade700,
         borderRadius: BorderRadius.circular(15),
+        image: const DecorationImage(
+          image: AssetImage('src/features/hicode/images/pattern_card.png'),
+          fit: BoxFit.contain,
+          opacity: 1.0, 
+        ),
       ),
-      child: const Text(
-        'Belajar Mudah Bersama HiCode',
-        style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+      child: const Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Belajar Mudah\nBersama HiCode',
+            style: TextStyle(
+                color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
+          ),
+          SizedBox(height: 8),
+          Text(
+            'Mulai perjalanan kodingmu bersama kami. Panduan lengkap, materi terarah, dan dukungan setiap langkahnya.',
+            style: TextStyle(color: Colors.white, fontSize: 14),
+          ),
+        ],
       ),
     );
-  }
+}
   
   Widget _buildSectionTitle(String title) {
     return Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold));
@@ -74,7 +129,7 @@ class HicodeScreen extends StatelessWidget {
       builder: (context, state) {
         if (state.status == HicodeStatus.success) {
           return SizedBox(
-            height: 100,
+            height: 120,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: state.categories.length,
@@ -99,7 +154,11 @@ class HicodeScreen extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             itemCount: state.materials.length,
             itemBuilder: (context, index) {
-              return _MaterialCard(material: state.materials[index]); // Widget kini jadi private class
+              // Tambahkan parameter 'index: index,' yang hilang
+              return _MaterialCard(
+                material: state.materials[index],
+                index: index, // Parameter ini wajib ada sekarang
+              );
             },
             separatorBuilder: (context, index) => const SizedBox(height: 16),
           );
@@ -109,29 +168,90 @@ class HicodeScreen extends StatelessWidget {
     );
   }
   
-  Widget _buildFinalExamCard() {
+ Widget _buildFinalExamCard({required bool isExamReady}) {
+    // HAPUS: const bool isExamReady = true;
+    final Color backgroundColor = isExamReady ? Colors.green : Colors.red.shade400;
+    final String imagePath = isExamReady
+        ? 'src/features/hicode/images/dibuka.png'
+        : 'src/features/hicode/images/ditutup.png';
+    final String title = isExamReady
+        ? 'Yay! Ujian Akhir Siap Dimulai'
+        : 'Ujian Akhir Masih Terkunci';
+    final String subtitle = isExamReady
+        ? 'Kamu sudah selesaikan materi, saatnya tunjukkan kemampuanmu!'
+        : 'Selesaikan semua materi terlebih dahulu untuk membuka ujian akhir.';
+    final Color arrowColor = isExamReady ? Colors.white : Colors.white54;
+    final String buttonText = isExamReady ? "Kerjakan Sekarang" : "Lihat Materi";
+
+    // 2. Bangun UI menggunakan properti yang sudah ditentukan
     return Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-            color: Colors.green,
-            borderRadius: BorderRadius.circular(15)
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(15),
+        image: const DecorationImage(
+          image: AssetImage('src/features/hicode/images/pattern_exam.png'),
+          fit: BoxFit.contain,
+          opacity: 1.0,
         ),
-        child: const Row(
+      ),
+      child: Column(
+        children: [
+          Row(
             children: [
-                Icon(Icons.shield, color: Colors.white, size: 40),
-                SizedBox(width: 16),
-                Expanded(
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                            Text('Yay! Ujian Akhir Siap Dimulai', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                            Text('Kamu sudah selesaikan materi, saatnya tunjukkan kemampuanmu!', style: TextStyle(color: Colors.white, fontSize: 12)),
-                        ],
-                    )
+              Image.asset(
+                imagePath,
+                width: 40,
+                height: 40,
+                color: Colors.white,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16),
+                    ),
+                    Text(
+                      subtitle,
+                      style: const TextStyle(color: Colors.white, fontSize: 12),
+                    ),
+                  ],
                 ),
-                Icon(Icons.arrow_forward_ios, color: Colors.white, size: 16)
+              ),
             ],
-        ),
+          ),
+          const SizedBox(height: 12),
+
+          Align(
+            alignment: Alignment.centerRight,
+            child: Row(
+              mainAxisSize: MainAxisSize.min, 
+              children: [
+                Text(
+                  buttonText,
+                  style: TextStyle(
+                    color: arrowColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  color: arrowColor,
+                  size: 14,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -152,32 +272,53 @@ class _LeaderboardCard extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
       ),
+      // 1. Widget utama adalah Row (Ikon di kiri, konten di kanan)
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Ganti dengan Image.asset('assets/images/trophy.png') jika ada
-          const Icon(Icons.emoji_events, size: 60, color: Colors.amber),
+          // Ikon tetap di paling kiri
+          Image.asset('src/features/hicode/images/leaderboard.png', width: 120, height: 120),
           const SizedBox(width: 16),
-          const Expanded(
+
+          // 'Expanded' memastikan Column ini mengisi sisa ruang
+          Expanded(
+            // 2. Column ini sekarang berisi teks DAN tombol
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start, // Rata kiri
               children: [
-                Text("Leaderboard", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                SizedBox(height: 4),
-                Text("Lihat kapabilitas yang sudah menyelesaikan tugas akhir dan meraih skor terbaik!", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                // Teks Judul
+                const Text("Leaderboard",
+                    style:
+                        TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                const SizedBox(height: 4),
+
+                // Teks Paragraf
+                const Text(
+                    "Lihat kapabilitas yang sudah\n menyelesaikan tugas akhir dan\n meraih skor terbaik!",
+                    style: TextStyle(color: Color(0xFF1A1C1E), fontSize: 14)),
+                const SizedBox(height: 12), // Jarak dari teks ke tombol
+
+                // 3. Tombol dipindahkan ke sini
+                ElevatedButton(
+                  onPressed: () {},
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    backgroundColor: const Color(0xFF81EAFF),
+                    foregroundColor: const Color(0xFF006EBD),
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
+                  ),
+                  child: const Text("Lihat Selengkapnya"),
+                ),
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          ElevatedButton(
-            onPressed: () {},
-            child: const Text("Lihat"),
-          )
         ],
       ),
     );
   }
 }
-
 
 // --- WIDGET UNTUK CARD KATEGORI ---
 class _CategoryCard extends StatelessWidget {
@@ -189,11 +330,11 @@ class _CategoryCard extends StatelessWidget {
     return Column(
       children: [
         Container(
-          width: 70,
-          height: 70,
+          width: 85,
+          height: 85,
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.grey[200],
+            color: Color(0xFFE0E0E0),
             borderRadius: BorderRadius.circular(15),
           ),
           // 2. Ambil data menggunakan ['key']
@@ -207,49 +348,82 @@ class _CategoryCard extends StatelessWidget {
   }
 }
 
-// --- WIDGET UNTUK CARD MATERI
+// --- WIDGET UNTUK CARD MATERI --- //
 class _MaterialCard extends StatelessWidget {
-  // 1. Ubah tipe data dari 'CourseMaterial' menjadi 'Map<String, dynamic>'
   final Map<String, dynamic> material;
-  const _MaterialCard({required this.material});
+  // 1. Tambahkan 'index' untuk diterima oleh widget
+  final int index;
+
+  const _MaterialCard({
+    required this.material,
+    required this.index, // Tambahkan di constructor
+  });
 
   @override
   Widget build(BuildContext context) {
+    // 2. Buat logika untuk menentukan warna berdasarkan index ganjil/genap
+    // (index % 2 != 0) berarti ganjil
+    final borderColor = (index % 2 != 0)
+        ? Colors.blue.shade400
+        : Colors.orange.shade600;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.grey.shade300),
+        // 3. Gunakan warna yang sudah ditentukan di sini
+        border: Border.all(
+          color: borderColor,
+          width: 2, // Tambahkan ketebalan agar border lebih terlihat
+        ),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Baris yang berisi Ikon dan semua Teks
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 2. Ambil data menggunakan ['key']
-              Image.asset(material['iconPath'], width: 40, height: 40),
+              // Ikon Utama (HTML, CSS, dll)
+              Image.asset(material['iconPath'], width: 82, height: 82),
               const SizedBox(width: 16),
+
+              // Kolom untuk Teks
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(material['title'],
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
+                    // Judul Materi
+                    Text(
+                      material['title'],
+                      style: const TextStyle(
+                          fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
                     const SizedBox(height: 8),
-                    Row(
+
+                    // Detail Chapter dan Latihan Soal
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Icon(Icons.book_outlined,
-                            size: 16, color: Colors.grey),
-                        const SizedBox(width: 4),
-                        Text(material['chapterProgress'],
-                            style: const TextStyle(color: Colors.grey)),
-                        const SizedBox(width: 16),
-                        const Icon(Icons.edit_note_outlined,
-                            size: 16, color: Colors.grey),
-                        const SizedBox(width: 4),
-                        Text('${material['exerciseCount']} Latihan Soal',
-                            style: const TextStyle(color: Colors.grey)),
+                        Row(
+                          children: [
+                            const Icon(Icons.book_outlined,
+                                size: 16, color: Colors.grey),
+                            const SizedBox(width: 8),
+                            Text(material['chapterProgress'],
+                                style: const TextStyle(color: Colors.grey)),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          children: [
+                            const Icon(Icons.edit_note_outlined,
+                                size: 16, color: Colors.grey),
+                            const SizedBox(width: 8),
+                            Text('${material['exerciseCount']} Latihan Soal',
+                                style: const TextStyle(color: Colors.grey)),
+                          ],
+                        ),
                       ],
                     ),
                   ],
@@ -257,19 +431,26 @@ class _MaterialCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue.shade50,
-                foregroundColor: Colors.blue.shade800,
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-              ),
-              child: const Text('Pelajari Sekarang'),
+
+          // --- 2. TOMBOL DILETAKKAN DI BAWAH SEBAGAI ANAK DARI COLUMN ---
+          const SizedBox(height: 16), // Beri jarak antara teks dan tombol
+          ElevatedButton(
+            onPressed: () {},
+            style: ElevatedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              backgroundColor: const Color(0xFF81EAFF),
+              foregroundColor: const Color(0xFF006EBD),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+            ),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min, // Agar tombol tidak selebar layar
+              children: [
+                Text('Pelajari Sekarang', style: TextStyle(fontSize: 12)),
+                SizedBox(width: 4),
+                Icon(Icons.arrow_forward_ios, size: 12),
+              ],
             ),
           ),
         ],

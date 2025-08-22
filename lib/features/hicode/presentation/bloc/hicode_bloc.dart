@@ -51,6 +51,7 @@ class HicodeBloc extends Bloc<HicodeEvent, HicodeState> {
       status: HicodeStatus.success,
       categories: dummyCategories,
       materials: dummyMaterials,
+      isExamReady: true,
     ));
   }
 } 
