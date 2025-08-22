@@ -277,39 +277,62 @@ class _LeaderboardCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(15),
       ),
       // 1. Widget utama adalah Row (Ikon di kiri, konten di kanan)
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Ikon di paling kiri
-          Image.asset('src/features/hicode/images/leaderboard.png', width: 90, height: 90),
-          const SizedBox(width: 16),
-
-          // 'Expanded' memastikan Column ini mengisi sisa ruang
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Teks Judul
-                const Text("Leaderboard",
-                    style:
-                        TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                const SizedBox(height: 4),
-
-                // Teks Paragraf
-                const Text(
-                    "Lihat kapabilitas yang sudah menyelesaikan tugas akhir dan meraih skor terbaik!",
-                    style: TextStyle(color: Colors.grey, fontSize: 12)),
-                const SizedBox(height: 12),
-
-                // Tombol
-                ElevatedButton(
-                  onPressed: () {},
-                  child: const Text("Lihat Selengkapnya"),
-                ),
-              ],
+      child: IntrinsicHeight(
+        child: Row(
+          // 2. Ubah crossAxisAlignment menjadi .stretch
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Gambar Aset Anda
+            Image.asset(
+              'src/features/hicode/images/leaderboard.png',
+              width: 90,
+              // 3. Hapus 'height' agar gambar bisa meregang
+              fit: BoxFit.cover, // 4. Tambahkan 'fit' agar gambar mengisi ruang
             ),
-          ),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween, // Agar seimbang
+                children: [
+                  // Grup Teks (Judul dan Paragraf)
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Leaderboard",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 18)),
+                      SizedBox(height: 4),
+                      Text(
+                          "Lihat kapabilitas yang sudah menyelesaikan tugas akhir dan meraih skor terbaik!",
+                          style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    ],
+                  ),
+                  SizedBox(height: 4),
+                  // Tombol
+                  SizedBox(
+                    height: 24,
+                    child: ElevatedButton(
+                      onPressed: () {},
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        backgroundColor: const Color(0xFF81EAFF),
+                        foregroundColor: const Color(0xFF006EBD),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text(
+                        "Lihat Selengkapnya",
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
