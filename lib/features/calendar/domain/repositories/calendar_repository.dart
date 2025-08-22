@@ -30,4 +30,6 @@ abstract class CalendarRepository {
   Future<List<Invitation>> getMyInvitations();
   Future<void> acceptInvitation(String invitationId);
   Future<void> declineInvitation(String invitationId);
+  Future<List<User>> searchUsers(String query);
+  Future<String> createInvitationLink({required String workspaceId, required String role});
 }

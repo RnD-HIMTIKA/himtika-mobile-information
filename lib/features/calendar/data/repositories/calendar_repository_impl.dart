@@ -1,6 +1,7 @@
 import 'package:himtika_mobile_information/features/auth/data/models/user_model.dart';
 import 'package:himtika_mobile_information/features/auth/domain/usecases/get_current_user.dart';
 import 'package:himtika_mobile_information/features/calendar/domain/entities/invitation.dart';
+import 'package:himtika_mobile_information/features/auth/domain/entities/user.dart';
 import '../datasources/calendar_remote_datasource.dart';
 import '../../domain/entities/workspace.dart';
 import '../../domain/entities/event.dart';
@@ -154,5 +155,18 @@ class CalendarRepositoryImpl implements CalendarRepository {
   @override
   Future<void> declineInvitation(String invitationId) async {
     await remoteDatasource.declineInvitation(invitationId);
+  }
+
+  @override
+  Future<List<User>> searchUsers(String query) async {
+    final data = await remoteDatasource.searchUsers(query);
+    // Mapping data mentah ke Entity User
+    // Kita perlu UserModel di sini untuk mapping yang mudah
+    return data.map((json) => UserModel.fromMap(json)).toList();
+  }
+
+  @override
+  Future<String> createInvitationLink({required String workspaceId, required String role}) async {
+    return await remoteDatasource.createInvitationLink(workspaceId: workspaceId, role: role);
   }
 }

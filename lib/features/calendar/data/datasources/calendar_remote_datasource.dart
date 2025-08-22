@@ -155,4 +155,21 @@ class CalendarRemoteDatasource {
       'p_invitation_id': invitationId,
     });
   }
+
+  // Metode untuk memanggil RPC search_users
+  Future<List<Map<String, dynamic>>> searchUsers(String query) async {
+    final data = await _client.rpc('search_users', params: {
+      'p_query': query,
+    });
+    return List<Map<String, dynamic>>.from(data);
+  }
+
+  // Metode untuk memanggil RPC create_workspace_invitation_link
+  Future<String> createInvitationLink({required String workspaceId, required String role}) async {
+    final token = await _client.rpc('create_workspace_invitation_link', params: {
+      'p_workspace_id': workspaceId,
+      'p_role_to_grant': role,
+    });
+    return token as String;
+  }
 }
