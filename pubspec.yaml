@@ -126,6 +126,12 @@ flutter:
     - src/features/hicode/images/leaderboard.png
     - src/features/hicode/images/dibuka.png
     - src/features/hicode/images/ditutup.png
+    - src/features/hicode/materi/html.png
+    - src/features/hicode/materi/css.png
+    - src/features/hicode/materi/js.png
+    - src/features/hicode/materi/cpp.png
+    - src/features/hicode/materi/terkunci.png
+    - src/features/hicode/materi/selesai.png
 
 
   #   - images/a_dot_ham.jpeg

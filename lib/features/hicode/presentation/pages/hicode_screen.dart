@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:himtika_mobile_information/features/hicode/presentation/bloc/hicode_bloc.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/bloc/main_screen/hicode_bloc.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/pages/materi_detail_screen.dart';
 import 'package:himtika_mobile_information/features/home/presentation/pages/home.dart';
 
 class HicodeScreen extends StatelessWidget {
@@ -453,7 +454,15 @@ class _MaterialCard extends StatelessWidget {
           // --- 2. TOMBOL DILETAKKAN DI BAWAH SEBAGAI ANAK DARI COLUMN ---
           const SizedBox(height: 16), // Beri jarak antara teks dan tombol
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => MaterialDetailScreen(
+                    materialId: material['title'],
+                  ),
+                ),
+              );
+            },
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               backgroundColor: const Color(0xFF81EAFF),
