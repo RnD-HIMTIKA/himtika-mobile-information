@@ -85,8 +85,8 @@ class HicodeScreen extends StatelessWidget {
           },
           icon: Image.asset(
             'src/features/hicode/icon/informasi.png',
-            width: 32,
-            height: 32,
+            width: 28,
+            height: 28,
           ),
         ),
       ],
