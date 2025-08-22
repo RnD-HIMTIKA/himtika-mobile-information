@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Import untuk LengthLimitingTextInputFormatter
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'dart:collection';
+import 'package:intl/intl.dart'; // Import untuk format waktu
 import '../bloc/event/event_bloc.dart';
 import '../../domain/entities/event.dart';
 import 'calendar_screen.dart';
@@ -126,7 +128,6 @@ class _ScheduleDetailViewState extends State<_ScheduleDetailView> {
               color: const Color(0xFF31b7fe),
             ),
             onPressed: () {
-              // Gunakan pop() untuk kembali ke halaman sebelumnya
               Navigator.of(context).pop();
             },
           ),
@@ -195,7 +196,6 @@ class _TopContent extends StatelessWidget {
   final DateTime focusedDay;
   final DateTime? selectedDay;
   final Function(DateTime, DateTime) onDaySelected;
-  // PERBAIKAN 1: Ubah tipe data di sini
   final List<Event> Function(DateTime) eventLoader;
   final Function(DateTime) onPageChanged;
   final VoidCallback onAddEventPressed;
@@ -211,7 +211,6 @@ class _TopContent extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
-    // ... UI Anda tetap sama persis ...
     return SingleChildScrollView(
        padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Column(
@@ -299,7 +298,6 @@ class _ScheduleSheet extends StatelessWidget {
               ),
             ],
           ),
-          // PERBAIKAN 2: Ubah tipe data di sini
           child: ValueListenableBuilder<List<Event>>(
             valueListenable: selectedEvents,
             builder: (context, value, _) {
@@ -339,10 +337,11 @@ class _ScheduleSheet extends StatelessWidget {
                       ),
                     )
                   else
-                    // PERBAIKAN 3: Sekarang `event` adalah objek Event, bukan Map
                     ...value.map((event) {
+                      final startTime = DateFormat.Hm().format(event.startTime);
+                      final endTime = DateFormat.Hm().format(event.endTime);
                       return _ScheduleEventCard(
-                        time: '${event.startTime.hour}:${event.startTime.minute.toString().padLeft(2, '0')}',
+                        time: '$startTime\n$endTime',
                         title: event.title,
                         detail: event.description ?? '',
                       );
@@ -366,7 +365,6 @@ class _ScheduleEventCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // ... UI Anda tetap sama persis ...
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -432,6 +430,9 @@ class _ScheduleEventCard extends StatelessWidget {
   }
 }
 
+// ===========================================================================
+// DIALOG BUAT EVENT (DENGAN PERBAIKAN)
+// ===========================================================================
 class _CreateEventDialog extends StatefulWidget {
   final DateTime selectedDate;
   final String workspaceId;
@@ -453,9 +454,27 @@ class _CreateEventDialogState extends State<_CreateEventDialog> {
     super.dispose();
   }
 
+  // Fungsi untuk menampilkan time picker
+  Future<void> _selectTime(BuildContext context, {required bool isStartTime}) async {
+    final initialTime = isStartTime ? _startTime : _endTime;
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+    );
+
+    if (pickedTime != null) {
+      setState(() {
+        if (isStartTime) {
+          _startTime = pickedTime;
+        } else {
+          _endTime = pickedTime;
+        }
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // ... UI Dialog Anda tetap sama persis ...
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       insetPadding: const EdgeInsets.all(24),
@@ -466,33 +485,53 @@ class _CreateEventDialogState extends State<_CreateEventDialog> {
           IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.of(context).pop()),
         ],
       ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('Judul', style: TextStyle(fontWeight: FontWeight.w500)),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _titleController,
-            decoration: InputDecoration(
-              hintText: 'Masukkan Judul Event',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.blue)),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Judul', style: TextStyle(fontWeight: FontWeight.w500)),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _titleController,
+              maxLength: 30, // Batas karakter
+              inputFormatters: [LengthLimitingTextInputFormatter(30)],
+              decoration: InputDecoration(
+                hintText: 'Masukkan Judul Event',
+                counterText: "", // Sembunyikan counter default
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
-          const Text('Deskripsi', style: TextStyle(fontWeight: FontWeight.w500)),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _descriptionController,
-            decoration: InputDecoration(
-              hintText: 'Masukkan Deskripsi Event',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.blue)),
+            const SizedBox(height: 16),
+            const Text('Deskripsi', style: TextStyle(fontWeight: FontWeight.w500)),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _descriptionController,
+              maxLength: 60, // Batas karakter
+              inputFormatters: [LengthLimitingTextInputFormatter(60)],
+              maxLines: null, // Izinkan multiple lines
+              decoration: InputDecoration(
+                hintText: 'Masukkan Deskripsi Event',
+                counterText: "", // Sembunyikan counter
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
             ),
-          ),
-          // Tambahkan Time Picker di sini
-        ],
+            const SizedBox(height: 16),
+
+            // Waktu Mulai & Selesai
+            Row(
+              children: [
+                Expanded(
+                  child: _buildTimePickerField(context, 'Mulai', _startTime, isStartTime: true),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: _buildTimePickerField(context, 'Selesai', _endTime, isStartTime: false),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
       actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
       actions: [
@@ -536,6 +575,23 @@ class _CreateEventDialogState extends State<_CreateEventDialog> {
           ),
         ),
       ],
+    );
+  }
+
+  // Widget pembantu untuk field time picker
+  Widget _buildTimePickerField(BuildContext context, String label, TimeOfDay time, {required bool isStartTime}) {
+    return InkWell(
+      onTap: () => _selectTime(context, isStartTime: isStartTime),
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        child: Text(
+          time.format(context),
+          style: const TextStyle(fontSize: 16),
+        ),
+      ),
     );
   }
 }
