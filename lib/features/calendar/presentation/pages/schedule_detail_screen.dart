@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:himtika_mobile_information/features/calendar/presentation/pages/calendar_screen.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'dart:collection';
+import '../bloc/event/event_bloc.dart';
+import '../../domain/entities/event.dart';
+import 'calendar_screen.dart';
 
 // ===========================================================================
-// HALAMAN 2: DETAIL JADWAL & KALENDER (FINAL DENGAN DIALOG)
+// HALAMAN 2: DETAIL JADWAL & KALENDER
 // ===========================================================================
 
-class ScheduleDetailScreen extends StatefulWidget {
+class ScheduleDetailScreen extends StatelessWidget {
   final String workspaceId;
   final String workspaceTitle;
 
@@ -18,26 +22,39 @@ class ScheduleDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<ScheduleDetailScreen> createState() => _ScheduleDetailScreenState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => sl<EventBloc>()..add(LoadEvents(workspaceId)),
+      child: _ScheduleDetailView(
+        workspaceId: workspaceId,
+        workspaceTitle: workspaceTitle,
+      ),
+    );
+  }
 }
 
-class _ScheduleDetailScreenState extends State<ScheduleDetailScreen> {
-  late final ValueNotifier<List<Map>> _selectedEvents;
+class _ScheduleDetailView extends StatefulWidget {
+  final String workspaceId;
+  final String workspaceTitle;
+
+  const _ScheduleDetailView({
+    required this.workspaceId,
+    required this.workspaceTitle,
+  });
+
+  @override
+  State<_ScheduleDetailView> createState() => _ScheduleDetailViewState();
+}
+
+class _ScheduleDetailViewState extends State<_ScheduleDetailView> {
+  late final ValueNotifier<List<Event>> _selectedEvents;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
 
-  final Map<DateTime, List<Map>> _dummySchedules = LinkedHashMap(
+  LinkedHashMap<DateTime, List<Event>> _eventsMap = LinkedHashMap(
     equals: isSameDay,
     hashCode: (key) => key.day * 1000000 + key.month * 10000 + key.year,
-  )..addAll({
-    DateTime.utc(DateTime.now().year, DateTime.now().month, DateTime.now().day): [
-      {'time': 'All Day', 'title': 'Basis Data', 'detail': '10.00 - 12.30 | Ruang 77'},
-      {'time': '15.00\n17.30', 'title': 'Algoritma', 'detail': '15.00 - 17.30 | Ruang Lab'},
-    ],
-    DateTime.now().add(const Duration(days: 2)): [
-       {'time': '07.30\n10.00', 'title': 'Kalkulus', 'detail': '07.30 - 10.00 | Ruang 80'},
-    ],
-  });
+  );
 
   @override
   void initState() {
@@ -52,9 +69,8 @@ class _ScheduleDetailScreenState extends State<ScheduleDetailScreen> {
     super.dispose();
   }
 
-  List<Map> _getEventsForDay(DateTime day) {
-    DateTime normalizedDay = DateTime.utc(day.year, day.month, day.day);
-    return _dummySchedules[normalizedDay] ?? [];
+  List<Event> _getEventsForDay(DateTime day) {
+    return _eventsMap[day] ?? [];
   }
 
   void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
@@ -67,12 +83,14 @@ class _ScheduleDetailScreenState extends State<ScheduleDetailScreen> {
     }
   }
   
-  // Fungsi untuk menampilkan dialog "Tambah Event"
-  void _showCreateEventDialog(BuildContext context) {
+  void _showCreateEventDialog(BuildContext context, DateTime selectedDate) {
     showDialog(
       context: context,
-      builder: (BuildContext dialogContext) {
-        return const _CreateEventDialog();
+      builder: (dialogContext) {
+        return BlocProvider.value(
+          value: BlocProvider.of<EventBloc>(context),
+          child: _CreateEventDialog(selectedDate: selectedDate, workspaceId: widget.workspaceId),
+        );
       },
     );
   }
@@ -108,50 +126,64 @@ class _ScheduleDetailScreenState extends State<ScheduleDetailScreen> {
               color: const Color(0xFF31b7fe),
             ),
             onPressed: () {
-              Navigator.pop(
-                context,
-                MaterialPageRoute(builder: (context) => const CalendarScreen()),
-              );
+              // Gunakan pop() untuk kembali ke halaman sebelumnya
+              Navigator.of(context).pop();
             },
           ),
         ),
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF333C66), Color(0xFF2D365E)
-            ],
+      body: BlocListener<EventBloc, EventState>(
+        listener: (context, state) {
+          if (state.status == EventStatus.loaded) {
+            final newMap = LinkedHashMap<DateTime, List<Event>>(
+              equals: isSameDay,
+              hashCode: (key) => key.day * 1000000 + key.month * 10000 + key.year,
+            );
+            for (var event in state.events) {
+              final day = DateTime.utc(event.startTime.year, event.startTime.month, event.startTime.day);
+              if (newMap[day] == null) {
+                newMap[day] = [];
+              }
+              newMap[day]!.add(event);
+            }
+            setState(() {
+              _eventsMap = newMap;
+              _selectedEvents.value = _getEventsForDay(_selectedDay!);
+            });
+          } else if (state.status == EventStatus.failure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Error: ${state.errorMessage}'), backgroundColor: Colors.red),
+            );
+          }
+        },
+        child: Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF333C66), Color(0xFF2D365E)],
+            ),
+            image: DecorationImage(
+              image: AssetImage("src/features/calendar/images/pattern.png"),
+              fit: BoxFit.cover,
+              opacity: 0.5,
+            ),
           ),
-          image: DecorationImage(
-            image: AssetImage("src/features/calendar/images/pattern.png"),
-            fit: BoxFit.cover,
-            opacity: 0.5, // biar motifnya halus
-          ),
-        ),
-        child: Padding(
-          // ini yang bikin konten turun ke bawah header
-          padding: EdgeInsets.only(
-            top: kToolbarHeight + MediaQuery.of(context).padding.top,
-          ),
-          child: Stack(
-            children: [
-              _TopContent(
-                focusedDay: _focusedDay,
-                selectedDay: _selectedDay,
-                onDaySelected: _onDaySelected,
-                eventLoader: _getEventsForDay,
-                onPageChanged: (focusedDay) {
-                  setState(() {
-                    _focusedDay = focusedDay;
-                  });
-                },
-                onAddEventPressed: () => _showCreateEventDialog(context),
-              ),
-              _ScheduleSheet(selectedEvents: _selectedEvents),
-            ],
+          child: Padding(
+            padding: EdgeInsets.only(top: kToolbarHeight + MediaQuery.of(context).padding.top + 40),
+            child: Stack(
+              children: [
+                _TopContent(
+                  focusedDay: _focusedDay,
+                  selectedDay: _selectedDay,
+                  onDaySelected: _onDaySelected,
+                  eventLoader: _getEventsForDay,
+                  onPageChanged: (focusedDay) => setState(() => _focusedDay = focusedDay),
+                  onAddEventPressed: () => _showCreateEventDialog(context, _selectedDay!),
+                ),
+                _ScheduleSheet(selectedEvents: _selectedEvents),
+              ],
+            ),
           ),
         ),
       ),
@@ -159,16 +191,12 @@ class _ScheduleDetailScreenState extends State<ScheduleDetailScreen> {
   }
 }
 
-// ===========================================================================
-// WIDGET-WIDGET LOKAL
-// ===========================================================================
-
-// -- Widget untuk Konten Bagian Atas --
 class _TopContent extends StatelessWidget {
   final DateTime focusedDay;
   final DateTime? selectedDay;
   final Function(DateTime, DateTime) onDaySelected;
-  final List<Map> Function(DateTime) eventLoader;
+  // PERBAIKAN 1: Ubah tipe data di sini
+  final List<Event> Function(DateTime) eventLoader;
   final Function(DateTime) onPageChanged;
   final VoidCallback onAddEventPressed;
 
@@ -183,29 +211,30 @@ class _TopContent extends StatelessWidget {
   
   @override
   Widget build(BuildContext context) {
+    // ... UI Anda tetap sama persis ...
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Column(
         children: [
-          const SizedBox(height: 45),
+          const SizedBox(height: 16),
           Row(
             children: [
               ElevatedButton.icon(
                 onPressed: () {},
                 icon: const Icon(Icons.share, size: 16),
                 label: const Text("Bagikan"),
-                style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: Color(0xFF199df5).withValues(alpha:0.8), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), elevation: 0),
+                style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: const Color(0xFF199df5).withOpacity(0.8), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), elevation: 0),
               ),
               const SizedBox(width: 12),
               ElevatedButton.icon(
                 onPressed: () {},
                 icon: const Icon(Icons.info_outline, size: 16),
                 label: const Text("Informasi"),
-                style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: Color(0xFF8f8e92).withValues(alpha:0.8), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), elevation: 0),
+                style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: const Color(0xFF8f8e92).withOpacity(0.8), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), elevation: 0),
               ),
             ],
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
           Container(
             decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
             child: TableCalendar(
@@ -218,20 +247,20 @@ class _TopContent extends StatelessWidget {
               onPageChanged: onPageChanged,
               headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true, titleTextStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
               calendarStyle: CalendarStyle(
-                todayDecoration: BoxDecoration(color: Colors.blue.withValues(alpha:0.5), shape: BoxShape.circle),
+                todayDecoration: BoxDecoration(color: Colors.blue.withOpacity(0.5), shape: BoxShape.circle),
                 selectedDecoration: BoxDecoration(color: Colors.blue.shade600, shape: BoxShape.circle),
                 weekendTextStyle: const TextStyle(color: Colors.red),
                 markerDecoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
               ),
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: onAddEventPressed,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xFF1e9cf0),
+                backgroundColor: const Color(0xFF1e9cf0),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -239,19 +268,17 @@ class _TopContent extends StatelessWidget {
               child: const Text("Tambah Event"),
             ),
           ),
-          const SizedBox(height: 150), // Jarak aman
+          const SizedBox(height: 150),
         ],
       ),
     );
   }
 }
 
-// -- Widget untuk Panel Jadwal yang Bisa Digeser --
 class _ScheduleSheet extends StatelessWidget {
-  final ValueNotifier<List<Map>> selectedEvents;
-
+  final ValueNotifier<List<Event>> selectedEvents;
   const _ScheduleSheet({required this.selectedEvents});
-
+  
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
@@ -265,14 +292,15 @@ class _ScheduleSheet extends StatelessWidget {
             borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha:0.15),
+                color: Colors.black.withOpacity(0.15),
                 blurRadius: 10,
                 spreadRadius: 2,
                 offset: const Offset(0, -2),
               ),
             ],
           ),
-          child: ValueListenableBuilder<List<Map>>(
+          // PERBAIKAN 2: Ubah tipe data di sini
+          child: ValueListenableBuilder<List<Event>>(
             valueListenable: selectedEvents,
             builder: (context, value, _) {
               return ListView(
@@ -311,11 +339,12 @@ class _ScheduleSheet extends StatelessWidget {
                       ),
                     )
                   else
-                    ...value.map((schedule) {
+                    // PERBAIKAN 3: Sekarang `event` adalah objek Event, bukan Map
+                    ...value.map((event) {
                       return _ScheduleEventCard(
-                        time: schedule['time'] as String,
-                        title: schedule['title'] as String,
-                        detail: schedule['detail'] as String,
+                        time: '${event.startTime.hour}:${event.startTime.minute.toString().padLeft(2, '0')}',
+                        title: event.title,
+                        detail: event.description ?? '',
                       );
                     }),
                 ],
@@ -328,7 +357,6 @@ class _ScheduleSheet extends StatelessWidget {
   }
 }
 
-// -- Widget untuk Kartu Jadwal Kegiatan --
 class _ScheduleEventCard extends StatelessWidget {
   final String time;
   final String title;
@@ -338,6 +366,7 @@ class _ScheduleEventCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // ... UI Anda tetap sama persis ...
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -345,10 +374,10 @@ class _ScheduleEventCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha:0.2), // warna shadow
+            color: Colors.black.withOpacity(0.2),
             offset: const Offset(0, 4),
-            blurRadius: 6, // seberapa blur
-            spreadRadius: 0, // seberapa luas
+            blurRadius: 6,
+            spreadRadius: 0,
           ),
         ],
       ),
@@ -403,12 +432,30 @@ class _ScheduleEventCard extends StatelessWidget {
   }
 }
 
-// -- WIDGET BARU: Dialog untuk Tambah Event --
-class _CreateEventDialog extends StatelessWidget {
-  const _CreateEventDialog();
+class _CreateEventDialog extends StatefulWidget {
+  final DateTime selectedDate;
+  final String workspaceId;
+  const _CreateEventDialog({required this.selectedDate, required this.workspaceId});
+
+  @override
+  State<_CreateEventDialog> createState() => _CreateEventDialogState();
+}
+class _CreateEventDialogState extends State<_CreateEventDialog> {
+  final _titleController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  TimeOfDay _startTime = TimeOfDay.now();
+  TimeOfDay _endTime = TimeOfDay.fromDateTime(DateTime.now().add(const Duration(hours: 1)));
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    // ... UI Dialog Anda tetap sama persis ...
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       insetPadding: const EdgeInsets.all(24),
@@ -426,6 +473,7 @@ class _CreateEventDialog extends StatelessWidget {
           const Text('Judul', style: TextStyle(fontWeight: FontWeight.w500)),
           const SizedBox(height: 8),
           TextField(
+            controller: _titleController,
             decoration: InputDecoration(
               hintText: 'Masukkan Judul Event',
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
@@ -436,12 +484,14 @@ class _CreateEventDialog extends StatelessWidget {
           const Text('Deskripsi', style: TextStyle(fontWeight: FontWeight.w500)),
           const SizedBox(height: 8),
           TextField(
+            controller: _descriptionController,
             decoration: InputDecoration(
               hintText: 'Masukkan Deskripsi Event',
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: Colors.grey.shade300)),
               focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Colors.blue)),
             ),
           ),
+          // Tambahkan Time Picker di sini
         ],
       ),
       actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
@@ -449,13 +499,38 @@ class _CreateEventDialog extends StatelessWidget {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              final startDateTime = DateTime(
+                widget.selectedDate.year,
+                widget.selectedDate.month,
+                widget.selectedDate.day,
+                _startTime.hour,
+                _startTime.minute,
+              );
+              final endDateTime = DateTime(
+                widget.selectedDate.year,
+                widget.selectedDate.month,
+                widget.selectedDate.day,
+                _endTime.hour,
+                _endTime.minute,
+              );
+
+              context.read<EventBloc>().add(
+                CreateEventSubmitted(
+                  workspaceId: widget.workspaceId,
+                  title: _titleController.text,
+                  description: _descriptionController.text,
+                  startTime: startDateTime,
+                  endTime: endDateTime,
+                ),
+              );
+              Navigator.of(context).pop();
+            },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blue.shade600,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              elevation: 0,
             ),
             child: const Text('Buat Event'),
           ),

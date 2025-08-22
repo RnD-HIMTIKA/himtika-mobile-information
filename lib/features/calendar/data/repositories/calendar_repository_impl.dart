@@ -4,6 +4,7 @@ import '../../domain/entities/workspace.dart';
 import '../../domain/entities/workspace_with_members.dart';
 import '../../domain/repositories/calendar_repository.dart';
 import '../datasources/calendar_remote_datasource.dart';
+import '../../domain/entities/event.dart';
 
 class CalendarRepositoryImpl implements CalendarRepository {
   final CalendarRemoteDatasource remoteDatasource;
@@ -68,5 +69,39 @@ class CalendarRepositoryImpl implements CalendarRepository {
     }
     
     return result;
+  }
+
+  @override
+  Future<List<Event>> getEvents(String workspaceId) async {
+    final data = await remoteDatasource.getEvents(workspaceId);
+    return data.map((json) {
+      return Event(
+        id: json['id'],
+        workspaceId: json['workspace_id'],
+        createdBy: json['created_by'],
+        title: json['title'],
+        description: json['description'],
+        startTime: DateTime.parse(json['start_time']),
+        endTime: DateTime.parse(json['end_time']),
+        createdAt: DateTime.parse(json['created_at']),
+      );
+    }).toList();
+  }
+
+  @override
+  Future<void> createEvent({
+    required String workspaceId,
+    required String title,
+    String? description,
+    required DateTime startTime,
+    required DateTime endTime,
+  }) async {
+    await remoteDatasource.createEvent(
+      workspaceId: workspaceId,
+      title: title,
+      description: description,
+      startTime: startTime,
+      endTime: endTime,
+    );
   }
 }

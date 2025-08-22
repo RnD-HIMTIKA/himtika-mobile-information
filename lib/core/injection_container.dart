@@ -49,6 +49,9 @@ import 'package:himtika_mobile_information/features/calendar/domain/repositories
 import 'package:himtika_mobile_information/features/calendar/domain/usecases/get_my_workspaces.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/bloc/workspace/workspace_bloc.dart';
 import 'package:himtika_mobile_information/features/calendar/domain/usecases/create_workspace.dart';
+import 'package:himtika_mobile_information/features/calendar/domain/usecases/get_events.dart';
+import 'package:himtika_mobile_information/features/calendar/domain/usecases/create_event.dart';
+import 'package:himtika_mobile_information/features/calendar/presentation/bloc/event/event_bloc.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -134,10 +137,15 @@ Future<void> initDependencies() async {
   // Usecases
   sl.registerLazySingleton(() => GetMyWorkspaces(sl()));
   sl.registerLazySingleton(() => CreateWorkspace(sl()));
+  sl.registerLazySingleton(() => GetEvents(sl()));
+  sl.registerLazySingleton(() => CreateEvent(sl()));
   // BLoC
   sl.registerFactory(() => WorkspaceBloc(
         calendarRepository: sl(),
         createWorkspace: sl(),
       ));
-
+  sl.registerFactory(() => EventBloc(
+        getEvents: sl(),
+        createEvent: sl(),
+      ));
 }
