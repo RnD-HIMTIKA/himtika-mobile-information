@@ -11,7 +11,7 @@ class LoadMyInvitations extends InvitationEvent {}
 
 // Event saat pengguna menekan tombol "Terima"
 class AcceptInvitationPressed extends InvitationEvent {
-  final String invitationId;
+  final String invitationId; // Pastikan namanya invitationId
   const AcceptInvitationPressed(this.invitationId);
   @override
   List<Object> get props => [invitationId];

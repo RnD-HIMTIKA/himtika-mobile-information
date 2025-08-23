@@ -89,7 +89,7 @@ class ShareWorkspaceBloc extends Bloc<ShareWorkspaceEvent, ShareWorkspaceState> 
         workspaceId: event.workspaceId,
         role: event.role,
       );
-      final link = 'himtikaapp://join-workspace?token=$token';
+      final link = 'https://himtika.cs.unsika.ac.id/join-workspace?token=$token';
       await Clipboard.setData(ClipboardData(text: link));
       emit(state.copyWith(shareStatus: ShareStatus.success));
     } catch (e) {

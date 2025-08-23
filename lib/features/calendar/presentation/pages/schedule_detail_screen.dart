@@ -239,74 +239,58 @@ class _TopContent extends StatelessWidget {
     required this.onAddEventPressed,
   });
 
-  // Fungsi untuk menampilkan dialog "Bagikan"
-  void _showShareDialog(
-      BuildContext context, String workspaceId, String workspaceTitle) {
+  // Fungsi untuk menampilkan dialog "Bagikan" dipindahkan ke sini agar rapi
+  void _showShareDialog(BuildContext context, String workspaceId, String workspaceTitle) {
     showDialog(
       context: context,
-      // Gunakan false agar dialog bisa ditutup dengan tap di luar
       barrierDismissible: false,
       builder: (dialogContext) {
-        // Sediakan BLoC baru untuk dialog ini
         return BlocProvider(
           create: (_) => sl<ShareWorkspaceBloc>(),
-          child: _ShareWorkspaceDialog(
-              workspaceId: workspaceId, workspaceTitle: workspaceTitle),
+          child: _ShareWorkspaceDialog(workspaceId: workspaceId, workspaceTitle: workspaceTitle),
         );
       },
     );
   }
-
+  
   @override
   Widget build(BuildContext context) {
-    // Ambil workspaceId dari EventBloc state jika ada, atau dari widget.workspaceId
+    // Pindahkan logika untuk mendapatkan state dan info lain ke dalam build method
     final eventState = context.watch<EventBloc>().state;
-    final workspaceId = eventState.events.isNotEmpty
-        ? eventState.events.first.workspaceId
-        : context
-            .findAncestorWidgetOfExactType<_ScheduleDetailView>()!
-            .workspaceId;
-    final workspaceTitle = context
-        .findAncestorWidgetOfExactType<_ScheduleDetailView>()!
-        .workspaceTitle;
+    final workspaceId = eventState.events.isNotEmpty ? eventState.events.first.workspaceId : context.findAncestorWidgetOfExactType<_ScheduleDetailView>()!.workspaceId;
+    final workspaceTitle = context.findAncestorWidgetOfExactType<_ScheduleDetailView>()!.workspaceTitle;
+
+    // Untuk sementara, kita asumsikan peran adalah 'owner' sampai data peran dinamis diimplementasikan
+    const currentUserRole = 'owner';
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+       padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Column(
         children: [
           const SizedBox(height: 16),
           Row(
             children: [
               ElevatedButton.icon(
-                onPressed: () =>
-                    _showShareDialog(context, workspaceId, workspaceTitle),
+                // PERBAIKAN 2: Perbaiki syntax ternary operator di sini
+                onPressed: currentUserRole == 'owner'
+                    ? () => _showShareDialog(context, workspaceId, workspaceTitle)
+                    : null, // Tombol akan dinonaktifkan jika bukan owner
                 icon: const Icon(Icons.share, size: 16),
                 label: const Text("Bagikan"),
-                style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: const Color(0xFF199df5).withOpacity(0.8),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20)),
-                    elevation: 0),
+                style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: const Color(0xFF199df5).withOpacity(0.8), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), elevation: 0),
               ),
               const SizedBox(width: 12),
               ElevatedButton.icon(
                 onPressed: () {},
                 icon: const Icon(Icons.info_outline, size: 16),
                 label: const Text("Informasi"),
-                style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: const Color(0xFF8f8e92).withOpacity(0.8),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20)),
-                    elevation: 0),
+                style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: const Color(0xFF8f8e92).withOpacity(0.8), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), elevation: 0),
               ),
             ],
           ),
           const SizedBox(height: 24),
           Container(
-            decoration: BoxDecoration(
-                color: Colors.white, borderRadius: BorderRadius.circular(20)),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
             child: TableCalendar(
               firstDay: DateTime.utc(2020, 1, 1),
               lastDay: DateTime.utc(2030, 12, 31),
@@ -315,20 +299,12 @@ class _TopContent extends StatelessWidget {
               onDaySelected: onDaySelected,
               eventLoader: eventLoader,
               onPageChanged: onPageChanged,
-              headerStyle: const HeaderStyle(
-                  formatButtonVisible: false,
-                  titleCentered: true,
-                  titleTextStyle:
-                      TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true, titleTextStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
               calendarStyle: CalendarStyle(
-                todayDecoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.5),
-                    shape: BoxShape.circle),
-                selectedDecoration: BoxDecoration(
-                    color: Colors.blue.shade600, shape: BoxShape.circle),
+                todayDecoration: BoxDecoration(color: Colors.blue.withOpacity(0.5), shape: BoxShape.circle),
+                selectedDecoration: BoxDecoration(color: Colors.blue.shade600, shape: BoxShape.circle),
                 weekendTextStyle: const TextStyle(color: Colors.red),
-                markerDecoration: const BoxDecoration(
-                    color: Colors.redAccent, shape: BoxShape.circle),
+                markerDecoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
               ),
             ),
           ),
@@ -341,8 +317,7 @@ class _TopContent extends StatelessWidget {
                 backgroundColor: const Color(0xFF1e9cf0),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: const Text("Tambah Event"),
             ),
@@ -812,8 +787,8 @@ class _ShareWorkspaceDialog extends StatefulWidget {
 
 class _ShareWorkspaceDialogState extends State<_ShareWorkspaceDialog> {
   final _searchController = TextEditingController();
-  String _selectedRole = 'viewer';
-  final FocusNode _searchFocusNode = FocusNode(); // Untuk mengelola fokus
+  String _selectedRole = 'viewer'; // Default role
+  final FocusNode _searchFocusNode = FocusNode();
 
   @override
   void dispose() {
@@ -821,7 +796,7 @@ class _ShareWorkspaceDialogState extends State<_ShareWorkspaceDialog> {
     _searchFocusNode.dispose();
     super.dispose();
   }
-
+  
   @override
   Widget build(BuildContext context) {
     return BlocListener<ShareWorkspaceBloc, ShareWorkspaceState>(
@@ -829,7 +804,7 @@ class _ShareWorkspaceDialogState extends State<_ShareWorkspaceDialog> {
         if (state.shareStatus == ShareStatus.success) {
           // Cek apakah ada data di clipboard untuk membedakan aksi
           Clipboard.getData(Clipboard.kTextPlain).then((value) {
-            final message = (value?.text?.contains('himtikaapp://') ?? false)
+            final message = (value?.text?.contains('himfo://') ?? false)
                 ? 'Link undangan berhasil disalin!'
                 : 'Undangan berhasil dikirim!';
             ScaffoldMessenger.of(context).showSnackBar(
@@ -853,47 +828,66 @@ class _ShareWorkspaceDialogState extends State<_ShareWorkspaceDialog> {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Share Workspace',
-                style: TextStyle(fontWeight: FontWeight.bold)),
-            IconButton(
-                icon: const Icon(Icons.close),
-                onPressed: () => Navigator.of(context).pop()),
+            const Text('Share Workspace', style: TextStyle(fontWeight: FontWeight.bold)),
+            IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.of(context).pop()),
           ],
         ),
         content: SizedBox(
           width: double.maxFinite,
           child: Stack(
-            clipBehavior: Clip
-                .none, // Izinkan hasil pencarian melayang di luar batas dialog
+            clipBehavior: Clip.none,
             children: [
               Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Search Bar dan Dropdown Peran
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
                         child: TextField(
                           controller: _searchController,
                           focusNode: _searchFocusNode,
                           onChanged: (query) {
-                            context
-                                .read<ShareWorkspaceBloc>()
-                                .add(SearchUserChanged(query));
+                            context.read<ShareWorkspaceBloc>().add(SearchUserChanged(query));
                           },
                           decoration: InputDecoration(
                             hintText: 'Emails, atau username',
                             prefixIcon: const Icon(Icons.search),
-                            border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12)),
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      // TAMBAHKAN DROPDOWN INI
+                      SizedBox(
+                        width: 110, // Atur lebar agar pas
+                        child: DropdownButtonFormField<String>(
+                          value: _selectedRole,
+                          items: const [
+                            DropdownMenuItem(value: 'viewer', child: Text('Viewer')),
+                            DropdownMenuItem(value: 'editor', child: Text('Editor')),
+                          ],
+                          onChanged: (value) {
+                            if (value != null) setState(() => _selectedRole = value);
+                          },
+                          decoration: InputDecoration(
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                           ),
                         ),
                       ),
                     ],
                   ),
+                  const SizedBox(height: 8),
+
+                  // Hasil Pencarian akan muncul di sini sebagai overlay
+
                   const SizedBox(height: 24),
-                  const Text("Bagikan pada Roles",
-                      style: TextStyle(fontWeight: FontWeight.w500)),
+                  
+                  // Bagikan pada Roles & Salin Link
+                  const Text("Bagikan pada Roles", style: TextStyle(fontWeight: FontWeight.w500)),
                   const SizedBox(height: 8),
                   OutlinedButton(
                     onPressed: () {
@@ -922,6 +916,7 @@ class _ShareWorkspaceDialogState extends State<_ShareWorkspaceDialog> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(

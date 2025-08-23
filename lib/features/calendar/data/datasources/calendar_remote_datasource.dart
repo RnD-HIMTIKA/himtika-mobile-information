@@ -130,9 +130,10 @@ class CalendarRemoteDatasource {
   }
 
   // Metode untuk memanggil RPC accept
-  Future<void> acceptInvitation(String invitationId) async {
+  Future<void> acceptInvitation(String invitationIdOrToken) async {
     await _client.rpc('accept_workspace_invitation', params: {
-      'p_invitation_id': invitationId,
+      // PERBAIKAN DI SINI: ganti 'p_invitation_id' menjadi 'p_invitation_token'
+      'p_invitation_token': invitationIdOrToken,
     });
   }
 

@@ -1,6 +1,6 @@
 part of 'invitation_bloc.dart';
 
-enum InvitationStatus { initial, loading, loaded, failure }
+enum InvitationStatus { initial, loading, loaded, failure, actionSuccess }
 
 class InvitationState extends Equatable {
   final InvitationStatus status;

@@ -50,13 +50,14 @@ class InvitationBloc extends Bloc<InvitationEvent, InvitationState> {
     Emitter<InvitationState> emit,
   ) async {
     try {
+      // PERBAIKAN: Gunakan nama properti yang benar, yaitu 'invitationId'
       await _acceptInvitation(event.invitationId);
-      // Muat ulang daftar undangan setelah aksi berhasil
-      add(LoadMyInvitations());
+      add(LoadMyInvitations()); // Muat ulang daftar setelah aksi
+      emit(state.copyWith(status: InvitationStatus.actionSuccess));
     } catch (e) {
       emit(state.copyWith(
         status: InvitationStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: e.toString().replaceFirst('Exception: ', ''),
       ));
     }
   }
@@ -67,12 +68,11 @@ class InvitationBloc extends Bloc<InvitationEvent, InvitationState> {
   ) async {
     try {
       await _declineInvitation(event.invitationId);
-      // Muat ulang daftar undangan setelah aksi berhasil
-      add(LoadMyInvitations());
+      add(LoadMyInvitations()); // Muat ulang daftar setelah aksi
     } catch (e) {
       emit(state.copyWith(
         status: InvitationStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: e.toString().replaceFirst('Exception: ', ''),
       ));
     }
   }

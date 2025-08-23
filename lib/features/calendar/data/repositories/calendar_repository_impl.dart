@@ -22,34 +22,38 @@ class CalendarRepositoryImpl implements CalendarRepository {
     await remoteDatasource.createWorkspace(title: title, description: description);
   }
 
+  @override
   Future<List<WorkspaceWithMembers>> getMyWorkspacesWithMembers() async {
+    // Dapatkan siapa pengguna saat ini terlebih dahulu
+    final currentUser = await getCurrentUser();
+    
+    // Ambil data dari RPC
     final data = await remoteDatasource.getMyWorkspacesWithMembers();
-    print('Supabase response: $data');
-    return data.map((item) {
-      print('Processing item: $item');
-      final workspaceData = item['workspace'] as Map<String, dynamic>;
-      final membersData = item['members'] as List<dynamic>?;
 
-      // Tambah penanganan null untuk id dan owner_id
-      if (workspaceData['id'] == null || workspaceData['owner_id'] == null) {
-        print('Skipping item with null id or owner_id: $workspaceData');
-        return null; // Skip item ini
-      }
+    return data.map((item) {
+      final workspaceData = item['workspace'] as Map<String, dynamic>;
+      final membersData = item['members'] as List<dynamic>? ?? [];
+      final currentUserRole = item['currentUserRole'] as String? ?? 'viewer';
 
       final workspace = Workspace(
-        id: workspaceData['id'] as String,
+        id: workspaceData['id'],
         title: workspaceData['title'] ?? 'Tanpa Judul',
         description: workspaceData['description'] ?? '',
-        ownerId: workspaceData['owner_id'] as String,
-        lastUpdated: workspaceData['last_updated'] != null ? DateTime.parse(workspaceData['last_updated'] as String) : null,
+        ownerId: workspaceData['owner_id'],
+        lastUpdated: workspaceData['last_updated'] != null ? DateTime.parse(workspaceData['last_updated']) : null,
       );
 
-      final members = membersData?.map((memberJson) {
+      // Filter diri sendiri dari daftar anggota
+      final members = membersData.map((memberJson) {
         return UserModel.fromMap(memberJson as Map<String, dynamic>);
-      }).toList() ?? [];
+      }).where((member) => member.id != currentUser?.id).toList();
 
-      return WorkspaceWithMembers(workspace: workspace, members: members);
-    }).where((item) => item != null).cast<WorkspaceWithMembers>().toList();
+      return WorkspaceWithMembers(
+        workspace: workspace,
+        members: members,
+        currentUserRole: currentUserRole,
+      );
+    }).toList();
   }
 
   @override
