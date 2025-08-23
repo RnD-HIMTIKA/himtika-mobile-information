@@ -7,6 +7,7 @@ import '../bloc/workspace/workspace_bloc.dart';
 import 'schedule_detail_screen.dart';
 import '../../../auth/domain/entities/user.dart';
 import '../../domain/entities/workspace_with_members.dart';
+import '../../domain/entities/workspace_member.dart';
 
 // ===========================================================================
 // HALAMAN 1: CALENDAR SCREEN
@@ -330,9 +331,7 @@ class _WorkspaceCard extends StatelessWidget {
             context,
             MaterialPageRoute(
               builder: (context) => ScheduleDetailScreen(
-                workspaceId: workspace.id,
-                workspaceTitle: workspace.title,
-                currentUserRole: currentUserRole, 
+                workspaceWithMembers: workspaceWithMembers,
               ),
             ),
           );
@@ -367,7 +366,7 @@ class _WorkspaceCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 16),
-              _buildMembersRow(members),
+              _buildMembersRow(members), // Panggil dengan parameter yang benar
             ],
           ),
         ),
@@ -375,7 +374,7 @@ class _WorkspaceCard extends StatelessWidget {
     );
   }
 
-  Widget _buildMembersRow(List<User> members) {
+  Widget _buildMembersRow(List<WorkspaceMember> members) {
     if (members.isEmpty) {
       return const Text(
         "Hanya Anda di workspace ini",
@@ -394,6 +393,7 @@ class _WorkspaceCard extends StatelessWidget {
           height: 24,
           child: Stack(
             children: List.generate(displayedMembers.length, (index) {
+              // Sekarang 'member' adalah WorkspaceMember, jadi akses data user melalui 'member.user'
               final member = displayedMembers[index];
               return Positioned(
                 left: (index * 14.0),
@@ -402,10 +402,10 @@ class _WorkspaceCard extends StatelessWidget {
                   backgroundColor: Colors.white,
                   child: CircleAvatar(
                     radius: 10,
-                    backgroundImage: (member.profileUrl != null && member.profileUrl!.isNotEmpty)
-                        ? NetworkImage(member.profileUrl!)
+                    backgroundImage: (member.user.profileUrl != null && member.user.profileUrl!.isNotEmpty)
+                        ? NetworkImage(member.user.profileUrl!)
                         : null,
-                    child: (member.profileUrl == null || member.profileUrl!.isEmpty)
+                    child: (member.user.profileUrl == null || member.user.profileUrl!.isEmpty)
                         ? const Icon(Icons.person, size: 12)
                         : null,
                   ),

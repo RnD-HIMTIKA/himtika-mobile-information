@@ -1,55 +1,51 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:table_calendar/table_calendar.dart';
-import 'package:intl/intl.dart';
-import 'dart:collection';
-
 import 'package:himtika_mobile_information/core/injection_container.dart';
+import 'package:table_calendar/table_calendar.dart';
+import 'dart:collection';
+import 'package:intl/intl.dart';
+
 import 'package:himtika_mobile_information/features/roles/domain/entities/role.dart';
 import 'package:himtika_mobile_information/features/roles/domain/usecases/get_my_roles.dart';
-import '../bloc/share_workspace/share_workspace_bloc.dart'; // Import BLoC baru
+import 'package:himtika_mobile_information/features/auth/domain/entities/user.dart';
 import '../bloc/event/event_bloc.dart';
+import '../bloc/share_workspace/share_workspace_bloc.dart';
+import '../bloc/workspace/workspace_bloc.dart';
 import '../../domain/entities/event.dart';
+import '../../domain/entities/workspace.dart';
+import '../../domain/entities/workspace_with_members.dart';
+
 
 // ===========================================================================
 // HALAMAN 2: DETAIL JADWAL & KALENDER
 // ===========================================================================
 
 class ScheduleDetailScreen extends StatelessWidget {
-  final String workspaceId;
-  final String workspaceTitle;
-  final String currentUserRole;
+  // PERBAIKAN: Hanya menerima satu objek WorkspaceWithMembers
+  final WorkspaceWithMembers workspaceWithMembers;
 
   const ScheduleDetailScreen({
     super.key,
-    required this.workspaceId,
-    required this.workspaceTitle,
-    required this.currentUserRole,
+    required this.workspaceWithMembers,
   });
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => sl<EventBloc>()..add(LoadEvents(workspaceId)),
+      create: (_) => sl<EventBloc>()..add(LoadEvents(workspaceWithMembers.workspace.id)),
       child: _ScheduleDetailView(
-        workspaceId: workspaceId,
-        workspaceTitle: workspaceTitle,
-        currentUserRole: currentUserRole,
+        workspaceWithMembers: workspaceWithMembers,
       ),
     );
   }
 }
 
 class _ScheduleDetailView extends StatefulWidget {
-  final String workspaceId;
-  final String workspaceTitle;
-  final String currentUserRole;
+  final WorkspaceWithMembers workspaceWithMembers;
 
   const _ScheduleDetailView({
-    required this.workspaceId,
-    required this.workspaceTitle,
-    required this.currentUserRole,
+    required this.workspaceWithMembers,
   });
 
   @override
@@ -92,7 +88,7 @@ class _ScheduleDetailViewState extends State<_ScheduleDetailView> {
       _selectedEvents.value = _getEventsForDay(selectedDay);
     }
   }
-
+  
   void _showCreateEventDialog(BuildContext context, DateTime selectedDate) {
     showDialog(
       context: context,
@@ -100,8 +96,8 @@ class _ScheduleDetailViewState extends State<_ScheduleDetailView> {
         return BlocProvider.value(
           value: BlocProvider.of<EventBloc>(context),
           child: _ModifyEventDialog(
-            selectedDate: selectedDate,
-            workspaceId: widget.workspaceId,
+            selectedDate: selectedDate, 
+            workspaceId: widget.workspaceWithMembers.workspace.id,
           ),
         );
       },
@@ -115,8 +111,8 @@ class _ScheduleDetailViewState extends State<_ScheduleDetailView> {
         return BlocProvider.value(
           value: BlocProvider.of<EventBloc>(context),
           child: _ModifyEventDialog(
-            selectedDate: event.startTime,
-            workspaceId: widget.workspaceId,
+            selectedDate: event.startTime, 
+            workspaceId: widget.workspaceWithMembers.workspace.id,
             eventToEdit: event,
           ),
         );
@@ -133,7 +129,7 @@ class _ScheduleDetailViewState extends State<_ScheduleDetailView> {
         title: Padding(
           padding: const EdgeInsets.only(top: 8),
           child: Text(
-            widget.workspaceTitle,
+            widget.workspaceWithMembers.workspace.title,
             style: const TextStyle(
               color: Colors.white,
               fontWeight: FontWeight.bold,
@@ -154,9 +150,7 @@ class _ScheduleDetailViewState extends State<_ScheduleDetailView> {
               height: 32,
               color: const Color(0xFF31b7fe),
             ),
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+            onPressed: () => Navigator.of(context).pop(),
           ),
         ),
       ),
@@ -165,12 +159,10 @@ class _ScheduleDetailViewState extends State<_ScheduleDetailView> {
           if (state.status == EventStatus.loaded) {
             final newMap = LinkedHashMap<DateTime, List<Event>>(
               equals: isSameDay,
-              hashCode: (key) =>
-                  key.day * 1000000 + key.month * 10000 + key.year,
+              hashCode: (key) => key.day * 1000000 + key.month * 10000 + key.year,
             );
             for (var event in state.events) {
-              final day = DateTime.utc(event.startTime.year,
-                  event.startTime.month, event.startTime.day);
+              final day = DateTime.utc(event.startTime.year, event.startTime.month, event.startTime.day);
               if (newMap[day] == null) newMap[day] = [];
               newMap[day]!.add(event);
             }
@@ -180,9 +172,7 @@ class _ScheduleDetailViewState extends State<_ScheduleDetailView> {
             });
           } else if (state.status == EventStatus.failure) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                  content: Text('Error: ${state.errorMessage}'),
-                  backgroundColor: Colors.red),
+              SnackBar(content: Text('Error: ${state.errorMessage}'), backgroundColor: Colors.red),
             );
           }
         },
@@ -200,24 +190,22 @@ class _ScheduleDetailViewState extends State<_ScheduleDetailView> {
             ),
           ),
           child: Padding(
-            padding: EdgeInsets.only(
-                top: kToolbarHeight + MediaQuery.of(context).padding.top + 40),
+            padding: EdgeInsets.only(top: kToolbarHeight + MediaQuery.of(context).padding.top + 40),
             child: Stack(
               children: [
                 _TopContent(
+                  workspaceWithMembers: widget.workspaceWithMembers,
                   focusedDay: _focusedDay,
                   selectedDay: _selectedDay,
                   onDaySelected: _onDaySelected,
                   eventLoader: _getEventsForDay,
                   onPageChanged: (focusedDay) => setState(() => _focusedDay = focusedDay),
                   onAddEventPressed: () => _showCreateEventDialog(context, _selectedDay!),
-                  currentUserRole: widget.currentUserRole,
                 ),
-                // PERBAIKAN DI SINI: Teruskan widget.currentUserRole
                 _ScheduleSheet(
                   selectedEvents: _selectedEvents, 
                   onEventTap: (event) => _showEditEventDialog(context, event),
-                  currentUserRole: widget.currentUserRole,
+                  currentUserRole: widget.workspaceWithMembers.currentUserRole,
                 ),
               ],
             ),
@@ -229,47 +217,52 @@ class _ScheduleDetailViewState extends State<_ScheduleDetailView> {
 }
 
 class _TopContent extends StatelessWidget {
+  final WorkspaceWithMembers workspaceWithMembers;
   final DateTime focusedDay;
   final DateTime? selectedDay;
   final Function(DateTime, DateTime) onDaySelected;
   final List<Event> Function(DateTime) eventLoader;
   final Function(DateTime) onPageChanged;
   final VoidCallback onAddEventPressed;
-  final String currentUserRole;
 
   const _TopContent({
+    required this.workspaceWithMembers,
     required this.focusedDay,
     required this.selectedDay,
     required this.onDaySelected,
     required this.eventLoader,
     required this.onPageChanged,
     required this.onAddEventPressed,
-    required this.currentUserRole,
   });
 
-  // Fungsi untuk menampilkan dialog "Bagikan" dipindahkan ke sini agar rapi
-  void _showShareDialog(BuildContext context, String workspaceId, String workspaceTitle) {
+  void _showShareDialog(BuildContext context) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) {
         return BlocProvider(
           create: (_) => sl<ShareWorkspaceBloc>(),
-          child: _ShareWorkspaceDialog(workspaceId: workspaceId, workspaceTitle: workspaceTitle),
+          child: _ShareWorkspaceDialog(
+            workspaceId: workspaceWithMembers.workspace.id, 
+            workspaceTitle: workspaceWithMembers.workspace.title
+          ),
         );
+      },
+    );
+  }
+
+  void _showInfoDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return _WorkspaceInfoDialog(workspaceWithMembers: workspaceWithMembers);
       },
     );
   }
   
   @override
   Widget build(BuildContext context) {
-    // Pindahkan logika untuk mendapatkan state dan info lain ke dalam build method
-    final eventState = context.watch<EventBloc>().state;
-    final workspaceId = eventState.events.isNotEmpty ? eventState.events.first.workspaceId : context.findAncestorWidgetOfExactType<_ScheduleDetailView>()!.workspaceId;
-    final workspaceTitle = context.findAncestorWidgetOfExactType<_ScheduleDetailView>()!.workspaceTitle;
-
-    // Untuk sementara, kita asumsikan peran adalah 'owner' sampai data peran dinamis diimplementasikan
-    const currentUserRole = 'owner';
+    final currentUserRole = workspaceWithMembers.currentUserRole;
 
     return SingleChildScrollView(
        padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -279,17 +272,16 @@ class _TopContent extends StatelessWidget {
           Row(
             children: [
               ElevatedButton.icon(
-                // PERBAIKAN 2: Perbaiki syntax ternary operator di sini
                 onPressed: currentUserRole == 'owner'
-                    ? () => _showShareDialog(context, workspaceId, workspaceTitle)
-                    : null, // Tombol akan dinonaktifkan jika bukan owner
+                    ? () => _showShareDialog(context)
+                    : null,
                 icon: const Icon(Icons.share, size: 16),
                 label: const Text("Bagikan"),
                 style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: const Color(0xFF199df5).withOpacity(0.8), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), elevation: 0),
               ),
               const SizedBox(width: 12),
               ElevatedButton.icon(
-                onPressed: () {},
+                onPressed: () => _showInfoDialog(context),
                 icon: const Icon(Icons.info_outline, size: 16),
                 label: const Text("Informasi"),
                 style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: const Color(0xFF8f8e92).withOpacity(0.8), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), elevation: 0),
@@ -1142,6 +1134,108 @@ class _ShareByRoleDialogState extends State<_ShareByRoleDialog> {
             child: const Text('Batal')),
         ElevatedButton(
             onPressed: _onSimpanPressed, child: const Text('Simpan')),
+      ],
+    );
+  }
+}
+
+class _WorkspaceInfoDialog extends StatelessWidget {
+  final WorkspaceWithMembers workspaceWithMembers;
+
+  const _WorkspaceInfoDialog({required this.workspaceWithMembers});
+
+  @override
+  Widget build(BuildContext context) {
+    // PERBAIKAN 1: Pindahkan logika untuk mendapatkan data ke dalam build method
+    final workspace = workspaceWithMembers.workspace;
+    final allMembers = workspaceWithMembers.members;
+
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      insetPadding: const EdgeInsets.all(24),
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text('Info Workspace', style: TextStyle(fontWeight: FontWeight.bold)),
+          IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.of(context).pop()),
+        ],
+      ),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildReadOnlyField("Judul", workspace.title),
+              const SizedBox(height: 16),
+              _buildReadOnlyField(
+                "Tanggal Dibuat", 
+                DateFormat('d MMMM yyyy').format(workspace.lastUpdated ?? DateTime.now())
+              ),
+              const SizedBox(height: 16),
+              _buildReadOnlyField("Deskripsi", workspace.description, maxLines: 3),
+              const SizedBox(height: 24),
+              const Text("Yang Punya Akses", style: TextStyle(fontWeight: FontWeight.w500)),
+              const SizedBox(height: 8),
+              if (allMembers.isEmpty)
+                const Text("Tidak ada anggota lain.", style: TextStyle(color: Colors.grey))
+              else
+                // PERBAIKAN 2: Gunakan ListView.builder dengan logika yang benar
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: allMembers.length,
+                  itemBuilder: (context, index) {
+                    final member = allMembers[index];
+                    return ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: CircleAvatar(
+                        // PERBAIKAN 3: Akses properti melalui member.user
+                        backgroundImage: (member.user.profileUrl != null && member.user.profileUrl!.isNotEmpty)
+                            ? NetworkImage(member.user.profileUrl!)
+                            : null,
+                        child: (member.user.profileUrl == null || member.user.profileUrl!.isEmpty)
+                            ? const Icon(Icons.person)
+                            : null,
+                      ),
+                      title: Text(member.user.fullName),
+                      subtitle: Text("@${member.user.username}"),
+                      trailing: Text(
+                        // Kapitalisasi huruf pertama
+                        member.role.substring(0, 1).toUpperCase() + member.role.substring(1),
+                        style: TextStyle(color: Colors.grey.shade600, fontStyle: FontStyle.italic),
+                      ),
+                    );
+                  },
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReadOnlyField(String label, String value, {int maxLines = 1}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 12, color: Colors.grey)),
+        const SizedBox(height: 4),
+        TextFormField(
+          initialValue: value,
+          readOnly: true,
+          maxLines: maxLines,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.grey[200],
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+          ),
+        ),
       ],
     );
   }

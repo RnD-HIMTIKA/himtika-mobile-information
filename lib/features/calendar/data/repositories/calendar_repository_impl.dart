@@ -3,6 +3,7 @@ import 'package:himtika_mobile_information/features/auth/domain/usecases/get_cur
 import 'package:himtika_mobile_information/features/calendar/domain/entities/invitation.dart';
 import 'package:himtika_mobile_information/features/auth/domain/entities/user.dart';
 import '../datasources/calendar_remote_datasource.dart';
+import '../../domain/entities/workspace_member.dart';
 import '../../domain/entities/workspace.dart';
 import '../../domain/entities/event.dart';
 import '../../domain/entities/workspace_with_members.dart';
@@ -43,14 +44,25 @@ class CalendarRepositoryImpl implements CalendarRepository {
         lastUpdated: workspaceData['last_updated'] != null ? DateTime.parse(workspaceData['last_updated']) : null,
       );
 
-      // Filter diri sendiri dari daftar anggota
-      final members = membersData.map((memberJson) {
-        return UserModel.fromMap(memberJson as Map<String, dynamic>);
-      }).where((member) => member.id != currentUser?.id).toList();
+      // Mapping ke WorkspaceMember
+      final allMembers = membersData.map((memberJson) {
+        final memberMap = memberJson as Map<String, dynamic>;
+        final userData = memberMap['user_data'] as Map<String, dynamic>;
+        final role = memberMap['role'] as String;
+        
+        return WorkspaceMember(
+          user: UserModel.fromMap(userData),
+          role: role,
+        );
+      }).toList();
+
+      // PERBAIKAN UTAMA DI SINI:
+      // Saring daftar anggota untuk mengecualikan pengguna saat ini
+      final otherMembers = allMembers.where((member) => member.user.id != currentUser?.id).toList();
 
       return WorkspaceWithMembers(
         workspace: workspace,
-        members: members,
+        members: otherMembers, // Gunakan daftar yang sudah difilter
         currentUserRole: currentUserRole,
       );
     }).toList();
