@@ -6,15 +6,21 @@ abstract class EventEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-// Event untuk memuat semua event dari workspace tertentu
-class LoadEvents extends EventEvent {
+// PERBAIKAN: Ganti nama LoadEvents menjadi LoadEventsInRange
+class LoadEventsInRange extends EventEvent {
   final String workspaceId;
-  const LoadEvents(this.workspaceId);
+  final DateTime startDate;
+  final DateTime endDate;
+
+  const LoadEventsInRange({
+    required this.workspaceId,
+    required this.startDate,
+    required this.endDate,
+  });
   @override
-  List<Object> get props => [workspaceId];
+  List<Object> get props => [workspaceId, startDate, endDate];
 }
 
-// Event saat pengguna menekan tombol "Buat Event"
 class CreateEventSubmitted extends EventEvent {
   final String workspaceId;
   final String title;
@@ -29,9 +35,30 @@ class CreateEventSubmitted extends EventEvent {
     required this.startTime,
     required this.endTime,
   });
-
+  
   @override
   List<Object?> get props => [workspaceId, title, description, startTime, endTime];
+}
+
+// Event BARU untuk membuat event berulang
+class CreateRecurringEventSubmitted extends EventEvent {
+  final String workspaceId;
+  final String title;
+  final String? description;
+  final DateTime startTime;
+  final DateTime endTime;
+  final List<String> byDay;
+  final DateTime untilDate;
+
+  const CreateRecurringEventSubmitted({
+    required this.workspaceId,
+    required this.title,
+    this.description,
+    required this.startTime,
+    required this.endTime,
+    required this.byDay,
+    required this.untilDate,
+  });
 }
 
 class UpdateEventSubmitted extends EventEvent {
@@ -43,7 +70,7 @@ class UpdateEventSubmitted extends EventEvent {
 
 class DeleteEventPressed extends EventEvent {
   final String eventId;
-  final String workspaceId; // Dibutuhkan untuk me-refresh data
+  final String workspaceId;
   const DeleteEventPressed(this.eventId, this.workspaceId);
   @override
   List<Object> get props => [eventId, workspaceId];

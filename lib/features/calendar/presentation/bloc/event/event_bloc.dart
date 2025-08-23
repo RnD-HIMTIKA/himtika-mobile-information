@@ -5,6 +5,7 @@ import '../../../domain/usecases/get_events.dart';
 import '../../../domain/usecases/create_event.dart';
 import '../../../domain/usecases/update_event.dart';
 import '../../../domain/usecases/delete_event.dart';
+import '../../../domain/usecases/create_recurring_event.dart';
 
 part 'event_event.dart';
 part 'event_state.dart';
@@ -14,30 +15,39 @@ class EventBloc extends Bloc<EventEvent, EventState> {
   final CreateEvent _createEvent;
   final UpdateEvent _updateEvent;
   final DeleteEvent _deleteEvent;
+  final CreateRecurringEvent _createRecurringEvent;
+
+  DateTime? _lastLoadedStartDate;
+  DateTime? _lastLoadedEndDate;
 
   EventBloc({
     required GetEvents getEvents,
     required CreateEvent createEvent,
-    required UpdateEvent updateEvent, // Tambahkan
-    required DeleteEvent deleteEvent, // Tambahkan
+    required UpdateEvent updateEvent,
+    required DeleteEvent deleteEvent,
+    required CreateRecurringEvent createRecurringEvent,
   })  : _getEvents = getEvents,
         _createEvent = createEvent,
         _updateEvent = updateEvent,
         _deleteEvent = deleteEvent,
+        _createRecurringEvent = createRecurringEvent,
         super(const EventState()) {
-    on<LoadEvents>(_onLoadEvents);
+    on<LoadEventsInRange>(_onLoadEventsInRange);
     on<CreateEventSubmitted>(_onCreateEventSubmitted);
-    on<UpdateEventSubmitted>(_onUpdateEventSubmitted); // Daftarkan
-    on<DeleteEventPressed>(_onDeleteEventPressed); // Daftarkan
+    on<CreateRecurringEventSubmitted>(_onCreateRecurringEvent);
+    on<UpdateEventSubmitted>(_onUpdateEventSubmitted);
+    on<DeleteEventPressed>(_onDeleteEventPressed);
   }
 
-  Future<void> _onLoadEvents(
-    LoadEvents event,
+  Future<void> _onLoadEventsInRange(
+    LoadEventsInRange event,
     Emitter<EventState> emit,
   ) async {
     emit(state.copyWith(status: EventStatus.loading));
     try {
-      final events = await _getEvents(event.workspaceId);
+      _lastLoadedStartDate = event.startDate;
+      _lastLoadedEndDate = event.endDate;
+      final events = await _getEvents(event.workspaceId, event.startDate, event.endDate);
       emit(state.copyWith(
         status: EventStatus.loaded,
         events: events,
@@ -50,6 +60,16 @@ class EventBloc extends Bloc<EventEvent, EventState> {
     }
   }
 
+  void _refreshEvents(String workspaceId) {
+    if (_lastLoadedStartDate != null && _lastLoadedEndDate != null) {
+      add(LoadEventsInRange(
+        workspaceId: workspaceId,
+        startDate: _lastLoadedStartDate!,
+        endDate: _lastLoadedEndDate!,
+      ));
+    }
+  }
+  
   Future<void> _onCreateEventSubmitted(
     CreateEventSubmitted event,
     Emitter<EventState> emit,
@@ -62,10 +82,31 @@ class EventBloc extends Bloc<EventEvent, EventState> {
         startTime: event.startTime,
         endTime: event.endTime,
       );
-      // Panggil event untuk memuat ulang daftar event
-      add(LoadEvents(event.workspaceId));
+      _refreshEvents(event.workspaceId);
     } catch (e) {
-      // Jika gagal, emit state failure dengan pesan error
+      emit(state.copyWith(
+        status: EventStatus.failure,
+        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+      ));
+    }
+  }
+
+  Future<void> _onCreateRecurringEvent(
+    CreateRecurringEventSubmitted event,
+    Emitter<EventState> emit,
+  ) async {
+    try {
+      await _createRecurringEvent(
+        workspaceId: event.workspaceId,
+        title: event.title,
+        description: event.description,
+        startTime: event.startTime,
+        endTime: event.endTime,
+        byDay: event.byDay,
+        untilDate: event.untilDate,
+      );
+      _refreshEvents(event.workspaceId);
+    } catch (e) {
       emit(state.copyWith(
         status: EventStatus.failure,
         errorMessage: e.toString().replaceFirst('Exception: ', ''),
@@ -79,7 +120,7 @@ class EventBloc extends Bloc<EventEvent, EventState> {
   ) async {
     try {
       await _updateEvent(event.event);
-      add(LoadEvents(event.event.workspaceId)); // Refresh
+      _refreshEvents(event.event.workspaceId);
     } catch (e) {
       emit(state.copyWith(
         status: EventStatus.failure,
@@ -94,7 +135,7 @@ class EventBloc extends Bloc<EventEvent, EventState> {
   ) async {
     try {
       await _deleteEvent(event.eventId);
-      add(LoadEvents(event.workspaceId)); // Refresh
+      _refreshEvents(event.workspaceId);
     } catch (e) {
       emit(state.copyWith(
         status: EventStatus.failure,

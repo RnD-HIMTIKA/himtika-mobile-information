@@ -3,9 +3,9 @@ import 'package:himtika_mobile_information/features/auth/domain/usecases/get_cur
 import 'package:himtika_mobile_information/features/calendar/domain/entities/invitation.dart';
 import 'package:himtika_mobile_information/features/auth/domain/entities/user.dart';
 import '../datasources/calendar_remote_datasource.dart';
-import '../../domain/entities/workspace_member.dart';
 import '../../domain/entities/workspace.dart';
 import '../../domain/entities/event.dart';
+import '../../domain/entities/workspace_member.dart';
 import '../../domain/entities/workspace_with_members.dart';
 import '../../domain/repositories/calendar_repository.dart';
 
@@ -69,8 +69,8 @@ class CalendarRepositoryImpl implements CalendarRepository {
   }
 
   @override
-  Future<List<Event>> getEvents(String workspaceId) async {
-    final data = await remoteDatasource.getEvents(workspaceId);
+  Future<List<Event>> getEvents(String workspaceId, DateTime startDate, DateTime endDate) async {
+    final data = await remoteDatasource.getEvents(workspaceId, startDate, endDate);
     return data.map((json) {
       return Event(
         id: json['id'],
@@ -81,6 +81,7 @@ class CalendarRepositoryImpl implements CalendarRepository {
         startTime: DateTime.parse(json['start_time']),
         endTime: DateTime.parse(json['end_time']),
         createdAt: DateTime.parse(json['created_at']),
+        recurrenceId: json['recurrence_id'],
       );
     }).toList();
   }
@@ -99,6 +100,28 @@ class CalendarRepositoryImpl implements CalendarRepository {
       description: description,
       startTime: startTime,
       endTime: endTime,
+    );
+  }
+
+  // PERBAIKAN: Tambahkan implementasi untuk createRecurringEvent
+  @override
+  Future<void> createRecurringEvent({
+    required String workspaceId,
+    required String title,
+    String? description,
+    required DateTime startTime,
+    required DateTime endTime,
+    required List<String> byDay,
+    required DateTime untilDate,
+  }) async {
+    await remoteDatasource.createRecurringEvent(
+      workspaceId: workspaceId,
+      title: title,
+      description: description,
+      startTime: startTime,
+      endTime: endTime,
+      byDay: byDay,
+      untilDate: untilDate,
     );
   }
 

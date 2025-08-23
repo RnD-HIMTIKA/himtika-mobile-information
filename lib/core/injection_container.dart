@@ -66,6 +66,7 @@ import 'package:himtika_mobile_information/features/calendar/presentation/bloc/i
 import 'package:himtika_mobile_information/features/calendar/domain/usecases/search_users.dart';
 import 'package:himtika_mobile_information/features/calendar/domain/usecases/create_invitation_link.dart';
 import 'package:himtika_mobile_information/features/calendar/domain/usecases/invite_by_role.dart';
+import 'package:himtika_mobile_information/features/calendar/domain/usecases/create_recurring_event.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -109,7 +110,6 @@ Future<void> initDependencies() async {
         verifyOtp: sl<VerifyOtp>(),
         resendSignUpOtp: sl<ResendSignUpOtp>(),
       ));
-
   sl.registerFactory(() => ForgotPasswordBloc(sendPasswordResetOtp: sl<SendPasswordResetOtp>()));
   sl.registerFactory(() => VerifyResetOtpBloc(verifyPasswordResetOtp: sl<VerifyPasswordResetOtp>()));
   sl.registerFactory(() => ResetPasswordBloc(updateUserPassword: sl<UpdateUserPassword>()));
@@ -132,7 +132,6 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => RevokePermissionFromRole(sl<RolesRepository>()));
   sl.registerLazySingleton(() => RevokeRole(sl<RolesRepository>()));
   sl.registerLazySingleton(() => GetMyRoles(rolesRepository: sl(), getCurrentUser: sl()));
-
   // Controller
   sl.registerLazySingleton<IRolesController>(() => RolesController(
         getUserPermissions: sl<GetUserPermissions>(),
@@ -140,6 +139,7 @@ Future<void> initDependencies() async {
         getAllRoles: sl<GetAllRoles>(),
         getRolesByUser: sl<GetRolesByUser>(),
       ));
+
 
   // ==================== CALENDAR FEATURE ====================
   // Datasource
@@ -165,7 +165,8 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => SearchUsers(sl()));
   sl.registerLazySingleton(() => CreateInvitationLink(sl()));
   sl.registerLazySingleton(() => InviteByRole(sl()));
-  // BLoC
+  sl.registerLazySingleton(() => CreateRecurringEvent(sl()));
+  // BLoCs
   sl.registerFactory(() => WorkspaceBloc(
         calendarRepository: sl(),
         createWorkspace: sl(),
@@ -177,13 +178,14 @@ Future<void> initDependencies() async {
         createEvent: sl(),
         updateEvent: sl(),
         deleteEvent: sl(),
+        createRecurringEvent: sl(),
       ));
   sl.registerFactory(() => ShareWorkspaceBloc(
-      inviteUserToWorkspace: sl(),
-      searchUsers: sl(),
-      createInvitationLink: sl(),
-      inviteByRole: sl(),
-    ));
+        inviteUserToWorkspace: sl(),
+        searchUsers: sl(),
+        createInvitationLink: sl(),
+        inviteByRole: sl(),
+      ));
   sl.registerFactory(() => InvitationBloc(
         getMyInvitations: sl(),
         acceptInvitationById: sl(),

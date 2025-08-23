@@ -22,7 +22,6 @@ import '../../domain/entities/workspace_with_members.dart';
 // ===========================================================================
 
 class ScheduleDetailScreen extends StatelessWidget {
-  // PERBAIKAN: Hanya menerima satu objek WorkspaceWithMembers
   final WorkspaceWithMembers workspaceWithMembers;
 
   const ScheduleDetailScreen({
@@ -33,7 +32,20 @@ class ScheduleDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => sl<EventBloc>()..add(LoadEvents(workspaceWithMembers.workspace.id)),
+      create: (_) {
+        // Tentukan rentang tanggal default (bulan saat ini)
+        final now = DateTime.now();
+        final firstDay = DateTime(now.year, now.month, 1);
+        final lastDay = DateTime(now.year, now.month + 1, 0);
+
+        // PERBAIKAN DI SINI: Gunakan event LoadEventsInRange
+        return sl<EventBloc>()
+          ..add(LoadEventsInRange(
+            workspaceId: workspaceWithMembers.workspace.id,
+            startDate: firstDay,
+            endDate: lastDay,
+          ));
+      },
       child: _ScheduleDetailView(
         workspaceWithMembers: workspaceWithMembers,
       ),
@@ -67,6 +79,18 @@ class _ScheduleDetailViewState extends State<_ScheduleDetailView> {
     super.initState();
     _selectedDay = _focusedDay;
     _selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay!));
+    // Panggil LoadEventsInRange saat pertama kali halaman dibuka
+    _loadEventsForMonth(_focusedDay); 
+  }
+
+  void _loadEventsForMonth(DateTime month) {
+    final firstDay = DateTime(month.year, month.month, 1);
+    final lastDay = DateTime(month.year, month.month + 1, 0);
+    context.read<EventBloc>().add(LoadEventsInRange(
+      workspaceId: widget.workspaceWithMembers.workspace.id,
+      startDate: firstDay,
+      endDate: lastDay,
+    ));
   }
 
   @override
@@ -199,7 +223,10 @@ class _ScheduleDetailViewState extends State<_ScheduleDetailView> {
                   selectedDay: _selectedDay,
                   onDaySelected: _onDaySelected,
                   eventLoader: _getEventsForDay,
-                  onPageChanged: (focusedDay) => setState(() => _focusedDay = focusedDay),
+                  onPageChanged: (focusedDay) {
+                    setState(() => _focusedDay = focusedDay);
+                    _loadEventsForMonth(focusedDay); // Panggil saat bulan diganti
+                  },
                   onAddEventPressed: () => _showCreateEventDialog(context, _selectedDay!),
                 ),
                 _ScheduleSheet(
@@ -500,6 +527,9 @@ class _ScheduleEventCard extends StatelessWidget {
   }
 }
 
+// ===========================================================================
+// DIALOG BUAT/EDIT EVENT (DIRKEMBANGKAN SECARA SIGNIFIKAN)
+// ===========================================================================
 class _ModifyEventDialog extends StatefulWidget {
   final DateTime selectedDate;
   final String workspaceId;
@@ -520,6 +550,11 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
   final _descriptionController = TextEditingController();
   late TimeOfDay _startTime;
   late TimeOfDay _endTime;
+  bool _isAllDay = false;
+
+  bool _isRecurring = false;
+  Set<String> _selectedDays = {};
+  DateTime? _untilDate;
 
   bool get isEditing => widget.eventToEdit != null;
 
@@ -533,8 +568,8 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
       _endTime = TimeOfDay.fromDateTime(widget.eventToEdit!.endTime);
     } else {
       _startTime = TimeOfDay.now();
-      _endTime =
-          TimeOfDay.fromDateTime(DateTime.now().add(const Duration(hours: 1)));
+      _endTime = TimeOfDay.fromDateTime(DateTime.now().add(const Duration(hours: 1)));
+      _untilDate = widget.selectedDate.add(const Duration(days: 30));
     }
   }
 
@@ -545,13 +580,13 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
     super.dispose();
   }
 
-  Future<void> _selectTime(BuildContext context,
-      {required bool isStartTime}) async {
+  Future<void> _selectTime(BuildContext context, {required bool isStartTime}) async {
     final initialTime = isStartTime ? _startTime : _endTime;
     final pickedTime = await showTimePicker(
       context: context,
       initialTime: initialTime,
     );
+
     if (pickedTime != null) {
       setState(() {
         if (isStartTime) {
@@ -563,13 +598,43 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
     }
   }
 
+  // Fungsi untuk membuka dialog pemilihan perulangan
+  void _showRecurrenceDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => _RecurrenceDialog(
+        initialSelectedDays: _selectedDays,
+        // Teruskan fungsi callback untuk memperbarui state
+        onSave: (newSelectedDays) {
+          setState(() {
+            _selectedDays = newSelectedDays;
+            _isRecurring = newSelectedDays.isNotEmpty;
+          });
+        },
+      ),
+    );
+  }
+
+  void _selectUntilDate() async {
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _untilDate ?? DateTime.now(),
+      firstDate: widget.selectedDate,
+      lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+    );
+    if (pickedDate != null) {
+      setState(() {
+        _untilDate = pickedDate;
+      });
+    }
+  }
+
   void _onDeletePressed() {
     showDialog(
       context: context,
       builder: (alertDialogContext) => AlertDialog(
         title: const Text('Hapus Event'),
-        content: const Text(
-            'Anda yakin ingin menghapus event ini? Aksi ini tidak dapat dibatalkan.'),
+        content: const Text('Anda yakin ingin menghapus event ini? Aksi ini tidak dapat dibatalkan.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(alertDialogContext).pop(),
@@ -578,8 +643,7 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
           TextButton(
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             onPressed: () {
-              context.read<EventBloc>().add(DeleteEventPressed(
-                  widget.eventToEdit!.id, widget.workspaceId));
+              context.read<EventBloc>().add(DeleteEventPressed(widget.eventToEdit!.id, widget.workspaceId));
               Navigator.of(alertDialogContext).pop();
               Navigator.of(context).pop();
             },
@@ -598,11 +662,8 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(isEditing ? 'Edit Event' : 'Tambah Event',
-              style: const TextStyle(fontWeight: FontWeight.bold)),
-          IconButton(
-              icon: const Icon(Icons.close),
-              onPressed: () => Navigator.of(context).pop()),
+          Text(isEditing ? 'Edit Event' : 'Tambah Event', style: const TextStyle(fontWeight: FontWeight.bold)),
+          IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.of(context).pop()),
         ],
       ),
       content: SingleChildScrollView(
@@ -619,13 +680,11 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
               decoration: InputDecoration(
                 hintText: 'Masukkan Judul Event',
                 counterText: "",
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
             const SizedBox(height: 16),
-            const Text('Deskripsi',
-                style: TextStyle(fontWeight: FontWeight.w500)),
+            const Text('Deskripsi', style: TextStyle(fontWeight: FontWeight.w500)),
             const SizedBox(height: 8),
             TextField(
               controller: _descriptionController,
@@ -635,24 +694,68 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
               decoration: InputDecoration(
                 hintText: 'Masukkan Deskripsi Event',
                 counterText: "",
-                border:
-                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
             const SizedBox(height: 16),
             Row(
               children: [
-                Expanded(
-                  child: _buildTimePickerField(context, 'Mulai', _startTime,
-                      isStartTime: true),
+                FilterChip(
+                  label: const Text('Seharian'),
+                  selected: _isAllDay,
+                  onSelected: (selected) {
+                    setState(() {
+                      _isAllDay = selected;
+                    });
+                  },
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildTimePickerField(context, 'Selesai', _endTime,
-                      isStartTime: false),
+                const SizedBox(width: 8),
+                FilterChip(
+                  label: const Text('Ulangi'),
+                  selected: _isRecurring,
+                  onSelected: (selected) {
+                    if (selected) {
+                      _showRecurrenceDialog();
+                    } else {
+                      setState(() {
+                        _isRecurring = false;
+                        _selectedDays.clear();
+                      });
+                    }
+                  },
                 ),
               ],
             ),
+            if (!_isAllDay) ...[
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTimePickerField(context, 'Mulai', _startTime, isStartTime: true),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTimePickerField(context, 'Selesai', _endTime, isStartTime: false),
+                  ),
+                ],
+              ),
+            ],
+              
+            // Tampilkan pilihan tanggal "Sampai" jika perulangan aktif
+            if (_isRecurring) ...[
+              const SizedBox(height: 16),
+              const Text('Ulangi Sampai', style: TextStyle(fontWeight: FontWeight.w500)),
+              const SizedBox(height: 8),
+              InkWell(
+                onTap: _selectUntilDate,
+                child: InputDecorator(
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: Text(DateFormat('d MMMM yyyy').format(_untilDate!)),
+                ),
+              ),
+            ],
           ],
         ),
       ),
@@ -721,36 +824,39 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
-                final startDateTime = DateTime(
-                    widget.selectedDate.year,
-                    widget.selectedDate.month,
-                    widget.selectedDate.day,
-                    _startTime.hour,
-                    _startTime.minute);
-                final endDateTime = DateTime(
-                    widget.selectedDate.year,
-                    widget.selectedDate.month,
-                    widget.selectedDate.day,
-                    _endTime.hour,
-                    _endTime.minute);
-
-                context.read<EventBloc>().add(
-                      CreateEventSubmitted(
-                        workspaceId: widget.workspaceId,
-                        title: _titleController.text,
-                        description: _descriptionController.text,
-                        startTime: startDateTime,
-                        endTime: endDateTime,
-                      ),
-                    );
+                final startDateTime = _isAllDay ? DateTime(widget.selectedDate.year, widget.selectedDate.month, widget.selectedDate.day) : DateTime(widget.selectedDate.year, widget.selectedDate.month, widget.selectedDate.day, _startTime.hour, _startTime.minute);
+                final endDateTime = _isAllDay ? DateTime(widget.selectedDate.year, widget.selectedDate.month, widget.selectedDate.day, 23, 59) : DateTime(widget.selectedDate.year, widget.selectedDate.month, widget.selectedDate.day, _endTime.hour, _endTime.minute);
+                
+                if (_isRecurring) {
+                  context.read<EventBloc>().add(
+                        CreateRecurringEventSubmitted(
+                          workspaceId: widget.workspaceId,
+                          title: _titleController.text,
+                          description: _descriptionController.text,
+                          startTime: startDateTime,
+                          endTime: endDateTime,
+                          byDay: _selectedDays.toList(),
+                          untilDate: _untilDate!,
+                        ),
+                      );
+                } else {
+                  context.read<EventBloc>().add(
+                        CreateEventSubmitted(
+                          workspaceId: widget.workspaceId,
+                          title: _titleController.text,
+                          description: _descriptionController.text,
+                          startTime: startDateTime,
+                          endTime: endDateTime,
+                        ),
+                      );
+                }
                 Navigator.of(context).pop();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue.shade600,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: const Text('Buat Event'),
             ),
@@ -759,9 +865,7 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
     );
   }
 
-  Widget _buildTimePickerField(
-      BuildContext context, String label, TimeOfDay time,
-      {required bool isStartTime}) {
+  Widget _buildTimePickerField(BuildContext context, String label, TimeOfDay time, {required bool isStartTime}) {
     return InkWell(
       onTap: () => _selectTime(context, isStartTime: isStartTime),
       child: InputDecorator(
@@ -1235,6 +1339,67 @@ class _WorkspaceInfoDialog extends StatelessWidget {
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
           ),
+        ),
+      ],
+    );
+  }
+}
+
+// WIDGET BARU UNTUK DIALOG PEMILIHAN HARI
+class _RecurrenceDialog extends StatefulWidget {
+  final Set<String> initialSelectedDays;
+  final Function(Set<String>) onSave;
+  const _RecurrenceDialog({required this.initialSelectedDays, required this.onSave});
+
+  @override
+  State<_RecurrenceDialog> createState() => _RecurrenceDialogState();
+}
+
+class _RecurrenceDialogState extends State<_RecurrenceDialog> {
+  late Set<String> _tempSelectedDays;
+  final Map<String, String> _days = {
+    'SU': 'Minggu', 'MO': 'Senin', 'TU': 'Selasa', 'WE': 'Rabu',
+    'TH': 'Kamis', 'FR': 'Jumat', 'SA': 'Sabtu'
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _tempSelectedDays = {...widget.initialSelectedDays};
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Ulangi Setiap'),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: _days.entries.map((entry) {
+          final key = entry.key;
+          final dayName = entry.value;
+          return CheckboxListTile(
+            title: Text(dayName),
+            value: _tempSelectedDays.contains(key),
+            onChanged: (isSelected) {
+              setState(() {
+                if (isSelected ?? false) {
+                  _tempSelectedDays.add(key);
+                } else {
+                  _tempSelectedDays.remove(key);
+                }
+              });
+            },
+          );
+        }).toList(),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Batal')),
+        ElevatedButton(
+          onPressed: () {
+            widget.onSave(_tempSelectedDays);
+            Navigator.of(context).pop();
+          },
+          child: const Text('Simpan'),
         ),
       ],
     );

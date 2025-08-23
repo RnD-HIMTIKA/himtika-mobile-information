@@ -30,15 +30,40 @@ class CalendarRemoteDatasource {
   }
 
   // Metode untuk mengambil events
-  Future<List<Map<String, dynamic>>> getEvents(String workspaceId) async {
-    // RLS akan memastikan pengguna hanya bisa mengambil event dari workspace
-    // di mana ia adalah anggota.
-    final data = await _client
-        .from('events')
-        .select()
-        .eq('workspace_id', workspaceId)
-        .order('start_time', ascending: true);
+  Future<List<Map<String, dynamic>>> getEvents(String workspaceId, DateTime startDate, DateTime endDate) async {
+    // Panggil fungsi RPC yang sudah kita buat
+    final data = await _client.rpc('get_events_in_range', params: {
+      'p_workspace_id': workspaceId,
+      'p_start_date': startDate.toIso8601String(),
+      'p_end_date': endDate.toIso8601String(),
+    });
     return List<Map<String, dynamic>>.from(data);
+  }
+
+  // Metode untuk membuat event berulang
+  Future<void> createRecurringEvent({
+    required String workspaceId,
+    required String title,
+    String? description,
+    required DateTime startTime,
+    required DateTime endTime,
+    required List<String> byDay,
+    required DateTime untilDate,
+  }) async {
+    final currentUser = await _getCurrentUser();
+    if (currentUser == null) throw Exception('Pengguna tidak ditemukan');
+
+    // Kita akan menggunakan transaksi untuk memastikan kedua operasi berhasil
+    await _client.rpc('create_recurring_event_transaction', params: {
+      'p_workspace_id': workspaceId,
+      'p_created_by': currentUser.id,
+      'p_title': title,
+      'p_description': description,
+      'p_start_time': startTime.toIso8601String(),
+      'p_end_time': endTime.toIso8601String(),
+      'p_by_day': byDay,
+      'p_until_date': untilDate.toIso8601String(),
+    });
   }
 
   // Metode untuk membuat event

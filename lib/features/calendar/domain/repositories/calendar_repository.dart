@@ -6,7 +6,7 @@ import '../entities/invitation.dart';
 abstract class CalendarRepository {
   Future<void> createWorkspace({required String title, required String description});
   Future<List<WorkspaceWithMembers>> getMyWorkspacesWithMembers();
-  Future<List<Event>> getEvents(String workspaceId);
+  Future<List<Event>> getEvents(String workspaceId, DateTime startDate, DateTime endDate);
   Future<void> createEvent({
     required String workspaceId,
     required String title,
@@ -33,5 +33,14 @@ abstract class CalendarRepository {
     required String workspaceId,
     required List<String> targetRoleIds,
     required String roleToGrant,
+  });
+  Future<void> createRecurringEvent({
+    required String workspaceId,
+    required String title,
+    String? description,
+    required DateTime startTime,
+    required DateTime endTime,
+    required List<String> byDay,
+    required DateTime untilDate,
   });
 }
