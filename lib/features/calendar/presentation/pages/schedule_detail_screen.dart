@@ -6,8 +6,10 @@ import 'package:intl/intl.dart';
 import 'dart:collection';
 
 import 'package:himtika_mobile_information/core/injection_container.dart';
+import 'package:himtika_mobile_information/features/roles/domain/entities/role.dart';
+import 'package:himtika_mobile_information/features/roles/domain/usecases/get_my_roles.dart';
+import '../bloc/share_workspace/share_workspace_bloc.dart'; // Import BLoC baru
 import '../bloc/event/event_bloc.dart';
-import '../bloc/share_workspace/share_workspace_bloc.dart';
 import '../../domain/entities/event.dart';
 
 // ===========================================================================
@@ -85,7 +87,7 @@ class _ScheduleDetailViewState extends State<_ScheduleDetailView> {
       _selectedEvents.value = _getEventsForDay(selectedDay);
     }
   }
-  
+
   void _showCreateEventDialog(BuildContext context, DateTime selectedDate) {
     showDialog(
       context: context,
@@ -93,7 +95,7 @@ class _ScheduleDetailViewState extends State<_ScheduleDetailView> {
         return BlocProvider.value(
           value: BlocProvider.of<EventBloc>(context),
           child: _ModifyEventDialog(
-            selectedDate: selectedDate, 
+            selectedDate: selectedDate,
             workspaceId: widget.workspaceId,
           ),
         );
@@ -108,7 +110,7 @@ class _ScheduleDetailViewState extends State<_ScheduleDetailView> {
         return BlocProvider.value(
           value: BlocProvider.of<EventBloc>(context),
           child: _ModifyEventDialog(
-            selectedDate: event.startTime, 
+            selectedDate: event.startTime,
             workspaceId: widget.workspaceId,
             eventToEdit: event,
           ),
@@ -158,10 +160,12 @@ class _ScheduleDetailViewState extends State<_ScheduleDetailView> {
           if (state.status == EventStatus.loaded) {
             final newMap = LinkedHashMap<DateTime, List<Event>>(
               equals: isSameDay,
-              hashCode: (key) => key.day * 1000000 + key.month * 10000 + key.year,
+              hashCode: (key) =>
+                  key.day * 1000000 + key.month * 10000 + key.year,
             );
             for (var event in state.events) {
-              final day = DateTime.utc(event.startTime.year, event.startTime.month, event.startTime.day);
+              final day = DateTime.utc(event.startTime.year,
+                  event.startTime.month, event.startTime.day);
               if (newMap[day] == null) newMap[day] = [];
               newMap[day]!.add(event);
             }
@@ -171,7 +175,9 @@ class _ScheduleDetailViewState extends State<_ScheduleDetailView> {
             });
           } else if (state.status == EventStatus.failure) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Error: ${state.errorMessage}'), backgroundColor: Colors.red),
+              SnackBar(
+                  content: Text('Error: ${state.errorMessage}'),
+                  backgroundColor: Colors.red),
             );
           }
         },
@@ -189,7 +195,8 @@ class _ScheduleDetailViewState extends State<_ScheduleDetailView> {
             ),
           ),
           child: Padding(
-            padding: EdgeInsets.only(top: kToolbarHeight + MediaQuery.of(context).padding.top + 40),
+            padding: EdgeInsets.only(
+                top: kToolbarHeight + MediaQuery.of(context).padding.top + 40),
             child: Stack(
               children: [
                 _TopContent(
@@ -197,11 +204,13 @@ class _ScheduleDetailViewState extends State<_ScheduleDetailView> {
                   selectedDay: _selectedDay,
                   onDaySelected: _onDaySelected,
                   eventLoader: _getEventsForDay,
-                  onPageChanged: (focusedDay) => setState(() => _focusedDay = focusedDay),
-                  onAddEventPressed: () => _showCreateEventDialog(context, _selectedDay!),
+                  onPageChanged: (focusedDay) =>
+                      setState(() => _focusedDay = focusedDay),
+                  onAddEventPressed: () =>
+                      _showCreateEventDialog(context, _selectedDay!),
                 ),
                 _ScheduleSheet(
-                  selectedEvents: _selectedEvents, 
+                  selectedEvents: _selectedEvents,
                   onEventTap: (event) => _showEditEventDialog(context, event),
                 ),
               ],
@@ -231,46 +240,73 @@ class _TopContent extends StatelessWidget {
   });
 
   // Fungsi untuk menampilkan dialog "Bagikan"
-  void _showShareDialog(BuildContext context, String workspaceId) {
+  void _showShareDialog(
+      BuildContext context, String workspaceId, String workspaceTitle) {
     showDialog(
       context: context,
+      // Gunakan false agar dialog bisa ditutup dengan tap di luar
+      barrierDismissible: false,
       builder: (dialogContext) {
-        // Cukup sediakan BLoC baru, tidak perlu meneruskan yang lama
+        // Sediakan BLoC baru untuk dialog ini
         return BlocProvider(
           create: (_) => sl<ShareWorkspaceBloc>(),
-          child: _ShareWorkspaceDialog(workspaceId: workspaceId),
+          child: _ShareWorkspaceDialog(
+              workspaceId: workspaceId, workspaceTitle: workspaceTitle),
         );
       },
     );
   }
-  
+
   @override
   Widget build(BuildContext context) {
+    // Ambil workspaceId dari EventBloc state jika ada, atau dari widget.workspaceId
+    final eventState = context.watch<EventBloc>().state;
+    final workspaceId = eventState.events.isNotEmpty
+        ? eventState.events.first.workspaceId
+        : context
+            .findAncestorWidgetOfExactType<_ScheduleDetailView>()!
+            .workspaceId;
+    final workspaceTitle = context
+        .findAncestorWidgetOfExactType<_ScheduleDetailView>()!
+        .workspaceTitle;
+
     return SingleChildScrollView(
-       padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      padding: const EdgeInsets.symmetric(horizontal: 24.0),
       child: Column(
         children: [
           const SizedBox(height: 16),
           Row(
             children: [
               ElevatedButton.icon(
-                onPressed: () => _showShareDialog(context, context.read<EventBloc>().state.events.first.workspaceId),
+                onPressed: () =>
+                    _showShareDialog(context, workspaceId, workspaceTitle),
                 icon: const Icon(Icons.share, size: 16),
                 label: const Text("Bagikan"),
-                style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: const Color(0xFF199df5).withOpacity(0.8), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), elevation: 0),
+                style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: const Color(0xFF199df5).withOpacity(0.8),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20)),
+                    elevation: 0),
               ),
               const SizedBox(width: 12),
               ElevatedButton.icon(
                 onPressed: () {},
                 icon: const Icon(Icons.info_outline, size: 16),
                 label: const Text("Informasi"),
-                style: ElevatedButton.styleFrom(foregroundColor: Colors.white, backgroundColor: const Color(0xFF8f8e92).withOpacity(0.8), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)), elevation: 0),
+                style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: const Color(0xFF8f8e92).withOpacity(0.8),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20)),
+                    elevation: 0),
               ),
             ],
           ),
           const SizedBox(height: 24),
           Container(
-            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+            decoration: BoxDecoration(
+                color: Colors.white, borderRadius: BorderRadius.circular(20)),
             child: TableCalendar(
               firstDay: DateTime.utc(2020, 1, 1),
               lastDay: DateTime.utc(2030, 12, 31),
@@ -279,12 +315,20 @@ class _TopContent extends StatelessWidget {
               onDaySelected: onDaySelected,
               eventLoader: eventLoader,
               onPageChanged: onPageChanged,
-              headerStyle: const HeaderStyle(formatButtonVisible: false, titleCentered: true, titleTextStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              headerStyle: const HeaderStyle(
+                  formatButtonVisible: false,
+                  titleCentered: true,
+                  titleTextStyle:
+                      TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
               calendarStyle: CalendarStyle(
-                todayDecoration: BoxDecoration(color: Colors.blue.withOpacity(0.5), shape: BoxShape.circle),
-                selectedDecoration: BoxDecoration(color: Colors.blue.shade600, shape: BoxShape.circle),
+                todayDecoration: BoxDecoration(
+                    color: Colors.blue.withOpacity(0.5),
+                    shape: BoxShape.circle),
+                selectedDecoration: BoxDecoration(
+                    color: Colors.blue.shade600, shape: BoxShape.circle),
                 weekendTextStyle: const TextStyle(color: Colors.red),
-                markerDecoration: const BoxDecoration(color: Colors.redAccent, shape: BoxShape.circle),
+                markerDecoration: const BoxDecoration(
+                    color: Colors.redAccent, shape: BoxShape.circle),
               ),
             ),
           ),
@@ -297,7 +341,8 @@ class _TopContent extends StatelessWidget {
                 backgroundColor: const Color(0xFF1e9cf0),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
               child: const Text("Tambah Event"),
             ),
@@ -313,8 +358,9 @@ class _ScheduleSheet extends StatelessWidget {
   final ValueNotifier<List<Event>> selectedEvents;
   final Function(Event) onEventTap;
 
-  const _ScheduleSheet({required this.selectedEvents, required this.onEventTap});
-  
+  const _ScheduleSheet(
+      {required this.selectedEvents, required this.onEventTap});
+
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
@@ -356,7 +402,8 @@ class _ScheduleSheet extends StatelessWidget {
                   const Center(
                     child: Text(
                       "Jadwal Kegiatan Kamu",
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                     ),
                   ),
                   const Center(
@@ -405,7 +452,7 @@ class _ScheduleEventCard extends StatelessWidget {
     final time = '$startTime\n$endTime';
     final title = event.title;
     final detail = event.description ?? '';
-    
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -481,7 +528,7 @@ class _ModifyEventDialog extends StatefulWidget {
   final Event? eventToEdit;
 
   const _ModifyEventDialog({
-    required this.selectedDate, 
+    required this.selectedDate,
     required this.workspaceId,
     this.eventToEdit,
   });
@@ -489,12 +536,13 @@ class _ModifyEventDialog extends StatefulWidget {
   @override
   State<_ModifyEventDialog> createState() => _ModifyEventDialogState();
 }
+
 class _ModifyEventDialogState extends State<_ModifyEventDialog> {
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   late TimeOfDay _startTime;
   late TimeOfDay _endTime;
-  
+
   bool get isEditing => widget.eventToEdit != null;
 
   @override
@@ -507,10 +555,11 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
       _endTime = TimeOfDay.fromDateTime(widget.eventToEdit!.endTime);
     } else {
       _startTime = TimeOfDay.now();
-      _endTime = TimeOfDay.fromDateTime(DateTime.now().add(const Duration(hours: 1)));
+      _endTime =
+          TimeOfDay.fromDateTime(DateTime.now().add(const Duration(hours: 1)));
     }
   }
-  
+
   @override
   void dispose() {
     _titleController.dispose();
@@ -518,7 +567,8 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
     super.dispose();
   }
 
-  Future<void> _selectTime(BuildContext context, {required bool isStartTime}) async {
+  Future<void> _selectTime(BuildContext context,
+      {required bool isStartTime}) async {
     final initialTime = isStartTime ? _startTime : _endTime;
     final pickedTime = await showTimePicker(
       context: context,
@@ -540,7 +590,8 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
       context: context,
       builder: (alertDialogContext) => AlertDialog(
         title: const Text('Hapus Event'),
-        content: const Text('Anda yakin ingin menghapus event ini? Aksi ini tidak dapat dibatalkan.'),
+        content: const Text(
+            'Anda yakin ingin menghapus event ini? Aksi ini tidak dapat dibatalkan.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(alertDialogContext).pop(),
@@ -549,7 +600,8 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
           TextButton(
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             onPressed: () {
-              context.read<EventBloc>().add(DeleteEventPressed(widget.eventToEdit!.id, widget.workspaceId));
+              context.read<EventBloc>().add(DeleteEventPressed(
+                  widget.eventToEdit!.id, widget.workspaceId));
               Navigator.of(alertDialogContext).pop();
               Navigator.of(context).pop();
             },
@@ -568,8 +620,11 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
       title: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(isEditing ? 'Edit Event' : 'Tambah Event', style: const TextStyle(fontWeight: FontWeight.bold)),
-          IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.of(context).pop()),
+          Text(isEditing ? 'Edit Event' : 'Tambah Event',
+              style: const TextStyle(fontWeight: FontWeight.bold)),
+          IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.of(context).pop()),
         ],
       ),
       content: SingleChildScrollView(
@@ -586,11 +641,13 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
               decoration: InputDecoration(
                 hintText: 'Masukkan Judul Event',
                 counterText: "",
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
             const SizedBox(height: 16),
-            const Text('Deskripsi', style: TextStyle(fontWeight: FontWeight.w500)),
+            const Text('Deskripsi',
+                style: TextStyle(fontWeight: FontWeight.w500)),
             const SizedBox(height: 8),
             TextField(
               controller: _descriptionController,
@@ -600,18 +657,21 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
               decoration: InputDecoration(
                 hintText: 'Masukkan Deskripsi Event',
                 counterText: "",
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
             const SizedBox(height: 16),
             Row(
               children: [
                 Expanded(
-                  child: _buildTimePickerField(context, 'Mulai', _startTime, isStartTime: true),
+                  child: _buildTimePickerField(context, 'Mulai', _startTime,
+                      isStartTime: true),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
-                  child: _buildTimePickerField(context, 'Selesai', _endTime, isStartTime: false),
+                  child: _buildTimePickerField(context, 'Selesai', _endTime,
+                      isStartTime: false),
                 ),
               ],
             ),
@@ -641,20 +701,33 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
               Expanded(
                 child: ElevatedButton(
                   onPressed: () {
-                    final startDateTime = DateTime(widget.selectedDate.year, widget.selectedDate.month, widget.selectedDate.day, _startTime.hour, _startTime.minute);
-                    final endDateTime = DateTime(widget.selectedDate.year, widget.selectedDate.month, widget.selectedDate.day, _endTime.hour, _endTime.minute);
-                    
+                    final startDateTime = DateTime(
+                        widget.selectedDate.year,
+                        widget.selectedDate.month,
+                        widget.selectedDate.day,
+                        _startTime.hour,
+                        _startTime.minute);
+                    final endDateTime = DateTime(
+                        widget.selectedDate.year,
+                        widget.selectedDate.month,
+                        widget.selectedDate.day,
+                        _endTime.hour,
+                        _endTime.minute);
+
                     final updatedEvent = Event(
                       id: widget.eventToEdit!.id,
                       workspaceId: widget.eventToEdit!.workspaceId,
-                      createdBy: widget.eventToEdit!.createdAt.toString(), // createdBy tidak berubah
+                      createdBy: widget.eventToEdit!.createdAt
+                          .toString(), // createdBy tidak berubah
                       title: _titleController.text,
                       description: _descriptionController.text,
                       startTime: startDateTime,
                       endTime: endDateTime,
                       createdAt: widget.eventToEdit!.createdAt,
                     );
-                    context.read<EventBloc>().add(UpdateEventSubmitted(updatedEvent));
+                    context
+                        .read<EventBloc>()
+                        .add(UpdateEventSubmitted(updatedEvent));
                     Navigator.of(context).pop();
                   },
                   style: ElevatedButton.styleFrom(
@@ -665,30 +738,41 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
               ),
             ],
           )
-        else 
+        else
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
-                final startDateTime = DateTime(widget.selectedDate.year, widget.selectedDate.month, widget.selectedDate.day, _startTime.hour, _startTime.minute);
-                final endDateTime = DateTime(widget.selectedDate.year, widget.selectedDate.month, widget.selectedDate.day, _endTime.hour, _endTime.minute);
+                final startDateTime = DateTime(
+                    widget.selectedDate.year,
+                    widget.selectedDate.month,
+                    widget.selectedDate.day,
+                    _startTime.hour,
+                    _startTime.minute);
+                final endDateTime = DateTime(
+                    widget.selectedDate.year,
+                    widget.selectedDate.month,
+                    widget.selectedDate.day,
+                    _endTime.hour,
+                    _endTime.minute);
 
                 context.read<EventBloc>().add(
-                  CreateEventSubmitted(
-                    workspaceId: widget.workspaceId,
-                    title: _titleController.text,
-                    description: _descriptionController.text,
-                    startTime: startDateTime,
-                    endTime: endDateTime,
-                  ),
-                );
+                      CreateEventSubmitted(
+                        workspaceId: widget.workspaceId,
+                        title: _titleController.text,
+                        description: _descriptionController.text,
+                        startTime: startDateTime,
+                        endTime: endDateTime,
+                      ),
+                    );
                 Navigator.of(context).pop();
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue.shade600,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
               child: const Text('Buat Event'),
             ),
@@ -697,7 +781,9 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
     );
   }
 
-  Widget _buildTimePickerField(BuildContext context, String label, TimeOfDay time, {required bool isStartTime}) {
+  Widget _buildTimePickerField(
+      BuildContext context, String label, TimeOfDay time,
+      {required bool isStartTime}) {
     return InkWell(
       onTap: () => _selectTime(context, isStartTime: isStartTime),
       child: InputDecorator(
@@ -716,19 +802,23 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
 
 class _ShareWorkspaceDialog extends StatefulWidget {
   final String workspaceId;
-  const _ShareWorkspaceDialog({required this.workspaceId});
+  final String workspaceTitle;
+  const _ShareWorkspaceDialog(
+      {required this.workspaceId, required this.workspaceTitle});
 
   @override
   State<_ShareWorkspaceDialog> createState() => _ShareWorkspaceDialogState();
 }
 
 class _ShareWorkspaceDialogState extends State<_ShareWorkspaceDialog> {
-  final _emailController = TextEditingController();
-  String _selectedRole = 'viewer'; // Default role
+  final _searchController = TextEditingController();
+  String _selectedRole = 'viewer';
+  final FocusNode _searchFocusNode = FocusNode(); // Untuk mengelola fokus
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _searchController.dispose();
+    _searchFocusNode.dispose();
     super.dispose();
   }
 
@@ -736,96 +826,317 @@ class _ShareWorkspaceDialogState extends State<_ShareWorkspaceDialog> {
   Widget build(BuildContext context) {
     return BlocListener<ShareWorkspaceBloc, ShareWorkspaceState>(
       listener: (context, state) {
-        if (state.status == ShareStatus.success) {
+        if (state.shareStatus == ShareStatus.success) {
+          // Cek apakah ada data di clipboard untuk membedakan aksi
+          Clipboard.getData(Clipboard.kTextPlain).then((value) {
+            final message = (value?.text?.contains('himtikaapp://') ?? false)
+                ? 'Link undangan berhasil disalin!'
+                : 'Undangan berhasil dikirim!';
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(message), backgroundColor: Colors.green),
+            );
+          });
+          _searchController.clear();
+          context.read<ShareWorkspaceBloc>().add(const ClearSearch());
+        } else if (state.shareStatus == ShareStatus.failure) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Undangan berhasil dikirim!'), backgroundColor: Colors.green),
-          );
-          Navigator.of(context).pop();
-        } else if (state.status == ShareStatus.failure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.errorMessage ?? 'Gagal mengirim undangan.'), backgroundColor: Colors.red),
+            SnackBar(
+                content:
+                    Text(state.shareErrorMessage ?? 'Gagal melakukan aksi.'),
+                backgroundColor: Colors.red),
           );
         }
       },
       child: AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        insetPadding: const EdgeInsets.all(24),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         title: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Bagikan Workspace', style: TextStyle(fontWeight: FontWeight.bold)),
-            IconButton(icon: const Icon(Icons.close), onPressed: () => Navigator.of(context).pop()),
+            const Text('Share Workspace',
+                style: TextStyle(fontWeight: FontWeight.bold)),
+            IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => Navigator.of(context).pop()),
           ],
         ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('Undang Pengguna', style: TextStyle(fontWeight: FontWeight.w500)),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(
-                hintText: 'Masukkan email pengguna',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-            ),
-            const SizedBox(height: 16),
-            const Text('Berikan Peran Sebagai', style: TextStyle(fontWeight: FontWeight.w500)),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<String>(
-              value: _selectedRole,
-              items: const [
-                DropdownMenuItem(value: 'viewer', child: Text('Pelihat (Viewer)')),
-                DropdownMenuItem(value: 'editor', child: Text('Editor')),
-              ],
-              onChanged: (value) {
-                if (value != null) {
-                  setState(() {
-                    _selectedRole = value;
-                  });
-                }
-              },
-              decoration: InputDecoration(
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-            ),
-          ],
-        ),
-        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-        actions: [
-          BlocBuilder<ShareWorkspaceBloc, ShareWorkspaceState>(
-            builder: (context, state) {
-              return SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: state.status == ShareStatus.loading
-                      ? null
-                      : () {
-                          context.read<ShareWorkspaceBloc>().add(
-                                InviteUserSubmitted(
-                                  workspaceId: widget.workspaceId,
-                                  email: _emailController.text.trim(),
-                                  role: _selectedRole,
-                                ),
-                              );
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue.shade600,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: Stack(
+            clipBehavior: Clip
+                .none, // Izinkan hasil pencarian melayang di luar batas dialog
+            children: [
+              Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _searchController,
+                          focusNode: _searchFocusNode,
+                          onChanged: (query) {
+                            context
+                                .read<ShareWorkspaceBloc>()
+                                .add(SearchUserChanged(query));
+                          },
+                          decoration: InputDecoration(
+                            hintText: 'Emails, atau username',
+                            prefixIcon: const Icon(Icons.search),
+                            border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  child: state.status == ShareStatus.loading
-                      ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white))
-                      : const Text('Kirim Undangan'),
-                ),
-              );
+                  const SizedBox(height: 24),
+                  const Text("Bagikan pada Roles",
+                      style: TextStyle(fontWeight: FontWeight.w500)),
+                  const SizedBox(height: 8),
+                  OutlinedButton(
+                    onPressed: () {
+                      // Tutup dialog saat ini, lalu buka dialog baru
+                      Navigator.of(context).pop();
+                      showDialog(
+                        context: context,
+                        builder: (ctx) {
+                          // Teruskan BLoC yang sudah ada
+                          return BlocProvider.value(
+                            value: context.read<ShareWorkspaceBloc>(),
+                            child: _ShareByRoleDialog(
+                              workspaceId: widget.workspaceId,
+                              roleToGrant: _selectedRole,
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text("Bagikan pada roles yang sama"),
+                        Icon(Icons.arrow_drop_down),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        context.read<ShareWorkspaceBloc>().add(
+                              CreateAndCopyInvitationLink(
+                                workspaceId: widget.workspaceId,
+                                role: _selectedRole,
+                              ),
+                            );
+                      },
+                      icon: const Icon(Icons.link),
+                      label: const Text("Salin Link"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade100,
+                        foregroundColor: Colors.blue.shade800,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              // HASIL PENCARIAN SEBAGAI OVERLAY
+              BlocBuilder<ShareWorkspaceBloc, ShareWorkspaceState>(
+                builder: (context, state) {
+                  if (state.searchStatus == SearchStatus.initial ||
+                      _searchController.text.isEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  // Tampilkan hasil di atas konten lain
+                  return Positioned(
+                    top: 60, // Posisi tepat di bawah search bar
+                    left: 0,
+                    right: 0,
+                    child: Material(
+                      elevation: 4.0,
+                      borderRadius: BorderRadius.circular(12),
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                            maxHeight:
+                                MediaQuery.of(context).size.height * 0.25),
+                        child: _buildSearchResults(state),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Widget pembantu baru untuk membangun hasil pencarian
+  Widget _buildSearchResults(ShareWorkspaceState state) {
+    if (state.searchStatus == SearchStatus.loading) {
+      return const Center(
+          child: Padding(
+              padding: EdgeInsets.all(16.0),
+              child: CircularProgressIndicator()));
+    }
+    if (state.searchResults.isEmpty) {
+      return const ListTile(title: Text("Tidak ada pengguna ditemukan"));
+    }
+    return ListView.builder(
+      shrinkWrap: true,
+      itemCount: state.searchResults.length,
+      itemBuilder: (context, index) {
+        final user = state.searchResults[index];
+        return ListTile(
+          leading: CircleAvatar(
+            backgroundImage:
+                (user.profileUrl != null && user.profileUrl!.isNotEmpty)
+                    ? NetworkImage(user.profileUrl!)
+                    : null,
+            child: (user.profileUrl == null || user.profileUrl!.isEmpty)
+                ? const Icon(Icons.person)
+                : null,
+          ),
+          title: Text(user.fullName),
+          subtitle: Text("@${user.username}"),
+          trailing: ElevatedButton(
+            child: const Text('Invite'),
+            onPressed: () {
+              context.read<ShareWorkspaceBloc>().add(
+                    InviteUserSubmitted(
+                      workspaceId: widget.workspaceId,
+                      email: user.email,
+                      role: _selectedRole,
+                    ),
+                  );
             },
           ),
-        ],
+        );
+      },
+    );
+  }
+}
+
+class _ShareByRoleDialog extends StatefulWidget {
+  final String workspaceId;
+  final String roleToGrant;
+  const _ShareByRoleDialog(
+      {required this.workspaceId, required this.roleToGrant});
+
+  @override
+  State<_ShareByRoleDialog> createState() => _ShareByRoleDialogState();
+}
+
+class _ShareByRoleDialogState extends State<_ShareByRoleDialog> {
+  // Gunakan GetIt untuk mengambil use case
+  final GetMyRoles _getMyRoles = sl<GetMyRoles>();
+
+  // State untuk menyimpan daftar role dan yang dipilih
+  List<Role>? _myRoles;
+  Set<Role> _selectedRoles = {};
+
+  @override
+  void initState() {
+    super.initState();
+    // Ambil daftar role milik pengguna saat ini
+    _getMyRoles().then((roles) {
+      if (mounted) {
+        setState(() {
+          _myRoles = roles;
+        });
+      }
+    });
+  }
+
+  void _onSimpanPressed() {
+    // Jalankan validasi: Jika Kelas dipilih, Angkatan wajib dipilih
+    final hasKelas = _selectedRoles.any((r) => r.groupName == 'Kelas');
+    final hasAngkatan = _selectedRoles.any((r) => r.groupName == 'Angkatan');
+
+    if (hasKelas && !hasAngkatan) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content:
+              Text('Jika memilih Kelas, Anda juga wajib memilih Angkatan.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    if (_selectedRoles.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Pilih minimal satu role untuk dibagikan.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // Kirim event ke BLoC
+    context.read<ShareWorkspaceBloc>().add(
+          InviteByRoleSubmitted(
+            workspaceId: widget.workspaceId,
+            targetRoles: _selectedRoles.toList(),
+            roleToGrant: widget.roleToGrant,
+          ),
+        );
+    Navigator.of(context).pop(); // Tutup dialog "Bagikan ke Role"
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_myRoles == null) {
+      return const Dialog(child: Center(child: CircularProgressIndicator()));
+    }
+
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      title: const Text('Bagikan pada Roles',
+          style: TextStyle(fontWeight: FontWeight.bold)),
+      content: SizedBox(
+        width: double.maxFinite,
+        child: ListView.builder(
+          shrinkWrap: true,
+          itemCount: _myRoles!.length,
+          itemBuilder: (context, index) {
+            final role = _myRoles![index];
+            final isSelected = _selectedRoles.contains(role);
+
+            // Abaikan role 'Pengunjung'
+            if (role.name == 'Pengunjung') return const SizedBox.shrink();
+
+            return SwitchListTile(
+              title: Text(role.name),
+              subtitle: Text(role.groupName,
+                  style: const TextStyle(color: Colors.grey)),
+              value: isSelected,
+              onChanged: (value) {
+                setState(() {
+                  if (value) {
+                    _selectedRoles.add(role);
+                  } else {
+                    _selectedRoles.remove(role);
+                  }
+                });
+              },
+            );
+          },
+        ),
       ),
+      actions: [
+        TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Batal')),
+        ElevatedButton(
+            onPressed: _onSimpanPressed, child: const Text('Simpan')),
+      ],
     );
   }
 }

@@ -37,7 +37,7 @@ class WorkspaceBloc extends Bloc<WorkspaceEvent, WorkspaceState> {
   ) async {
     emit(state.copyWith(status: WorkspaceStatus.loading));
     try {
-      // Panggil metode repository yang baru
+      // PASTIKAN METODE YANG DIPANGGIL ADALAH getMyWorkspacesWithMembers()
       final workspaces = await _calendarRepository.getMyWorkspacesWithMembers();
       emit(state.copyWith(
         status: WorkspaceStatus.loaded,

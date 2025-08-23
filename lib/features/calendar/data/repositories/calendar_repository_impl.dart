@@ -18,51 +18,38 @@ class CalendarRepositoryImpl implements CalendarRepository {
   });
 
   @override
-  Future<List<Workspace>> getMyWorkspaces() async {
-    final data = await remoteDatasource.getMyWorkspaces();
-    return data.map((item) {
-      final workspaceData = item['user_workspace'] as Map<String, dynamic>?;
-      if (workspaceData == null) return null;
-
-      return Workspace(
-        id: workspaceData['id'] ?? '',
-        title: workspaceData['title'] ?? 'Tanpa Judul',
-        description: workspaceData['description'] ?? '',
-        ownerId: workspaceData['owner_id'] ?? '',
-        lastUpdated: workspaceData['last_updated'] != null
-            ? DateTime.parse(workspaceData['last_updated'])
-            : null,
-      );
-    }).whereType<Workspace>().toList();
-  }
-
-  @override
   Future<void> createWorkspace({required String title, required String description}) async {
     await remoteDatasource.createWorkspace(title: title, description: description);
   }
 
-  @override
   Future<List<WorkspaceWithMembers>> getMyWorkspacesWithMembers() async {
-    final currentUser = await getCurrentUser();
-    if (currentUser == null) return [];
+    final data = await remoteDatasource.getMyWorkspacesWithMembers();
+    print('Supabase response: $data');
+    return data.map((item) {
+      print('Processing item: $item');
+      final workspaceData = item['workspace'] as Map<String, dynamic>;
+      final membersData = item['members'] as List<dynamic>?;
 
-    final workspaces = await getMyWorkspaces();
-    
-    final List<WorkspaceWithMembers> result = [];
-    for (final ws in workspaces) {
-      final membersData = await remoteDatasource.getMembersForWorkspace(ws.id);
-      
-      final List<UserModel> allMembers = membersData.map((item) {
-        final userData = item['users'] as Map<String, dynamic>?;
-        return userData != null ? UserModel.fromMap(userData) : null;
-      }).whereType<UserModel>().toList();
+      // Tambah penanganan null untuk id dan owner_id
+      if (workspaceData['id'] == null || workspaceData['owner_id'] == null) {
+        print('Skipping item with null id or owner_id: $workspaceData');
+        return null; // Skip item ini
+      }
 
-      final otherMembers = allMembers.where((member) => member.id != currentUser.id).toList();
+      final workspace = Workspace(
+        id: workspaceData['id'] as String,
+        title: workspaceData['title'] ?? 'Tanpa Judul',
+        description: workspaceData['description'] ?? '',
+        ownerId: workspaceData['owner_id'] as String,
+        lastUpdated: workspaceData['last_updated'] != null ? DateTime.parse(workspaceData['last_updated'] as String) : null,
+      );
 
-      result.add(WorkspaceWithMembers(workspace: ws, members: otherMembers));
-    }
-    
-    return result;
+      final members = membersData?.map((memberJson) {
+        return UserModel.fromMap(memberJson as Map<String, dynamic>);
+      }).toList() ?? [];
+
+      return WorkspaceWithMembers(workspace: workspace, members: members);
+    }).where((item) => item != null).cast<WorkspaceWithMembers>().toList();
   }
 
   @override
@@ -168,5 +155,18 @@ class CalendarRepositoryImpl implements CalendarRepository {
   @override
   Future<String> createInvitationLink({required String workspaceId, required String role}) async {
     return await remoteDatasource.createInvitationLink(workspaceId: workspaceId, role: role);
+  }
+
+  @override
+  Future<void> inviteByRole({
+    required String workspaceId,
+    required List<String> targetRoleIds,
+    required String roleToGrant,
+  }) async {
+    await remoteDatasource.inviteByRole(
+      workspaceId: workspaceId,
+      targetRoleIds: targetRoleIds,
+      roleToGrant: roleToGrant,
+    );
   }
 }

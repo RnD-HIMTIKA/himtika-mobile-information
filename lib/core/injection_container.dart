@@ -41,12 +41,12 @@ import 'package:himtika_mobile_information/features/roles/domain/usecases/get_us
 import 'package:himtika_mobile_information/features/roles/domain/usecases/revoke_permission_from_role.dart';
 import 'package:himtika_mobile_information/features/roles/domain/usecases/revoke_role.dart';
 import 'package:himtika_mobile_information/features/roles/application/roles_controller/roles_controller.dart';
+import 'package:himtika_mobile_information/features/roles/domain/usecases/get_my_roles.dart'; 
 
 // --- Calendar Imports ---
 import 'package:himtika_mobile_information/features/calendar/data/datasources/calendar_remote_datasource.dart';
 import 'package:himtika_mobile_information/features/calendar/data/repositories/calendar_repository_impl.dart';
 import 'package:himtika_mobile_information/features/calendar/domain/repositories/calendar_repository.dart';
-import 'package:himtika_mobile_information/features/calendar/domain/usecases/get_my_workspaces.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/bloc/workspace/workspace_bloc.dart';
 import 'package:himtika_mobile_information/features/calendar/domain/usecases/create_workspace.dart';
 import 'package:himtika_mobile_information/features/calendar/domain/usecases/get_events.dart';
@@ -62,6 +62,9 @@ import 'package:himtika_mobile_information/features/calendar/domain/usecases/get
 import 'package:himtika_mobile_information/features/calendar/domain/usecases/accept_invitation.dart';
 import 'package:himtika_mobile_information/features/calendar/domain/usecases/decline_invitation.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/bloc/invitation/invitation_bloc.dart';
+import 'package:himtika_mobile_information/features/calendar/domain/usecases/search_users.dart';
+import 'package:himtika_mobile_information/features/calendar/domain/usecases/create_invitation_link.dart';
+import 'package:himtika_mobile_information/features/calendar/domain/usecases/invite_by_role.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -127,6 +130,7 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => GetUserPermissions(sl<RolesRepository>()));
   sl.registerLazySingleton(() => RevokePermissionFromRole(sl<RolesRepository>()));
   sl.registerLazySingleton(() => RevokeRole(sl<RolesRepository>()));
+  sl.registerLazySingleton(() => GetMyRoles(rolesRepository: sl(), getCurrentUser: sl()));
 
   // Controller
   sl.registerLazySingleton<IRolesController>(() => RolesController(
@@ -145,7 +149,6 @@ Future<void> initDependencies() async {
         getCurrentUser: sl(),
       ));
   // Usecases
-  sl.registerLazySingleton(() => GetMyWorkspaces(sl()));
   sl.registerLazySingleton(() => CreateWorkspace(sl()));
   sl.registerLazySingleton(() => GetEvents(sl()));
   sl.registerLazySingleton(() => CreateEvent(sl()));
@@ -157,6 +160,9 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => GetMyInvitations(sl()));
   sl.registerLazySingleton(() => AcceptInvitation(sl()));
   sl.registerLazySingleton(() => DeclineInvitation(sl()));
+  sl.registerLazySingleton(() => SearchUsers(sl()));
+  sl.registerLazySingleton(() => CreateInvitationLink(sl()));
+  sl.registerLazySingleton(() => InviteByRole(sl()));
   // BLoC
   sl.registerFactory(() => WorkspaceBloc(
         calendarRepository: sl(),
@@ -170,7 +176,12 @@ Future<void> initDependencies() async {
         updateEvent: sl(),
         deleteEvent: sl(),
       ));
-  sl.registerFactory(() => ShareWorkspaceBloc(inviteUserToWorkspace: sl()));
+  sl.registerFactory(() => ShareWorkspaceBloc(
+      inviteUserToWorkspace: sl(),
+      searchUsers: sl(),
+      createInvitationLink: sl(),
+      inviteByRole: sl(),
+    ));
   sl.registerFactory(() => InvitationBloc(
         getMyInvitations: sl(),
         acceptInvitation: sl(),
