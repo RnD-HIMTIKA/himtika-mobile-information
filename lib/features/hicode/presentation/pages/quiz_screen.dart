@@ -400,7 +400,7 @@ Future<bool?> _showExitQuizDialog(BuildContext context) {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pop(false); // Tetap di halaman
+                    Navigator.of(context).pop(true); // Tetap di halaman
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
@@ -419,7 +419,7 @@ Future<bool?> _showExitQuizDialog(BuildContext context) {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.of(context).pop(true); // Keluar
+                    Navigator.of(context).pop(false); 
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
