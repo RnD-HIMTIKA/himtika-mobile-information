@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:himtika_mobile_information/features/hicode/presentation/bloc/main_screen/hicode_bloc.dart';
-import 'package:himtika_mobile_information/features/hicode/presentation/pages/materi_detail_screen.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/pages/material_detail_screen.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/information_screen.dart';
 import 'package:himtika_mobile_information/features/home/presentation/pages/home.dart';
 

@@ -11,15 +11,25 @@ class SubChapterDetailBloc
   }
 
   Future<void> _onFetchSubChapterData(
-      FetchSubChapterData event, Emitter<SubChapterDetailState> emit) async {
+    FetchSubChapterData event, Emitter<SubChapterDetailState> emit) async {
     emit(state.copyWith(status: SubChapterDetailStatus.loading));
 
     await Future.delayed(const Duration(milliseconds: 500));
-    final parts = event.subChapterId.split('. '); // Pisahkan nomor dan judul
-    final chapterNumber = parts[0]; // "1"
-    final chapterTitle = parts[1];  // "Pengenalan CSS"
 
-    final dynamicTitle = '#Chapter $chapterNumber\n$chapterTitle';
+    // --- LOGIKA DINAMIS YANG SUDAH AMAN ---
+    String dynamicTitle;
+    final parts = event.subChapterId.split('. ');
+
+    // Cek apakah hasil split memiliki lebih dari 1 elemen
+    if (parts.length > 1) {
+      // Jika formatnya "Nomor. Judul", proses seperti biasa
+      final chapterNumber = parts[0];
+      final chapterTitle = parts[1];
+      dynamicTitle = '#Chapter $chapterNumber\n$chapterTitle';
+    } else {
+      // Jika formatnya tidak sesuai, gunakan judul apa adanya
+      dynamicTitle = event.subChapterId;
+    }
 
     // Sisa data dummy lainnya tetap sama
     const dummyReadTime = '10-15 Menit waktu pembaca';
@@ -29,7 +39,7 @@ class SubChapterDetailBloc
 
     emit(state.copyWith(
       status: SubChapterDetailStatus.success,
-      title: dynamicTitle, // Gunakan judul yang sudah dinamis
+      title: dynamicTitle, // Gunakan judul yang sudah dinamis dan aman
       readTime: dummyReadTime,
       quizCount: dummyQuizCount,
       content: dummyContent,

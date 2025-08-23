@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import 'package:himtika_mobile_information/features/hicode/presentation/pages/information_screen.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/pages/final_exam_detail_screen.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/sub_chapter_detail_screen.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/pages/information_screen.dart';
 import '../bloc/detail_screen/material_detail_bloc.dart';
 
 class MaterialDetailScreen extends StatelessWidget {
@@ -73,16 +73,31 @@ class MaterialDetailScreen extends StatelessWidget {
                             itemCount: state.filteredSubChapters.length + 1,
                             itemBuilder: (context, index) {
                               if (index < state.filteredSubChapters.length) {
+                                // --- LOGIKA UNTUK SUB-BAB BIASA ---
                                 final subChapter = state.filteredSubChapters[index];
-                                return _SubChapterCard(
-                                  iconPath: state.materialIconPath!,
-                                  title: subChapter['title']!,
-                                  details: subChapter['details']!,
-                                  status: subChapter['status'] as SubChapterStatus,
+                                final status = subChapter['status'] as SubChapterStatus;
+                                
+                                return InkWell(
+                                  onTap: () {
+                                    if (status == SubChapterStatus.locked) return;
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (_) => SubChapterDetailScreen(subChapterId: subChapter['title']!),
+                                      ),
+                                    );
+                                  },
+                                  borderRadius: BorderRadius.circular(15),
+                                  child: _SubChapterCard(
+                                    iconPath: state.materialIconPath!,
+                                    title: subChapter['title']!,
+                                    details: subChapter['details']!,
+                                    status: status,
+                                  ),
                                 );
                               } else {
+                                // --- LOGIKA UNTUK LATIHAN SOAL FINAL ---
                                 return state.searchQuery.isEmpty
-                                    ? _buildFinalExamItem(state)
+                                    ? _buildFinalExamItem(context, state)
                                     : const SizedBox.shrink();
                               }
                             },
@@ -102,17 +117,41 @@ class MaterialDetailScreen extends StatelessWidget {
   // --- WIDGET-WIDGET PEMBANTU ---
   
   // Widget untuk card ujian final
-  Widget _buildFinalExamItem(MaterialDetailState state) {
-    final finalExamStatus =
-        state.finalExamStatus!['status'] as SubChapterStatus;
+  Widget _buildFinalExamItem(BuildContext context, MaterialDetailState state) {
+    // Pengecekan null untuk keamanan
+    if (state.finalExamStatus == null || state.title == null) {
+      return const SizedBox.shrink();
+    }
+
+    final finalExamStatus = state.finalExamStatus!['status'] as SubChapterStatus;
     final finalExamIconPath = (finalExamStatus == SubChapterStatus.locked)
         ? 'src/features/hicode/materi/terkunci.png'
         : 'src/features/hicode/materi/selesai.png';
-    return _SubChapterCard(
-      iconPath: finalExamIconPath,
-      title: state.finalExamStatus!['title']!,
-      details: state.finalExamStatus!['details']!,
-      status: finalExamStatus,
+    
+    String materialName = 'Materi';
+    if (state.title!.contains(' - ')) {
+      materialName = state.title!.split(' - ').last;
+    }
+    
+    return InkWell(
+      onTap: () {
+        if (finalExamStatus == SubChapterStatus.locked) return;
+
+        // --- PASTIKAN BARIS INI BENAR ---
+        // Navigator harus mengarah ke FinalExamDetailScreen
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => FinalExamDetailScreen(materialName: materialName),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(15),
+      child: _SubChapterCard(
+        iconPath: finalExamIconPath,
+        title: state.finalExamStatus!['title']!,
+        details: state.finalExamStatus!['details']!,
+        status: finalExamStatus,
+      ),
     );
   }
 
@@ -264,75 +303,60 @@ class _SubChapterCard extends StatelessWidget {
         break;
     }
 
-    return InkWell(
-      onTap: () {
-        // 1. Cek jika statusnya terkunci, maka jangan lakukan apa-apa
-        if (status == SubChapterStatus.locked) return;
-
-        // 2. Jika tidak terkunci, navigasi ke halaman detail
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => SubChapterDetailScreen(subChapterId: title),
-          ),
-        );
-      },
-      borderRadius: BorderRadius.circular(15), // Agar efek ripple sesuai
-      child: Container(
-        // Seluruh kode Container Anda sebelumnya ada di sini, tidak ada yang berubah
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: backgroundColor,
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(
-            color: status == SubChapterStatus.locked
-                ? Colors.grey.shade300
-                : Colors.blue.shade100,
-            width: 1.5,
-          ),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(
+          color: status == SubChapterStatus.locked
+              ? Colors.grey.shade300
+              : Colors.blue.shade100,
+          width: 1.5,
         ),
-        child: Row(
-          children: [
-            Image.asset(
-              iconPath,
-              width: 40,
-              height: 40,
+      ),
+      child: Row(
+        children: [
+          Image.asset(
+            iconPath,
+            width: 40,
+            height: 40,
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      details,
+                      style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(statusIcon, color: statusColor, size: 14),
+                        const SizedBox(width: 4),
+                        Text(
+                          statusText,
+                          style: TextStyle(
+                              color: statusColor,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 4),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        details,
-                        style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Icon(statusIcon, color: statusColor, size: 14),
-                          const SizedBox(width: 4),
-                          Text(
-                            statusText,
-                            style: TextStyle(
-                                color: statusColor,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-          ],
-        ),
+          ),
+          const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+        ],
       ),
     );
   }

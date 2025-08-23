@@ -103,7 +103,7 @@ class InformationScreen extends StatelessWidget {
           IconButton(
             onPressed: () => Navigator.pop(context),
             icon: Image.asset(
-              'src/features/hicode/icon/kembali.png', // Sesuaikan path ikon Anda
+              'src/features/hicode/icon/kembali.png', 
               width: 32,
               height: 32,
             ),
@@ -115,7 +115,7 @@ class InformationScreen extends StatelessWidget {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: const Color(0xFF006EBD), // 3. Tambahkan warna teks judul Anda
+                color: const Color(0xFF006EBD), 
               ),
             ),
           ),

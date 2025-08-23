@@ -56,9 +56,6 @@ class SubChapterDetailScreen extends StatelessWidget {
                 onPressed: () {
                   final quizId = state.title!.replaceAll('\n', ' ');
                   
-                  // TAMBAHKAN PRINT DI SINI
-                  print('--- ID KUIS YANG DIKIRIM: [$quizId]');
-                  
                   Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (_) => QuizScreen(quizId: quizId),

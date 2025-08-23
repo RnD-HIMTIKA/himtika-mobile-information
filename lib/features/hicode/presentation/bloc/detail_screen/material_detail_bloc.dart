@@ -60,14 +60,14 @@ class MaterialDetailBloc
       {
         'title': '4. Flexbox',
         'details': '2 Soal Quiz',
-        'status': SubChapterStatus.locked,
+        'status': SubChapterStatus.available,
       },
     ];
 
     final dummyFinalExam = {
       'title': 'Latihan Soal Final',
       'details': '10 Soal',
-      'status': SubChapterStatus.locked,
+      'status': SubChapterStatus.available,
     };
 
     emit(state.copyWith(
@@ -77,7 +77,7 @@ class MaterialDetailBloc
       subChapters: dummySubChapters,
       finalExamStatus: dummyFinalExam,
       materialIconPath: iconPath,
-      filteredSubChapters: dummySubChapters, // 2. Inisialisasi daftar filter saat data pertama kali dimuat
+      filteredSubChapters: dummySubChapters,
     ));
   }
 
