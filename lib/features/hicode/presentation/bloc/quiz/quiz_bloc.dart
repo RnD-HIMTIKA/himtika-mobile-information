@@ -102,6 +102,26 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
   }
 
   void _onSubmitQuiz(SubmitQuiz event, Emitter<QuizState> emit) {
-    emit(state.copyWith(status: QuizStatus.submitted));
+    int correctAnswers = 0;
+
+    // Hitung jawaban yang benar
+    for (int i = 0; i < state.questions.length; i++) {
+      final question = state.questions[i];
+      final correctAnswer = question['correctAnswer'];
+      final userAnswer = state.selectedAnswers[i];
+
+      if (userAnswer != null && userAnswer == correctAnswer) {
+        correctAnswers++;
+      }
+    }
+
+    // Tentukan syarat kelulusan (misalnya, minimal 1 jawaban benar)
+    final bool isPassed = correctAnswers >= 1;
+
+    emit(state.copyWith(
+      status: QuizStatus.submitted,
+      score: correctAnswers,
+      isPassed: isPassed,
+    ));
   }
 }

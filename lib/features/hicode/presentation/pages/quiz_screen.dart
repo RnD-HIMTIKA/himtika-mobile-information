@@ -8,42 +8,109 @@ class QuizScreen extends StatelessWidget {
   const QuizScreen({super.key, required this.quizId});
 
   @override
-  Widget build(BuildContext context) {
+   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => QuizBloc()..add(FetchQuiz(quizId: quizId)),
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        body: SafeArea(
-          child: BlocBuilder<QuizBloc, QuizState>(
-            builder: (context, state) {
-              if (state.status == QuizStatus.loading ||
-                  state.status == QuizStatus.initial) {
-                return const _QuizLoadingScreen();
-              }
-              if (state.status == QuizStatus.success) {
-                return _QuizView(state: state);
-              }
-              if (state.status == QuizStatus.submitted) {
-                return const Center(child: Text('Kuis Selesai!'));
-              }
-              // --- TAMBAHKAN INI UNTUK MENANGANI ERROR ---
-              if (state.status == QuizStatus.failure) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Text(
-                      state.error ?? 'Terjadi kesalahan saat memuat kuis.',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(fontSize: 18, color: Colors.red),
-                    ),
-                  ),
-                );
-              }
-              return const Center(child: Text('Terjadi Kesalahan'));
-            },
+      // 1. Bungkus Scaffold dengan BlocListener
+      child: BlocListener<QuizBloc, QuizState>(
+        listener: (context, state) {
+          // Listener ini akan dieksekusi setiap kali state berubah
+          if (state.status == QuizStatus.submitted) {
+            // Jika statusnya submitted, panggil dialog hasil
+            _showResultDialog(context, state.isPassed);
+          }
+        },
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          body: SafeArea(
+            child: BlocBuilder<QuizBloc, QuizState>(
+              builder: (context, state) {
+                if (state.status == QuizStatus.loading || state.status == QuizStatus.initial) {
+                  return const _QuizLoadingScreen();
+                }
+                if (state.status == QuizStatus.success || state.status == QuizStatus.submitted) {
+                  return _QuizView(state: state);
+                }
+                if (state.status == QuizStatus.failure) {
+                  return Center(child: Text(state.error ?? 'Gagal memuat kuis.'));
+                }
+                return const SizedBox.shrink();
+              },
+            ),
           ),
         ),
       ),
+    );
+  }
+
+  void _showResultDialog(BuildContext context, bool isPassed) {
+    final String imagePath = isPassed
+        ? 'src/features/hicode/images/success.png'
+        : 'src/features/hicode/images/failed.png'; 
+    final String title = isPassed ? 'Kuis Selesai' : 'Kuis Belum Tuntas';
+    final String subtitle = isPassed
+        ? 'Selamat, Anda telah menyelesaikan kuis pada bab ini. Materi berikutnya kini dapat diakses.'
+        : 'Beberapa jawaban Anda belum benar. Silakan pelajari kembali materi pada chapter ini sebelum melanjutkan.';
+    final String primaryButtonText = isPassed ? 'Materi Berikutnya' : 'Pelajari Ulang Materi';
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
+          backgroundColor: const Color(0xFFF5F9FF),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset(imagePath, height: 100),
+                const SizedBox(height: 16),
+                Text(title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+                Text(subtitle, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, color: Colors.black54)),
+                const SizedBox(height: 24),
+                // Tombol Utama
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(dialogContext).pop(); // Tutup dialog
+                      Navigator.of(context).pop(); // Kembali dari halaman kuis
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    ),
+                    child: Text(primaryButtonText),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Tombol Kembali ke Beranda
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).popUntil((route) => route.isFirst);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      backgroundColor: const Color(0xFFE0E0E0),
+                      foregroundColor: Colors.black54,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    ),
+                    child: const Text('Kembali ke Beranda'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
@@ -215,32 +282,70 @@ class _ProgressIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Tentukan lebar total untuk progress bar
+    const double totalBarWidth = 100.0;
+    
+    // Hitung lebar untuk bagian biru (progres)
+    final double progressWidth = (totalBarWidth / total) * (currentIndex + 1);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: List.generate(total, (index) {
-          return Container(
-            width: 32,
-            height: 32,
-            margin: const EdgeInsets.symmetric(horizontal: 4),
-            decoration: BoxDecoration(
-              color: index == currentIndex
-                  ? Colors.blue
-                  : Colors.grey.shade300,
-              shape: BoxShape.circle,
-            ),
-            child: Center(
-              child: Text(
-                '${index + 1}',
-                style: TextStyle(
-                  color: index == currentIndex ? Colors.white : Colors.grey,
-                  fontWeight: FontWeight.bold,
+      // 1. Bungkus semuanya dengan Column
+      child: Column(
+        children: [
+          // Baris yang berisi lingkaran nomor (kode Anda sebelumnya)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(total, (index) {
+              return Container(
+                width: 32,
+                height: 32,
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                decoration: BoxDecoration(
+                  color: index == currentIndex
+                      ? Colors.blue
+                      : Colors.grey.shade300,
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Text(
+                    '${index + 1}',
+                    style: TextStyle(
+                      color:
+                          index == currentIndex ? Colors.white : Colors.grey,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+          const SizedBox(height: 8), // Jarak antara nomor dan garis
+
+          // 2. Buat progress bar menggunakan Stack
+          Stack(
+            children: [
+              // Garis latar belakang (abu-abu)
+              Container(
+                width: totalBarWidth,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
                 ),
               ),
-            ),
-          );
-        }),
+              // Garis progres (biru)
+              Container(
+                width: progressWidth, // Lebar dinamis sesuai progres
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -338,7 +443,15 @@ class _BottomNavBar extends StatelessWidget {
           ),
           // Tombol Submit
           ElevatedButton(
-            onPressed: () => context.read<QuizBloc>().add(SubmitQuiz()),
+            onPressed: () async {
+              // Panggil dialog dan tunggu hasilnya
+              final bool? shouldSubmit = await _showSubmitConfirmationDialog(context);
+
+              // Jika pengguna memilih "Submit Kuis" (true)
+              if (shouldSubmit == true) {
+                context.read<QuizBloc>().add(SubmitQuiz());
+              }
+            },
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
               side: const BorderSide(color: Colors.blue),
@@ -431,6 +544,83 @@ Future<bool?> _showExitQuizDialog(BuildContext context) {
                     ),
                   ),
                   child: const Text('Tetap di halaman'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+Future<bool?> _showSubmitConfirmationDialog(BuildContext context) {
+  return showDialog<bool>(
+    context: context,
+    builder: (context) {
+      return Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.0),
+        ),
+        backgroundColor: const Color(0xFFF5F9FF),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Kirim Jawaban',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Kamu yakin ingin mengirim jawaban kuis ini sekarang? Jawaban yang sudah dikirim tidak bisa diubah kembali.',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.black54,
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Tombol Submit Kuis
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(true); // Kirim jawaban
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  child: const Text('Submit Kuis'),
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Tombol Kembali
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(false); // Batal
+                  },
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    backgroundColor: const Color(0xFFE0E0E0),
+                    foregroundColor: Colors.black54,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  child: const Text('Kembali'),
                 ),
               ),
             ],
