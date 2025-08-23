@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:himtika_mobile_information/features/hicode/presentation/bloc/main_screen/hicode_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/materi_detail_screen.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/pages/information_screen.dart';
 import 'package:himtika_mobile_information/features/home/presentation/pages/home.dart';
 
 class HicodeScreen extends StatelessWidget {
@@ -67,10 +68,7 @@ class HicodeScreen extends StatelessWidget {
       children: [
         IconButton(
           onPressed: () {
-            Navigator.pop(
-              context,
-              MaterialPageRoute(builder: (context) => const HomePage()),
-            );
+            Navigator.pop(context);
           },
           icon: Image.asset(
             'src/features/hicode/icon/kembali.png',
@@ -82,7 +80,9 @@ class HicodeScreen extends StatelessWidget {
         // --- UBAH BAGIAN INI JUGA ---
         IconButton(
           onPressed: () {
-            // Aksi ketika tombol info ditekan
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const InformationScreen()),
+            );
           },
           icon: Image.asset(
             'src/features/hicode/icon/informasi.png',
@@ -174,7 +174,6 @@ class HicodeScreen extends StatelessWidget {
   }
   
  Widget _buildFinalExamCard({required bool isExamReady}) {
-    // HAPUS: const bool isExamReady = true;
     final Color backgroundColor = isExamReady ? Colors.green : Colors.red.shade400;
     final String imagePath = isExamReady
         ? 'src/features/hicode/images/dibuka.png'

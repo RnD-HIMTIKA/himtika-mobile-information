@@ -43,7 +43,7 @@ class MaterialDetailBloc
     // Data Dummy
     final dummySubChapters = [
       {
-        'title': '1. Pengenalan CSS',
+        'title': '1. Pengantar HTML',
         'details': '2 Soal Quiz',
         'status': SubChapterStatus.completed,
       },
@@ -53,7 +53,7 @@ class MaterialDetailBloc
         'status': SubChapterStatus.completed,
       },
       {
-        'title': '3. Box Model',
+        'title': '3. Pengenalan CSS',
         'details': '2 Soal Quiz',
         'status': SubChapterStatus.available,
       },

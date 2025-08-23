@@ -50,6 +50,7 @@ dependencies:
   cupertino_icons: ^1.0.8
   flutter_svg: ^2.0.9
   table_calendar: ^3.2.0
+  flutter_animate: ^4.5.0
 
 dev_dependencies:
   flutter_test:
@@ -117,6 +118,7 @@ flutter:
     - src/features/hicode/icon/cpp.png
     - src/features/hicode/icon/kembali.png
     - src/features/hicode/icon/informasi.png
+    - src/features/hicode/icon/sirine.png
     - src/features/hicode/images/html.png
     - src/features/hicode/images/css.png
     - src/features/hicode/images/js.png
@@ -126,6 +128,7 @@ flutter:
     - src/features/hicode/images/leaderboard.png
     - src/features/hicode/images/dibuka.png
     - src/features/hicode/images/ditutup.png
+    - src/features/hicode/images/loading.png
     - src/features/hicode/materi/html.png
     - src/features/hicode/materi/css.png
     - src/features/hicode/materi/js.png

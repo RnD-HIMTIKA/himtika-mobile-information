@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:himtika_mobile_information/features/hicode/presentation/pages/hicode_screen.dart';
+
+import 'package:himtika_mobile_information/features/hicode/presentation/pages/information_screen.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/pages/sub_chapter_detail_screen.dart';
 import '../bloc/detail_screen/material_detail_bloc.dart';
 
 class MaterialDetailScreen extends StatelessWidget {
@@ -146,10 +148,7 @@ class MaterialDetailScreen extends StatelessWidget {
       children: [
         IconButton(
           onPressed: () {
-            Navigator.pop(
-              context,
-              MaterialPageRoute(builder: (context) => const HicodeScreen()),
-            );
+            Navigator.pop(context);
           },
           icon: Image.asset(
             'src/features/hicode/materi/kembali.png',
@@ -161,7 +160,9 @@ class MaterialDetailScreen extends StatelessWidget {
         // --- UBAH BAGIAN INI JUGA ---
         IconButton(
           onPressed: () {
-            // Aksi ketika tombol info ditekan
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const InformationScreen()),
+            );
           },
           icon: Image.asset(
             'src/features/hicode/materi/informasi.png',
@@ -205,9 +206,8 @@ class MaterialDetailScreen extends StatelessWidget {
                 .add(SearchQueryChanged(query: query));
           },
           decoration: InputDecoration(
-            hintText: 'Search anything...',
+            hintText: 'Cari materi...',
             prefixIcon: const Icon(Icons.search),
-            suffixIcon: const Icon(Icons.mic),
             filled: true,
             fillColor: Colors.white,
             border: OutlineInputBorder(
@@ -264,62 +264,75 @@ class _SubChapterCard extends StatelessWidget {
         break;
     }
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(
-          // Jika status locked, warna border abu-abu, jika tidak, warna biru bias
-          color: status == SubChapterStatus.locked
-              ? Colors.grey.shade300
-              : Colors.blue.shade100, // Warna "biru bias"
-          width: 1.5, // Atur ketebalan border
+    return InkWell(
+      onTap: () {
+        // 1. Cek jika statusnya terkunci, maka jangan lakukan apa-apa
+        if (status == SubChapterStatus.locked) return;
+
+        // 2. Jika tidak terkunci, navigasi ke halaman detail
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => SubChapterDetailScreen(subChapterId: title),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(15), // Agar efek ripple sesuai
+      child: Container(
+        // Seluruh kode Container Anda sebelumnya ada di sini, tidak ada yang berubah
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(
+            color: status == SubChapterStatus.locked
+                ? Colors.grey.shade300
+                : Colors.blue.shade100,
+            width: 1.5,
+          ),
         ),
-      ),
-      child: Row(
-        children: [
-          // --- PERUBAHAN UTAMA DI SINI ---
-          Image.asset(
-            iconPath,
-            width: 40,
-            height: 40,
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      details,
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        Icon(statusIcon, color: statusColor, size: 14),
-                        const SizedBox(width: 4),
-                        Text(
-                          statusText,
-                          style: TextStyle(
-                              color: statusColor,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ],
+        child: Row(
+          children: [
+            Image.asset(
+              iconPath,
+              width: 40,
+              height: 40,
             ),
-          ),
-          const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        details,
+                        style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(statusIcon, color: statusColor, size: 14),
+                          const SizedBox(width: 4),
+                          Text(
+                            statusText,
+                            style: TextStyle(
+                                color: statusColor,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+          ],
+        ),
       ),
     );
   }
