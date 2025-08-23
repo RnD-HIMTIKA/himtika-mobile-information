@@ -129,11 +129,17 @@ class CalendarRemoteDatasource {
     return List<Map<String, dynamic>>.from(data);
   }
 
-  // Metode untuk memanggil RPC accept
-  Future<void> acceptInvitation(String invitationIdOrToken) async {
-    await _client.rpc('accept_workspace_invitation', params: {
-      // PERBAIKAN DI SINI: ganti 'p_invitation_id' menjadi 'p_invitation_token'
-      'p_invitation_token': invitationIdOrToken,
+  // Metode untuk menerima via ID (dari notifikasi)
+  Future<void> acceptInvitationById(String invitationId) async {
+    await _client.rpc('accept_invitation_by_id', params: {
+      'p_invitation_id': invitationId,
+    });
+  }
+
+  // Metode untuk menerima via Token (dari deep link)
+  Future<void> acceptInvitationByToken(String token) async {
+    await _client.rpc('accept_invitation_by_token', params: {
+      'p_invitation_token': token,
     });
   }
 

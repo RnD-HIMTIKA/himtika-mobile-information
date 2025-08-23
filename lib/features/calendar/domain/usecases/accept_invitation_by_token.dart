@@ -1,14 +1,15 @@
 import '../repositories/calendar_repository.dart';
 
-class AcceptInvitation {
+// Use case khusus untuk menerima undangan dari deep link (via token)
+class AcceptInvitationByToken {
   final CalendarRepository repository;
-  AcceptInvitation(this.repository);
 
-  // Sekarang menerima token, bukan ID
+  AcceptInvitationByToken(this.repository);
+
   Future<void> call(String token) async {
     if (token.isEmpty) {
       throw Exception('Token undangan tidak valid.');
     }
-    return await repository.acceptInvitation(token);
+    return await repository.acceptInvitationByToken(token);
   }
 }

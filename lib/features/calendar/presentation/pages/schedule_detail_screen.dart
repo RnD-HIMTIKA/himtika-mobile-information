@@ -19,11 +19,13 @@ import '../../domain/entities/event.dart';
 class ScheduleDetailScreen extends StatelessWidget {
   final String workspaceId;
   final String workspaceTitle;
+  final String currentUserRole;
 
   const ScheduleDetailScreen({
     super.key,
     required this.workspaceId,
     required this.workspaceTitle,
+    required this.currentUserRole,
   });
 
   @override
@@ -33,6 +35,7 @@ class ScheduleDetailScreen extends StatelessWidget {
       child: _ScheduleDetailView(
         workspaceId: workspaceId,
         workspaceTitle: workspaceTitle,
+        currentUserRole: currentUserRole,
       ),
     );
   }
@@ -41,10 +44,12 @@ class ScheduleDetailScreen extends StatelessWidget {
 class _ScheduleDetailView extends StatefulWidget {
   final String workspaceId;
   final String workspaceTitle;
+  final String currentUserRole;
 
   const _ScheduleDetailView({
     required this.workspaceId,
     required this.workspaceTitle,
+    required this.currentUserRole,
   });
 
   @override
@@ -204,14 +209,15 @@ class _ScheduleDetailViewState extends State<_ScheduleDetailView> {
                   selectedDay: _selectedDay,
                   onDaySelected: _onDaySelected,
                   eventLoader: _getEventsForDay,
-                  onPageChanged: (focusedDay) =>
-                      setState(() => _focusedDay = focusedDay),
-                  onAddEventPressed: () =>
-                      _showCreateEventDialog(context, _selectedDay!),
+                  onPageChanged: (focusedDay) => setState(() => _focusedDay = focusedDay),
+                  onAddEventPressed: () => _showCreateEventDialog(context, _selectedDay!),
+                  currentUserRole: widget.currentUserRole,
                 ),
+                // PERBAIKAN DI SINI: Teruskan widget.currentUserRole
                 _ScheduleSheet(
-                  selectedEvents: _selectedEvents,
+                  selectedEvents: _selectedEvents, 
                   onEventTap: (event) => _showEditEventDialog(context, event),
+                  currentUserRole: widget.currentUserRole,
                 ),
               ],
             ),
@@ -229,6 +235,7 @@ class _TopContent extends StatelessWidget {
   final List<Event> Function(DateTime) eventLoader;
   final Function(DateTime) onPageChanged;
   final VoidCallback onAddEventPressed;
+  final String currentUserRole;
 
   const _TopContent({
     required this.focusedDay,
@@ -237,6 +244,7 @@ class _TopContent extends StatelessWidget {
     required this.eventLoader,
     required this.onPageChanged,
     required this.onAddEventPressed,
+    required this.currentUserRole,
   });
 
   // Fungsi untuk menampilkan dialog "Bagikan" dipindahkan ke sini agar rapi
@@ -312,7 +320,7 @@ class _TopContent extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: onAddEventPressed,
+              onPressed: currentUserRole == 'viewer' ? null : onAddEventPressed,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1e9cf0),
                 foregroundColor: Colors.white,
@@ -332,9 +340,13 @@ class _TopContent extends StatelessWidget {
 class _ScheduleSheet extends StatelessWidget {
   final ValueNotifier<List<Event>> selectedEvents;
   final Function(Event) onEventTap;
+  final String currentUserRole;
 
-  const _ScheduleSheet(
-      {required this.selectedEvents, required this.onEventTap});
+  const _ScheduleSheet({
+    required this.selectedEvents,
+    required this.onEventTap,
+    required this.currentUserRole,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -396,11 +408,10 @@ class _ScheduleSheet extends StatelessWidget {
                       ),
                     )
                   else
-                    // PERBAIKAN 1: Panggil _ScheduleEventCard dengan parameter yang benar
                     ...value.map((event) {
                       return _ScheduleEventCard(
                         event: event,
-                        onTap: () => onEventTap(event),
+                        onTap: currentUserRole == 'viewer' ? () {} : () => onEventTap(event),
                       );
                     }),
                 ],
@@ -853,7 +864,7 @@ class _ShareWorkspaceDialogState extends State<_ShareWorkspaceDialog> {
                             context.read<ShareWorkspaceBloc>().add(SearchUserChanged(query));
                           },
                           decoration: InputDecoration(
-                            hintText: 'Emails, atau username',
+                            hintText: 'Username...',
                             prefixIcon: const Icon(Icons.search),
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           ),
@@ -1005,7 +1016,7 @@ class _ShareWorkspaceDialogState extends State<_ShareWorkspaceDialog> {
               context.read<ShareWorkspaceBloc>().add(
                     InviteUserSubmitted(
                       workspaceId: widget.workspaceId,
-                      email: user.email,
+                      email: user.email, // Gunakan email dari hasil pencarian
                       role: _selectedRole,
                     ),
                   );

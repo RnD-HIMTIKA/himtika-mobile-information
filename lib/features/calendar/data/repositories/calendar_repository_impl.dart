@@ -139,8 +139,13 @@ class CalendarRepositoryImpl implements CalendarRepository {
   }
 
   @override
-  Future<void> acceptInvitation(String invitationId) async {
-    await remoteDatasource.acceptInvitation(invitationId);
+  Future<void> acceptInvitationById(String invitationId) async {
+    await remoteDatasource.acceptInvitationById(invitationId);
+  }
+
+  @override
+  Future<void> acceptInvitationByToken(String token) async {
+    await remoteDatasource.acceptInvitationByToken(token);
   }
 
   @override

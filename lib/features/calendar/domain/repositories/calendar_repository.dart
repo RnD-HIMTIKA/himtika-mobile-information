@@ -24,7 +24,8 @@ abstract class CalendarRepository {
     required String role,
   });
   Future<List<Invitation>> getMyInvitations();
-  Future<void> acceptInvitation(String invitationId);
+  Future<void> acceptInvitationById(String invitationId);
+  Future<void> acceptInvitationByToken(String token);
   Future<void> declineInvitation(String invitationId);
   Future<List<User>> searchUsers(String query);
   Future<String> createInvitationLink({required String workspaceId, required String role});

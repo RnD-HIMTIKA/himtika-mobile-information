@@ -6,18 +6,24 @@ abstract class InvitationEvent extends Equatable {
   List<Object> get props => [];
 }
 
-// Event untuk memuat semua undangan yang tertunda
 class LoadMyInvitations extends InvitationEvent {}
 
-// Event saat pengguna menekan tombol "Terima"
-class AcceptInvitationPressed extends InvitationEvent {
-  final String invitationId; // Pastikan namanya invitationId
-  const AcceptInvitationPressed(this.invitationId);
+// Event untuk menerima via ID (dari notifikasi)
+class AcceptInvitationByIdPressed extends InvitationEvent {
+  final String invitationId;
+  const AcceptInvitationByIdPressed(this.invitationId);
   @override
   List<Object> get props => [invitationId];
 }
 
-// Event saat pengguna menekan tombol "Tolak"
+// Event BARU untuk menerima via Token (dari deep link)
+class AcceptInvitationByTokenPressed extends InvitationEvent {
+  final String token;
+  const AcceptInvitationByTokenPressed(this.token);
+  @override
+  List<Object> get props => [token];
+}
+
 class DeclineInvitationPressed extends InvitationEvent {
   final String invitationId;
   const DeclineInvitationPressed(this.invitationId);

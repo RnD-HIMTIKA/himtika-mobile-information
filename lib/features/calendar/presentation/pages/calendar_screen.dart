@@ -308,6 +308,7 @@ class _WorkspaceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final workspace = workspaceWithMembers.workspace;
     final members = workspaceWithMembers.members;
+    final currentUserRole = workspaceWithMembers.currentUserRole;
 
     return Container(
       decoration: BoxDecoration(
@@ -331,6 +332,7 @@ class _WorkspaceCard extends StatelessWidget {
               builder: (context) => ScheduleDetailScreen(
                 workspaceId: workspace.id,
                 workspaceTitle: workspace.title,
+                currentUserRole: currentUserRole, 
               ),
             ),
           );
@@ -350,10 +352,11 @@ class _WorkspaceCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.more_vert),
-                    onPressed: () => _showOptions(context),
-                  ),
+                  if (currentUserRole == 'owner')
+                    IconButton(
+                      icon: const Icon(Icons.more_vert),
+                      onPressed: () => _showOptions(context),
+                    ),
                 ],
               ),
               const SizedBox(height: 8),

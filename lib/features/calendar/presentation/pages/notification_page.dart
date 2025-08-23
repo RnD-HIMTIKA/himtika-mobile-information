@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_svg/flutter_svg.dart'; // <-- TAMBAHKAN IMPORT INI
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:intl/intl.dart';
 import '../bloc/invitation/invitation_bloc.dart';
@@ -141,7 +141,7 @@ class _InvitationCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: () {
-                    context.read<InvitationBloc>().add(AcceptInvitationPressed(invitation.id));
+                    context.read<InvitationBloc>().add(AcceptInvitationByIdPressed(invitation.id));
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,

@@ -12,10 +12,9 @@ class InvitationHandlerPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => sl<InvitationBloc>()..add(AcceptInvitationPressed(token)),
+      create: (_) => sl<InvitationBloc>()..add(AcceptInvitationByTokenPressed(token)),
       child: BlocListener<InvitationBloc, InvitationState>(
         listener: (context, state) {
-          // Tunggu frame berikutnya untuk memastikan navigasi aman
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (state.status == InvitationStatus.actionSuccess) {
               ScaffoldMessenger.of(context).showSnackBar(

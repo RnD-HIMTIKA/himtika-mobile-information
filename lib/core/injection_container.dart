@@ -59,7 +59,8 @@ import 'package:himtika_mobile_information/features/calendar/domain/usecases/del
 import 'package:himtika_mobile_information/features/calendar/domain/usecases/invite_user_to_workspace.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/bloc/share_workspace/share_workspace_bloc.dart';
 import 'package:himtika_mobile_information/features/calendar/domain/usecases/get_my_invitations.dart';
-import 'package:himtika_mobile_information/features/calendar/domain/usecases/accept_invitation.dart';
+import 'package:himtika_mobile_information/features/calendar/domain/usecases/accept_invitation_by_id.dart';
+import 'package:himtika_mobile_information/features/calendar/domain/usecases/accept_invitation_by_token.dart';
 import 'package:himtika_mobile_information/features/calendar/domain/usecases/decline_invitation.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/bloc/invitation/invitation_bloc.dart';
 import 'package:himtika_mobile_information/features/calendar/domain/usecases/search_users.dart';
@@ -158,7 +159,8 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => DeleteWorkspace(sl()));
   sl.registerLazySingleton(() => InviteUserToWorkspace(sl()));
   sl.registerLazySingleton(() => GetMyInvitations(sl()));
-  sl.registerLazySingleton(() => AcceptInvitation(sl()));
+  sl.registerLazySingleton(() => AcceptInvitationById(sl()));
+  sl.registerLazySingleton(() => AcceptInvitationByToken(sl()));
   sl.registerLazySingleton(() => DeclineInvitation(sl()));
   sl.registerLazySingleton(() => SearchUsers(sl()));
   sl.registerLazySingleton(() => CreateInvitationLink(sl()));
@@ -184,7 +186,8 @@ Future<void> initDependencies() async {
     ));
   sl.registerFactory(() => InvitationBloc(
         getMyInvitations: sl(),
-        acceptInvitation: sl(),
+        acceptInvitationById: sl(),
+        acceptInvitationByToken: sl(),
         declineInvitation: sl(),
       ));
 }
