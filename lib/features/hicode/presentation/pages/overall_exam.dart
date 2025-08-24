@@ -182,12 +182,17 @@ class OverallExamScreen extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: ElevatedButton(
-        onPressed: () {
-          // Navigasi ke QuizScreen dengan ID khusus untuk ujian akhir
-          Navigator.of(context).push(
-            MaterialPageRoute(
-                builder: (_) => const QuizScreen(quizId: 'OVERALL_EXAM')),
-          );
+        onPressed: () async {
+          // Panggil dialog dan tunggu hasilnya
+          final bool? shouldStart = await _showStartConfirmationDialog(context);
+
+          // Jika pengguna menekan "Mulai Kerjakan" (true)
+          if (shouldStart == true && context.mounted) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                  builder: (_) => const QuizScreen(quizId: 'OVERALL_EXAM')),
+            );
+          }
         },
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -208,6 +213,83 @@ class OverallExamScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Future<bool?> _showStartConfirmationDialog(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          backgroundColor: const Color(0xFFF5F9FF), // Warna background dialog
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Siap Memulai Ujian?',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Ujian berdurasi 30 menit dengan 30 soal dari semua materi. Waktu langsung berjalan saat kamu mulai.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black54,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Tombol Mulai Kerjakan
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(true); // Ya, mulai
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    child: const Text('Mulai Kerjakan'),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Tombol Kembali
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(false); // Batal
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      backgroundColor: Colors.grey.shade200,
+                      foregroundColor: Colors.black54,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    child: const Text('Kembali'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

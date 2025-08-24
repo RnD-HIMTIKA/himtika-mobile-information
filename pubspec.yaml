@@ -134,6 +134,7 @@ flutter:
     - src/features/hicode/images/timer.png
     - src/features/hicode/images/document.png
     - src/features/hicode/images/badge.png
+    - src/features/hicode/images/peringkat.png
     - src/features/hicode/materi/html.png
     - src/features/hicode/materi/css.png
     - src/features/hicode/materi/js.png

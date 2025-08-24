@@ -237,9 +237,11 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
       // Jika kuis dengan ID tersebut ditemukan
       emit(state.copyWith(
         status: QuizStatus.success,
+        quizId: event.quizId,
         questions: questions,
         currentQuestionIndex: 0,
         selectedAnswers: {},
+        quizStartTime: DateTime.now(),
       ));
     } else {
       // Jika kuis tidak ditemukan, kirim state failure
@@ -270,6 +272,13 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
   }
 
   void _onSubmitQuiz(SubmitQuiz event, Emitter<QuizState> emit) {
+    // --- HITUNG DURASI ---
+    final endTime = DateTime.now();
+    Duration timeTaken = Duration.zero;
+    if (state.quizStartTime != null) {
+      timeTaken = endTime.difference(state.quizStartTime!);
+    }
+    
     int correctAnswers = 0;
 
     // Hitung jawaban yang benar
@@ -290,6 +299,7 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
       status: QuizStatus.submitted,
       score: correctAnswers,
       isPassed: isPassed,
+      timeTaken: timeTaken,
     ));
   }
 }
