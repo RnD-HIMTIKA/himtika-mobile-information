@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/quiz_screen.dart'; 
-import '../bloc/final_exam_detail/final_exam_detail_bloc.dart';
+import '../bloc/final_practice_detail/final_practice_detail_bloc.dart';
 
 class FinalExamDetailScreen extends StatelessWidget {
   final String materialName;
@@ -36,7 +36,7 @@ class FinalExamDetailScreen extends StatelessWidget {
                         bottomRight: Radius.circular(30),
                       ),
                       image: DecorationImage(
-                        image: AssetImage('assets/images/pattern_bg.png'), // Sesuaikan path aset Anda
+                        image: AssetImage('src/features/hicode/images/pattern_card.png'), 
                         fit: BoxFit.cover,
                         opacity: 1.0,
                       ),
@@ -51,19 +51,26 @@ class FinalExamDetailScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              const SizedBox(height: 16),
                               Text(
                                 state.title!,
                                 style: const TextStyle(
                                     color: Colors.white,
-                                    fontSize: 28,
+                                    fontSize: 32,
                                     fontWeight: FontWeight.bold),
                               ),
-                              const SizedBox(height: 8),
-                              Text(
-                                state.description!,
-                                style: const TextStyle(
-                                    color: Colors.white, fontSize: 14, height: 1.5),
+                              const SizedBox(height: 16),
+                              SizedBox(
+                                // 1. Batasi lebar SizedBox, misal 85% dari lebar layar
+                                width: MediaQuery.of(context).size.width * 0.85, 
+                                child: Text(
+                                  state.description!,
+                                  // Properti Text tidak perlu diubah
+                                  style: const TextStyle(
+                                      color: Colors.white, fontSize: 14, height: 1.5),
+                                ),
                               ),
+                              const SizedBox(height: 24), 
                             ],
                           ),
                         ),

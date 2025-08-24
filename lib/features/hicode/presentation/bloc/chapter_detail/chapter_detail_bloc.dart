@@ -2,8 +2,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 
 
-part 'material_detail_event.dart';
-part 'material_detail_state.dart';
+part 'chapter_detail_event.dart';
+part 'chapter_detail_state.dart';
 
 enum SubChapterStatus { locked, available, completed }
 

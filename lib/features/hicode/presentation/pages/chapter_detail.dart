@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:himtika_mobile_information/features/hicode/presentation/pages/final_exam_detail_screen.dart';
-import 'package:himtika_mobile_information/features/hicode/presentation/pages/sub_chapter_detail_screen.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/pages/final_practice_detail.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/pages/sub_chapter_detail.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/information_screen.dart';
-import '../bloc/detail_screen/material_detail_bloc.dart';
+import '../bloc/chapter_detail/chapter_detail_bloc.dart';
 
 class MaterialDetailScreen extends StatelessWidget {
   final String materialId;
@@ -18,84 +18,68 @@ class MaterialDetailScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F5F5),
         body: SafeArea(
+          top: false,
           child: BlocBuilder<MaterialDetailBloc, MaterialDetailState>(
             builder: (context, state) {
-              if (state.status == MaterialDetailStatus.loading || state.title == null) {
+              if (state.status == MaterialDetailStatus.loading ||
+                  state.title == null) {
                 return const Center(child: CircularProgressIndicator());
               }
 
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // === BAGIAN BIRU DENGAN SUDUT MELENGKUNG DI BAWAH ===
+                  // --- BAGIAN HEADER BIRU (YANG DIBUAT KONSISTEN) ---
                   Container(
+                    width: double.infinity,
                     decoration: const BoxDecoration(
                       color: Colors.blue,
                       borderRadius: BorderRadius.only(
                         bottomLeft: Radius.circular(30),
                         bottomRight: Radius.circular(30),
                       ),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // --- TAMBAHKAN JARAK DI SINI ---
-                          const SizedBox(height: 16), // Memberi jarak atas yang sama
-
-                          _buildTopIconBar(context),
-                          const SizedBox(height: 8),
-                          _buildHeader(
-                            title: state.title!,
-                            description: state.description!,
-                          ),
-                          const SizedBox(height: 16),
-                          _buildSearchBar(),
-                          const SizedBox(height: 24),
-                        ],
+                      image: DecorationImage(
+                        image: AssetImage('src/features/hicode/images/pattern_card.png'), // Sesuaikan path
+                        fit: BoxFit.cover,
+                        opacity: 1.0,
                       ),
                     ),
+                    // 2. Ubah struktur di dalam header
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(height: MediaQuery.of(context).padding.top),
+                        _buildTopIconBar(context),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildHeader(
+                                title: state.title!,
+                                description: state.description!,
+                              ),
+                              const SizedBox(height: 16),
+                              _buildSearchBar(),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  // === BAGIAN DAFTAR MATERI (SEKARANG MENJADI EXPANDED LISTVIEW) ===                  
+
+                  // --- BAGIAN KONTEN PUTIH (LIST) ---
                   Expanded(
-                    child: state.filteredSubChapters.isEmpty && state.searchQuery.isNotEmpty
-                        ? SingleChildScrollView( // 1. Bungkus dengan SingleChildScrollView
-                            physics: const BouncingScrollPhysics(),
-                            child: Padding(
-                              // 2. Beri padding atas agar posisi widget-nya bagus
-                              padding: const EdgeInsets.only(top: 64.0, left: 16, right: 16),
-                              child: _buildNotFoundWidget(),
-                            ),
-                          )
+                    child: state.filteredSubChapters.isEmpty &&
+                            state.searchQuery.isNotEmpty
+                        ? _buildNotFoundWidget()
                         : ListView.separated(
                             padding: const EdgeInsets.all(16),
                             itemCount: state.filteredSubChapters.length + 1,
                             itemBuilder: (context, index) {
                               if (index < state.filteredSubChapters.length) {
-                                // --- LOGIKA UNTUK SUB-BAB BIASA ---
-                                final subChapter = state.filteredSubChapters[index];
-                                final status = subChapter['status'] as SubChapterStatus;
-                                
-                                return InkWell(
-                                  onTap: () {
-                                    if (status == SubChapterStatus.locked) return;
-                                    Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                        builder: (_) => SubChapterDetailScreen(subChapterId: subChapter['title']!),
-                                      ),
-                                    );
-                                  },
-                                  borderRadius: BorderRadius.circular(15),
-                                  child: _SubChapterCard(
-                                    iconPath: state.materialIconPath!,
-                                    title: subChapter['title']!,
-                                    details: subChapter['details']!,
-                                    status: status,
-                                  ),
-                                );
+                                return _buildSubChapterItem(context, state, state.filteredSubChapters[index]);
                               } else {
-                                // --- LOGIKA UNTUK LATIHAN SOAL FINAL ---
                                 return state.searchQuery.isEmpty
                                     ? _buildFinalExamItem(context, state)
                                     : const SizedBox.shrink();
@@ -115,7 +99,71 @@ class MaterialDetailScreen extends StatelessWidget {
   }
 
   // --- WIDGET-WIDGET PEMBANTU ---
-  
+  // 3. Pastikan _buildTopIconBar menggunakan padding internal yang konsisten
+  Widget _buildTopIconBar(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: Image.asset('src/features/hicode/materi/kembali.png', // Sesuaikan path
+                width: 32, height: 32, color: Colors.white),
+          ),
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(builder: (_) => const InformationScreen()),
+              );
+            },
+            icon: Image.asset('src/features/hicode/materi/informasi.png', // Sesuaikan path
+                width: 28, height: 28, color: Colors.white),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 4. Sederhanakan _buildHeader agar tidak punya padding sendiri
+  Widget _buildHeader({required String title, required String description}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title,
+            style: const TextStyle(
+                color: Colors.white,
+                fontSize: 32,
+                fontWeight: FontWeight.bold)),
+        const SizedBox(height: 8),
+        Text(description,
+            style: const TextStyle(
+                color: Colors.white, fontSize: 14, height: 1.5)),
+      ],
+    );
+  }
+
+   Widget _buildSubChapterItem(BuildContext context, MaterialDetailState state, Map<String, dynamic> subChapter) {
+    final status = subChapter['status'] as SubChapterStatus;
+    return InkWell(
+      onTap: () {
+        if (status == SubChapterStatus.locked) return;
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => SubChapterDetailScreen(subChapterId: subChapter['title']!),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(15),
+      child: _SubChapterCard(
+        iconPath: state.materialIconPath!,
+        title: subChapter['title']!,
+        details: subChapter['details']!,
+        status: status,
+      ),
+    );
+  }
+
   // Widget untuk card ujian final
   Widget _buildFinalExamItem(BuildContext context, MaterialDetailState state) {
     // Pengecekan null untuk keamanan
@@ -180,59 +228,7 @@ class MaterialDetailScreen extends StatelessWidget {
       ),
     );
   }
-
-  Widget _buildTopIconBar(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        IconButton(
-          onPressed: () {
-            Navigator.pop(context);
-          },
-          icon: Image.asset(
-            'src/features/hicode/materi/kembali.png',
-            width: 32, // Atur lebar gambar
-            height: 32, // Atur tinggi gambar
-          ),
-        ),
-        
-        // --- UBAH BAGIAN INI JUGA ---
-        IconButton(
-          onPressed: () {
-            Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const InformationScreen()),
-            );
-          },
-          icon: Image.asset(
-            'src/features/hicode/materi/informasi.png',
-            width: 28,
-            height: 28,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildHeader({required String title, required String description}) {
-    // Hapus Container dan color dari sini
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(title,
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          Text(description,
-              style: const TextStyle(color: Colors.white, fontSize: 14)),
-        ],
-      ),
-    );
-  }
-
+  
   Widget _buildSearchBar() {
     // Gunakan BlocBuilder agar bisa mengakses BLoC
     return BlocBuilder<MaterialDetailBloc, MaterialDetailState>(

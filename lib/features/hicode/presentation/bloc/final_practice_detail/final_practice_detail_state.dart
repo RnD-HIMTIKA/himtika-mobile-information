@@ -1,4 +1,4 @@
-part of 'final_exam_detail_bloc.dart';
+part of 'final_practice_detail_bloc.dart';
 
 enum FinalExamDetailStatus { initial, loading, success, failure }
 

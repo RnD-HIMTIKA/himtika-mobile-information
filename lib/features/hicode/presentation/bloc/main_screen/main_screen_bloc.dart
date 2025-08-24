@@ -1,8 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 
-part 'hicode_event.dart';
-part 'hicode_state.dart';
+part 'main_screen_event.dart';
+part 'main_screen_state.dart';
 
 class HicodeBloc extends Bloc<HicodeEvent, HicodeState> {
   HicodeBloc() : super(const HicodeState()) {

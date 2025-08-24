@@ -1,8 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 
-part 'final_exam_detail_event.dart';
-part 'final_exam_detail_state.dart';
+part 'final_practice_detail_event.dart';
+part 'final_practice_detail_state.dart';
 
 class FinalExamDetailBloc
     extends Bloc<FinalExamDetailEvent, FinalExamDetailState> {

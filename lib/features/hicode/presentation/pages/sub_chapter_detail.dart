@@ -95,6 +95,11 @@ class SubChapterDetailScreen extends StatelessWidget {
           bottomLeft: Radius.circular(30),
           bottomRight: Radius.circular(30),
         ),
+        image: DecorationImage(
+          image: AssetImage('src/features/hicode/images/pattern_card.png'), // Sesuaikan path
+          fit: BoxFit.cover,
+          opacity: 1.0,
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -103,13 +108,13 @@ class SubChapterDetailScreen extends StatelessWidget {
           children: [
             const SizedBox(height: 16),
             _buildTopIconBar(context),
-            const SizedBox(height: 8),
+            const SizedBox(height: 4),
             _buildHeaderContent(
               title: state.title!,
               readTime: state.readTime!,
               quizCount: state.quizCount!,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -169,7 +174,7 @@ class SubChapterDetailScreen extends StatelessWidget {
             style: const TextStyle(
                 color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           Row(
             children: [
               const Icon(Icons.access_time, color: Colors.white, size: 20),

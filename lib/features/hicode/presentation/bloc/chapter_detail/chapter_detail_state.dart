@@ -1,4 +1,4 @@
-part of 'material_detail_bloc.dart';
+part of 'chapter_detail_bloc.dart';
 
 enum MaterialDetailStatus { initial, loading, success, failure }
 
