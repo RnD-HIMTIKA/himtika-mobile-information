@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'onboarding.dart';
 import 'otp_verification.dart';
@@ -29,10 +30,14 @@ class _SplashScreenState extends State<SplashScreen>
         Tween<double>(begin: 0.0, end: 1.0).animate(_controller);
 
     _controller.forward();
-    _redirect();
+    _initializeAndRedirect();
   }
 
-  Future<void> _redirect() async {
+  Future<void> _initializeAndRedirect() async {
+    // Minta izin notifikasi terlebih dahulu
+    await _requestNotificationPermission();
+
+    // Lanjutkan ke logika redirect setelah 3 detik
     await Future.delayed(const Duration(seconds: 3));
 
     if (mounted) {
@@ -55,6 +60,25 @@ class _SplashScreenState extends State<SplashScreen>
         );
       }
       // Jika sesi ADA, listener di main.dart akan mengambil alih.
+    }
+  }
+
+  // Fungsi baru untuk meminta izin notifikasi
+  Future<void> _requestNotificationPermission() async {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    try {
+      NotificationSettings settings = await messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+        debugPrint('Izin notifikasi diberikan.');
+      } else {
+        debugPrint('Izin notifikasi ditolak.');
+      }
+    } catch (e) {
+      debugPrint('Gagal meminta izin notifikasi: $e');
     }
   }
 

@@ -97,4 +97,12 @@ class AuthRemoteDataSource {
       supabase.UserAttributes(password: newPassword),
     );
   }
+
+  Future<void> updateFcmToken(String token) async {
+    final authUser = SupabaseAuthHelper.auth.currentUser;
+    if (authUser == null) return;
+    await SupabaseTableHelper.table('users')
+        .update({'fcm_token': token})
+        .eq('auth_id', authUser.id);
+  }
 }

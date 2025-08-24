@@ -19,4 +19,5 @@ abstract class AuthRepository {
   Future<void> sendPasswordResetOtp(String email);
   Future<void> verifyPasswordResetOtp(String email, String token);
   Future<void> updateUserPassword(String newPassword);
+  Future<void> updateFcmToken(String token);
 }

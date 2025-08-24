@@ -27,6 +27,7 @@ import 'package:himtika_mobile_information/features/auth/domain/usecases/update_
 import 'package:himtika_mobile_information/features/auth/presentation/blocs/forgot_password/forgot_password_bloc.dart';
 import 'package:himtika_mobile_information/features/auth/presentation/blocs/verify_reset_otp/verify_reset_otp_bloc.dart';
 import 'package:himtika_mobile_information/features/auth/presentation/blocs/reset_password/reset_password_bloc.dart';
+import 'package:himtika_mobile_information/features/auth/domain/usecases/update_fcm_token.dart';
 
 // --- Roles Imports ---
 import 'package:himtika_mobile_information/features/roles/data/datasources/roles_remote_datasource.dart';
@@ -94,6 +95,7 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => SendPasswordResetOtp(sl<AuthRepository>(), sl<SupabaseClient>()));
   sl.registerLazySingleton(() => VerifyPasswordResetOtp(sl<AuthRepository>()));
   sl.registerLazySingleton(() => UpdateUserPassword(sl<AuthRepository>()));
+  sl.registerLazySingleton(() => UpdateFcmToken(sl<AuthRepository>()));
   // BLoCs
   sl.registerFactory(() => LoginBloc(
         signInWithEmail: sl<SignInWithEmail>(),

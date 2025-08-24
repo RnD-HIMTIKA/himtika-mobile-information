@@ -39,6 +39,14 @@ class WorkspaceBloc extends Bloc<WorkspaceEvent, WorkspaceState> {
     try {
       // PASTIKAN METODE YANG DIPANGGIL ADALAH getMyWorkspacesWithMembers()
       final workspaces = await _calendarRepository.getMyWorkspacesWithMembers();
+
+      workspaces.sort((a, b) {
+        if (a.workspace.title == 'Agenda Himtika') return -1; // 'a' (Agenda Himtika) harus di depan
+        if (b.workspace.title == 'Agenda Himtika') return 1;  // 'b' (Agenda Himtika) harus di depan
+        // Jika bukan Agenda Himtika, urutkan berdasarkan tanggal dibuat
+        return b.workspace.lastUpdated!.compareTo(a.workspace.lastUpdated!);
+      });
+      
       emit(state.copyWith(
         status: WorkspaceStatus.loaded,
         workspaces: workspaces,
