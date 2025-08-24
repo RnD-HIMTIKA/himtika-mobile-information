@@ -13,6 +13,7 @@ class CreateRecurringEvent {
     required DateTime endTime,
     required List<String> byDay, // ['MO', 'WE']
     required DateTime untilDate,
+    List<int>? reminderMinutesBefore,
   }) async {
     if (title.trim().isEmpty) {
       throw Exception('Judul event tidak boleh kosong.');
@@ -29,6 +30,7 @@ class CreateRecurringEvent {
       endTime: endTime,
       byDay: byDay,
       untilDate: untilDate,
+      reminderMinutesBefore: reminderMinutesBefore,
     );
   }
 }

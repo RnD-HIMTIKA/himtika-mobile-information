@@ -11,6 +11,7 @@ class CreateEvent {
     String? description,
     required DateTime startTime,
     required DateTime endTime,
+    List<int>? reminderMinutesBefore,
   }) async {
     if (title.trim().isEmpty) {
       throw Exception('Judul event tidak boleh kosong.');
@@ -24,6 +25,7 @@ class CreateEvent {
       description: description,
       startTime: startTime,
       endTime: endTime,
+      reminderMinutesBefore: reminderMinutesBefore,
     );
   }
 }

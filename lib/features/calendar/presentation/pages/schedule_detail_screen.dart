@@ -551,10 +551,30 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
   late TimeOfDay _startTime;
   late TimeOfDay _endTime;
   bool _isAllDay = false;
-
   bool _isRecurring = false;
   Set<String> _selectedDays = {};
   DateTime? _untilDate;
+  
+  // PERBAIKAN: Definisikan _reminderOptions di sini
+  final Map<int, String> _reminderOptions = {
+    15: '15 Menit', 30: '30 Menit', 45: '45 Menit',
+    60: '1 Jam', 1440: '1 Hari', 4320: '3 Hari',
+    10080: '7 Hari', 43200: '30 Hari'
+  };
+  Set<int> _selectedReminderMinutes = {}; 
+
+  // Fungsi untuk membuka dialog multi-pilih
+  void _showReminderDialog() async {
+    final result = await showDialog<Set<int>>(
+      context: context,
+      builder: (_) => _ReminderSelectionDialog(initialSelection: _selectedReminderMinutes),
+    );
+    if (result != null) {
+      setState(() {
+        _selectedReminderMinutes = result;
+      });
+    }
+  }
 
   bool get isEditing => widget.eventToEdit != null;
 
@@ -566,6 +586,7 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
       _descriptionController.text = widget.eventToEdit!.description ?? '';
       _startTime = TimeOfDay.fromDateTime(widget.eventToEdit!.startTime);
       _endTime = TimeOfDay.fromDateTime(widget.eventToEdit!.endTime);
+      _selectedReminderMinutes = widget.eventToEdit!.reminderMinutesBefore?.toSet() ?? {};
     } else {
       _startTime = TimeOfDay.now();
       _endTime = TimeOfDay.fromDateTime(DateTime.now().add(const Duration(hours: 1)));
@@ -756,6 +777,25 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
                 ),
               ),
             ],
+
+            // --- UI BARU UNTUK NOTIFIKASI ---
+            const SizedBox(height: 16),
+            const Text('Tambahkan Notifikasi', style: TextStyle(fontWeight: FontWeight.w500)),
+            const SizedBox(height: 8),
+            InkWell(
+              onTap: _showReminderDialog,
+              child: InputDecorator(
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: Text(
+                  _selectedReminderMinutes.isEmpty
+                      ? 'Tidak ada pengingat'
+                      : _selectedReminderMinutes.map((m) => _reminderOptions[m]).join(', '),
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -805,6 +845,8 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
                       startTime: startDateTime,
                       endTime: endDateTime,
                       createdAt: widget.eventToEdit!.createdAt,
+                      recurrenceId: widget.eventToEdit!.recurrenceId,
+                      reminderMinutesBefore: _selectedReminderMinutes.toList(),
                     );
                     context
                         .read<EventBloc>()
@@ -837,6 +879,7 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
                           endTime: endDateTime,
                           byDay: _selectedDays.toList(),
                           untilDate: _untilDate!,
+                          reminderMinutesBefore: _selectedReminderMinutes.toList(),
                         ),
                       );
                 } else {
@@ -847,6 +890,7 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
                           description: _descriptionController.text,
                           startTime: startDateTime,
                           endTime: endDateTime,
+                          reminderMinutesBefore: _selectedReminderMinutes.toList(),
                         ),
                       );
                 }
@@ -1399,6 +1443,63 @@ class _RecurrenceDialogState extends State<_RecurrenceDialog> {
             widget.onSave(_tempSelectedDays);
             Navigator.of(context).pop();
           },
+          child: const Text('Simpan'),
+        ),
+      ],
+    );
+  }
+}
+
+class _ReminderSelectionDialog extends StatefulWidget {
+  final Set<int> initialSelection;
+  const _ReminderSelectionDialog({required this.initialSelection});
+
+  @override
+  State<_ReminderSelectionDialog> createState() => _ReminderSelectionDialogState();
+}
+
+class _ReminderSelectionDialogState extends State<_ReminderSelectionDialog> {
+  late Set<int> _selectedMinutes;
+  final Map<int, String> _reminderOptions = {
+    15: '15 Menit', 30: '30 Menit', 45: '45 Menit',
+    60: '1 Jam', 1440: '1 Hari', 4320: '3 Hari',
+    10080: '7 Hari', 43200: '30 Hari'
+  };
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedMinutes = {...widget.initialSelection};
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Pilih Pengingat'),
+      content: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: _reminderOptions.entries.map((entry) {
+            return CheckboxListTile(
+              title: Text(entry.value),
+              value: _selectedMinutes.contains(entry.key),
+              onChanged: (isSelected) {
+                setState(() {
+                  if (isSelected ?? false) {
+                    _selectedMinutes.add(entry.key);
+                  } else {
+                    _selectedMinutes.remove(entry.key);
+                  }
+                });
+              },
+            );
+          }).toList(),
+        ),
+      ),
+      actions: [
+        TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('Batal')),
+        ElevatedButton(
+          onPressed: () => Navigator.of(context).pop(_selectedMinutes),
           child: const Text('Simpan'),
         ),
       ],

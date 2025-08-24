@@ -13,6 +13,7 @@ abstract class CalendarRepository {
     String? description,
     required DateTime startTime,
     required DateTime endTime,
+    List<int>? reminderMinutesBefore,
   });
   Future<void> updateEvent(Event event);
   Future<void> deleteEvent(String eventId);
@@ -42,5 +43,6 @@ abstract class CalendarRepository {
     required DateTime endTime,
     required List<String> byDay,
     required DateTime untilDate,
+    List<int>? reminderMinutesBefore,
   });
 }

@@ -72,6 +72,12 @@ class CalendarRepositoryImpl implements CalendarRepository {
   Future<List<Event>> getEvents(String workspaceId, DateTime startDate, DateTime endDate) async {
     final data = await remoteDatasource.getEvents(workspaceId, startDate, endDate);
     return data.map((json) {
+      // PERBAIKAN UTAMA ADA DI SINI
+      // Ambil list dari json
+      final remindersRaw = json['reminder_minutes_before'] as List<dynamic>?;
+      // Lakukan konversi tipe data dengan aman
+      final List<int>? reminders = remindersRaw?.map((item) => item as int).toList();
+
       return Event(
         id: json['id'],
         workspaceId: json['workspace_id'],
@@ -82,6 +88,7 @@ class CalendarRepositoryImpl implements CalendarRepository {
         endTime: DateTime.parse(json['end_time']),
         createdAt: DateTime.parse(json['created_at']),
         recurrenceId: json['recurrence_id'],
+        reminderMinutesBefore: reminders, // Gunakan list yang sudah dikonversi
       );
     }).toList();
   }
@@ -93,6 +100,7 @@ class CalendarRepositoryImpl implements CalendarRepository {
     String? description,
     required DateTime startTime,
     required DateTime endTime,
+    List<int>? reminderMinutesBefore,
   }) async {
     await remoteDatasource.createEvent(
       workspaceId: workspaceId,
@@ -100,10 +108,10 @@ class CalendarRepositoryImpl implements CalendarRepository {
       description: description,
       startTime: startTime,
       endTime: endTime,
+      reminderMinutesBefore: reminderMinutesBefore,
     );
   }
 
-  // PERBAIKAN: Tambahkan implementasi untuk createRecurringEvent
   @override
   Future<void> createRecurringEvent({
     required String workspaceId,
@@ -113,6 +121,7 @@ class CalendarRepositoryImpl implements CalendarRepository {
     required DateTime endTime,
     required List<String> byDay,
     required DateTime untilDate,
+    List<int>? reminderMinutesBefore,
   }) async {
     await remoteDatasource.createRecurringEvent(
       workspaceId: workspaceId,
@@ -122,6 +131,7 @@ class CalendarRepositoryImpl implements CalendarRepository {
       endTime: endTime,
       byDay: byDay,
       untilDate: untilDate,
+      reminderMinutesBefore: reminderMinutesBefore,
     );
   }
 

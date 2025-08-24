@@ -27,6 +27,7 @@ class CreateEventSubmitted extends EventEvent {
   final String? description;
   final DateTime startTime;
   final DateTime endTime;
+  final List<int>? reminderMinutesBefore;
 
   const CreateEventSubmitted({
     required this.workspaceId,
@@ -34,6 +35,7 @@ class CreateEventSubmitted extends EventEvent {
     this.description,
     required this.startTime,
     required this.endTime,
+    this.reminderMinutesBefore,
   });
   
   @override
@@ -49,6 +51,7 @@ class CreateRecurringEventSubmitted extends EventEvent {
   final DateTime endTime;
   final List<String> byDay;
   final DateTime untilDate;
+  final List<int>? reminderMinutesBefore;
 
   const CreateRecurringEventSubmitted({
     required this.workspaceId,
@@ -58,6 +61,7 @@ class CreateRecurringEventSubmitted extends EventEvent {
     required this.endTime,
     required this.byDay,
     required this.untilDate,
+    this.reminderMinutesBefore,
   });
 }
 

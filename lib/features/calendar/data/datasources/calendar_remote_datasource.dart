@@ -49,6 +49,7 @@ class CalendarRemoteDatasource {
     required DateTime endTime,
     required List<String> byDay,
     required DateTime untilDate,
+    List<int>? reminderMinutesBefore,
   }) async {
     final currentUser = await _getCurrentUser();
     if (currentUser == null) throw Exception('Pengguna tidak ditemukan');
@@ -63,6 +64,7 @@ class CalendarRemoteDatasource {
       'p_end_time': endTime.toIso8601String(),
       'p_by_day': byDay,
       'p_until_date': untilDate.toIso8601String(),
+      'p_reminder_minutes_before': reminderMinutesBefore,
     });
   }
 
@@ -73,6 +75,7 @@ class CalendarRemoteDatasource {
     String? description,
     required DateTime startTime,
     required DateTime endTime,
+    List<int>? reminderMinutesBefore,
   }) async {
     final currentUser = await _getCurrentUser();
     if (currentUser == null) throw Exception('Pengguna tidak ditemukan');
@@ -84,6 +87,7 @@ class CalendarRemoteDatasource {
       'description': description,
       'start_time': startTime.toIso8601String(),
       'end_time': endTime.toIso8601String(),
+      'reminder_minutes_before': reminderMinutesBefore,
     });
   }
 
@@ -96,6 +100,7 @@ class CalendarRemoteDatasource {
           'description': event.description,
           'start_time': event.startTime.toIso8601String(),
           'end_time': event.endTime.toIso8601String(),
+          'reminder_minutes_before': event.reminderMinutesBefore
         })
         .match({'id': event.id});
   }

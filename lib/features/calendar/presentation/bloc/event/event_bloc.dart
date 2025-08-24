@@ -81,6 +81,7 @@ class EventBloc extends Bloc<EventEvent, EventState> {
         description: event.description,
         startTime: event.startTime,
         endTime: event.endTime,
+        reminderMinutesBefore: event.reminderMinutesBefore,
       );
       _refreshEvents(event.workspaceId);
     } catch (e) {
@@ -104,6 +105,7 @@ class EventBloc extends Bloc<EventEvent, EventState> {
         endTime: event.endTime,
         byDay: event.byDay,
         untilDate: event.untilDate,
+        reminderMinutesBefore: event.reminderMinutesBefore,
       );
       _refreshEvents(event.workspaceId);
     } catch (e) {

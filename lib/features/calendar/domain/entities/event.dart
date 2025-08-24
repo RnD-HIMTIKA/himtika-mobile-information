@@ -10,6 +10,7 @@ class Event extends Equatable {
   final DateTime endTime;
   final DateTime createdAt;
   final String? recurrenceId;
+  final List<int>? reminderMinutesBefore;
 
   const Event({
     required this.id,
@@ -21,8 +22,9 @@ class Event extends Equatable {
     required this.endTime,
     required this.createdAt,
     this.recurrenceId,
+    this.reminderMinutesBefore,
   });
 
   @override
-  List<Object?> get props => [id, workspaceId, createdBy, title, description, startTime, endTime, createdAt, recurrenceId];
+  List<Object?> get props => [id, workspaceId, createdBy, title, description, startTime, endTime, createdAt, recurrenceId, reminderMinutesBefore];
 }
