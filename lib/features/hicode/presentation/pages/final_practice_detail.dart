@@ -191,11 +191,17 @@ class FinalExamDetailScreen extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: ElevatedButton(
-        onPressed: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-                builder: (_) => QuizScreen(quizId: 'FINAL_$materialName')),
-          );
+        onPressed: () async {
+          // Panggil dialog dan tunggu hasilnya
+          final bool? shouldStart = await _showStartConfirmationDialog(context);
+
+          // Jika pengguna menekan "Mulai Kerjakan" (true)
+          if (shouldStart == true && context.mounted) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                  builder: (_) => QuizScreen(quizId: 'FINAL_$materialName')),
+            );
+          }
         },
         // Samakan style-nya dengan halaman sub_chapter_detail_screen
         style: ElevatedButton.styleFrom(
@@ -217,6 +223,86 @@ class FinalExamDetailScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+
+  Future<bool?> _showStartConfirmationDialog(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          backgroundColor: const Color(0xFFF5F9FF),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Mulai Sekarang?',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Kamu harus menjawab minimal 6 soal dengan benar untuk lulus. Kalau tidak, kamu harus mengulang latihan ini.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.black54,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Tombol Mulai Kerjakan
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Tutup dialog dan kembalikan nilai 'true'
+                      Navigator.of(context).pop(true);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    child: const Text('Mulai Kerjakan'),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Tombol Kembali
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      // Tutup dialog dan kembalikan nilai 'false'
+                      Navigator.of(context).pop(false);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      backgroundColor: Color(0xFFE0E0E0),
+                      foregroundColor: Colors.black54,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    child: const Text('Kembali'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

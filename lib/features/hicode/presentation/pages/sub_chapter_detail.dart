@@ -73,9 +73,9 @@ class SubChapterDetailScreen extends StatelessWidget {
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text('Kerjakan Kuis'),
+                    Text('Kerjakan Kuis', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     SizedBox(width: 8),
-                    Icon(Icons.arrow_forward),
+                    Icon(Icons.arrow_forward, color: Colors.white),
                   ],
                 ),
               ),

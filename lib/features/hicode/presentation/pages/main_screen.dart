@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/bloc/main_screen/main_screen_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/chapter_detail.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/information_screen.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/pages/overall_exam.dart';
 
 class HicodeScreen extends StatelessWidget {
   const HicodeScreen({super.key});
@@ -48,7 +49,26 @@ class HicodeScreen extends StatelessWidget {
                   // --- Ujian Akhir ---
                   BlocBuilder<HicodeBloc, HicodeState>(
                     builder: (context, state) {
-                      return _buildFinalExamCard(isExamReady: state.isExamReady);
+                      // Bungkus dengan InkWell untuk membuatnya bisa diklik
+                      return InkWell(
+                        onTap: () {
+                          // Cek jika ujian sudah siap
+                          if (state.isExamReady) {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const OverallExamScreen()),
+                            );
+                          } else {
+                            // Tampilkan pesan jika belum siap
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Selesaikan semua materi terlebih dahulu untuk membuka Ujian Akhir!'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        },
+                        child: _buildFinalExamCard(isExamReady: state.isExamReady),
+                      );
                     },
                   ),
                 ],
