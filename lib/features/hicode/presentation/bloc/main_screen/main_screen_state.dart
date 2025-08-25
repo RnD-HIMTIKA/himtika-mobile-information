@@ -1,6 +1,6 @@
 // Lokasi: lib/hicode/presentation/bloc/hicode_state.dart
 
-part of 'hicode_bloc.dart';
+part of 'main_screen_bloc.dart';
 
 enum HicodeStatus { initial, loading, success, failure }
 

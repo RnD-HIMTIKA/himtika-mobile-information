@@ -1,4 +1,4 @@
-part of 'hicode_bloc.dart';
+part of 'main_screen_bloc.dart';
 
 abstract class HicodeEvent extends Equatable {
   const HicodeEvent();

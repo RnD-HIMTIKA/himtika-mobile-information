@@ -56,6 +56,7 @@ dependencies:
   firebase_core: ^4.0.0
   firebase_messaging: ^16.0.0
   app_settings: ^6.1.1
+  flutter_animate: ^4.5.0
 
 dev_dependencies:
   flutter_test:
@@ -123,15 +124,40 @@ flutter:
     - src/features/hicode/icon/cpp.png
     - src/features/hicode/icon/kembali.png
     - src/features/hicode/icon/informasi.png
+    - src/features/hicode/icon/sirine.png
     - src/features/hicode/images/html.png
     - src/features/hicode/images/css.png
     - src/features/hicode/images/js.png
     - src/features/hicode/images/cpp.png
     - src/features/hicode/images/pattern_card.png
     - src/features/hicode/images/pattern_exam.png
+    - src/features/hicode/images/pattern_score.png
     - src/features/hicode/images/leaderboard.png
     - src/features/hicode/images/dibuka.png
     - src/features/hicode/images/ditutup.png
+    - src/features/hicode/images/loading.png
+    - src/features/hicode/images/success.png
+    - src/features/hicode/images/failed.png
+    - src/features/hicode/images/timer.png
+    - src/features/hicode/images/document.png
+    - src/features/hicode/images/badge.png
+    - src/features/hicode/images/peringkat.png
+    - src/features/hicode/materi/html.png
+    - src/features/hicode/materi/css.png
+    - src/features/hicode/materi/js.png
+    - src/features/hicode/materi/cpp.png
+    - src/features/hicode/materi/terkunci.png
+    - src/features/hicode/materi/selesai.png
+    - src/features/hicode/materi/kembali.png
+    - src/features/hicode/materi/informasi.png
+    - src/features/hicode/materi/empty_box.png
+    - src/features/hicode/rank/avatar1.png
+    - src/features/hicode/rank/avatar2.png
+    - src/features/hicode/rank/avatar3.png
+    - src/features/hicode/rank/crown1.png
+    - src/features/hicode/rank/crown2.png
+    - src/features/hicode/rank/crown3.png
+    - src/features/hicode/rank/pattern_rank.png
 
 
   #   - images/a_dot_ham.jpeg

@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/pages/calendar_screen.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/pages/notification_page.dart';
-import 'package:himtika_mobile_information/features/hicode/presentation/pages/hicode_screen.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/pages/main_screen.dart';
 import 'package:himtika_mobile_information/features/home/presentation/pages/sidebar_home.dart';
 import '../bloc/home_bloc.dart';
 import '../bloc/home_event.dart';

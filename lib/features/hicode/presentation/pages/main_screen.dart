@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import 'package:himtika_mobile_information/features/hicode/presentation/bloc/hicode_bloc.dart';
-import 'package:himtika_mobile_information/features/home/presentation/pages/home.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/bloc/main_screen/main_screen_bloc.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/pages/chapter_detail.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/pages/information_screen.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/pages/leaderboard_screen.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/pages/overall_exam.dart';
 
 class HicodeScreen extends StatelessWidget {
   const HicodeScreen({super.key});
@@ -47,7 +50,26 @@ class HicodeScreen extends StatelessWidget {
                   // --- Ujian Akhir ---
                   BlocBuilder<HicodeBloc, HicodeState>(
                     builder: (context, state) {
-                      return _buildFinalExamCard(isExamReady: state.isExamReady);
+                      // Bungkus dengan InkWell untuk membuatnya bisa diklik
+                      return InkWell(
+                        onTap: () {
+                          // Cek jika ujian sudah siap
+                          if (state.isExamReady) {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(builder: (_) => const OverallExamScreen()),
+                            );
+                          } else {
+                            // Tampilkan pesan jika belum siap
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Selesaikan semua materi terlebih dahulu untuk membuka Ujian Akhir!'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        },
+                        child: _buildFinalExamCard(isExamReady: state.isExamReady),
+                      );
                     },
                   ),
                 ],
@@ -66,10 +88,7 @@ class HicodeScreen extends StatelessWidget {
       children: [
         IconButton(
           onPressed: () {
-            Navigator.pop(
-              context,
-              MaterialPageRoute(builder: (context) => const HomePage()),
-            );
+            Navigator.pop(context);
           },
           icon: Image.asset(
             'src/features/hicode/icon/kembali.png',
@@ -81,12 +100,14 @@ class HicodeScreen extends StatelessWidget {
         // --- UBAH BAGIAN INI JUGA ---
         IconButton(
           onPressed: () {
-            // Aksi ketika tombol info ditekan
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const InformationScreen()),
+            );
           },
           icon: Image.asset(
             'src/features/hicode/icon/informasi.png',
-            width: 32,
-            height: 32,
+            width: 28,
+            height: 28,
           ),
         ),
       ],
@@ -173,7 +194,6 @@ class HicodeScreen extends StatelessWidget {
   }
   
  Widget _buildFinalExamCard({required bool isExamReady}) {
-    // HAPUS: const bool isExamReady = true;
     final Color backgroundColor = isExamReady ? Colors.green : Colors.red.shade400;
     final String imagePath = isExamReady
         ? 'src/features/hicode/images/dibuka.png'
@@ -277,48 +297,67 @@ class _LeaderboardCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(15),
       ),
       // 1. Widget utama adalah Row (Ikon di kiri, konten di kanan)
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Ikon tetap di paling kiri
-          Image.asset('src/features/hicode/images/leaderboard.png', width: 90, height: 90),
-          const SizedBox(width: 16),
-
-          // 'Expanded' memastikan Column ini mengisi sisa ruang
-          Expanded(
-            // 2. Column ini sekarang berisi teks DAN tombol
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start, // Rata kiri
-              children: [
-                // Teks Judul
-                const Text("Leaderboard",
-                    style:
-                        TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-                const SizedBox(height: 4),
-
-                // Teks Paragraf
-                const Text(
-                    "Lihat kapabilitas yang sudah\nmenyelesaikan tugas akhir dan\nmeraih skor terbaik!",
-                    style: TextStyle(color: Color(0xFF1A1C1E), fontSize: 13)),
-                const SizedBox(height: 12), // Jarak dari teks ke tombol
-
-                // 3. Tombol dipindahkan ke sini
-                ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    backgroundColor: const Color(0xFF81EAFF),
-                    foregroundColor: const Color(0xFF006EBD),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10)),
-                  ),
-                  child: const Text("Lihat Selengkapnya"),
-                ),
-              ],
+      child: IntrinsicHeight(
+        child: Row(
+          // 2. Ubah crossAxisAlignment menjadi .stretch
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Gambar Aset Anda
+            Image.asset(
+              'src/features/hicode/images/leaderboard.png',
+              width: 90,
+              // 3. Hapus 'height' agar gambar bisa meregang
+              fit: BoxFit.cover, // 4. Tambahkan 'fit' agar gambar mengisi ruang
             ),
-          ),
-        ],
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween, // Agar seimbang
+                children: [
+                  // Grup Teks (Judul dan Paragraf)
+                  const Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Leaderboard",
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 18)),
+                      SizedBox(height: 4),
+                      Text(
+                          "Lihat kapabilitas yang sudah menyelesaikan tugas akhir dan meraih skor terbaik!",
+                          style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    ],
+                  ),
+                  SizedBox(height: 4),
+                  // Tombol
+                  SizedBox(
+                    height: 24,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // Navigasi ke halaman Leaderboard
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        backgroundColor: const Color(0xFF81EAFF),
+                        foregroundColor: const Color(0xFF006EBD),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10)),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text(
+                        "Lihat Selengkapnya",
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -439,7 +478,15 @@ class _MaterialCard extends StatelessWidget {
           // --- 2. TOMBOL DILETAKKAN DI BAWAH SEBAGAI ANAK DARI COLUMN ---
           const SizedBox(height: 16), // Beri jarak antara teks dan tombol
           ElevatedButton(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => MaterialDetailScreen(
+                    materialId: material['title'],
+                  ),
+                ),
+              );
+            },
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               backgroundColor: const Color(0xFF81EAFF),
