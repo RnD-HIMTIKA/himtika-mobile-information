@@ -15,18 +15,16 @@ class LeaderboardScreen extends StatelessWidget {
           top: false,
           child: Stack(
             children: [
-              // Lapisan 1: Background Pattern
               Positioned.fill(
                 child: Opacity(
-                  opacity: 1.0, // Atur transparansi sesuai selera
+                  opacity: 1.0, 
                   child: Image.asset(
                     'src/features/hicode/rank/pattern_rank.png',
-                    fit: BoxFit.contain,
+                    fit: BoxFit.contain, 
                   ),
                 ),
               ),
 
-              // Lapisan 2: Konten Utama Anda (tidak berubah)
               BlocBuilder<LeaderboardBloc, LeaderboardState>(
                 builder: (context, state) {
                   if (state.status == LeaderboardStatus.loading && state.users.isEmpty) {
@@ -310,7 +308,7 @@ class _PodiumPlace extends StatelessWidget {
             width: width,
             decoration: BoxDecoration(
               // Warna dasar podium
-              color: Colors.white.withOpacity(0.2),
+              color: const Color.fromARGB(255, 139, 197, 245).withOpacity(1.0),
               // Border atas untuk efek 3D
               border: Border(
                 top: BorderSide(
