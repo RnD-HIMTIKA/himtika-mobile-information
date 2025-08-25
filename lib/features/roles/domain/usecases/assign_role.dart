@@ -6,6 +6,6 @@ class AssignRole {
   AssignRole(this.repository);
 
   Future<void> call(String userId, String roleId) {
-    return repository.assignRole(userId, roleId);
+    return repository.assignRoleToUser(userId, roleId);
   }
 }

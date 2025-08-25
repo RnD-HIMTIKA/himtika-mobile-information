@@ -6,6 +6,6 @@ class RevokeRole {
   RevokeRole(this.repository);
 
   Future<void> call (String userId, String roleId) {
-    return repository.revokeRole(userId, roleId);
+    return repository.revokeRoleFromUser(userId, roleId);
   }
 }

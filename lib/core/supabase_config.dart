@@ -1,10 +1,21 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class SupabaseConfig {
-  static Future<void> init() async {
+  static Future<void> init({ String? url, String? anonKey }) async {
+    final supaUrl = url ?? dotenv.env['SUPABASE_URL'];
+    final supaAnonKey = anonKey ?? dotenv.env['SUPABASE_ANON_KEY'];
+
+    if (supaUrl == null || supaAnonKey == null) {
+      throw Exception(
+        'SUPABASE_URL atau SUPABASE_ANON_KEY tidak ditemukan. '
+        'Pastikan .env telah di-load dan berisi key yang benar.',
+      );
+    }
+
     await Supabase.initialize(
-      url: 'https://kezvxliamqwfvlpuckvm.supabase.co', // URL Supabase Project
-      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtlenZ4bGlhbXF3ZnZscHVja3ZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NzE2MDMsImV4cCI6MjA2NzM0NzYwM30.dhvgAXDyHvCDEfuMR3MHDPzUO5DuyT2T__dxsouXL88', // Anon Key Supabase Project
+      url: supaUrl,
+      anonKey: supaAnonKey,
     );
   }
 

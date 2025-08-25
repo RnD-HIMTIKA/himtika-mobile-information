@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "26029076554",
+    "project_id": "himfo-app-f52b3",
+    "storage_bucket": "himfo-app-f52b3.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:26029076554:android:15a07af137cb61cbfcb6b3",
+        "android_client_info": {
+          "package_name": "com.example.himtika_mobile_information"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDO21s9M79ujJaJzv4Zk4y21dliBfjGd6o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

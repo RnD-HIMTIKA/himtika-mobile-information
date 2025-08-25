@@ -11,7 +11,7 @@ class RoleModel extends Role {
     return RoleModel(
       id: json['id'] as String,
       name: json['name'] as String,
-      groupName: json['group_name'] as String, // perbaikan
+      groupName: json['group_name'] as String,
     );
   }
 

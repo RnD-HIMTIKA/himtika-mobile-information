@@ -71,9 +71,11 @@ class RolesController implements IRolesController {
   }
 
   @override
+  @override
   Future<List<Role>> getAssignableRoles(String userId) async {
     final userRoles = await getRolesByUser(userId);
-    final allRoles = await getAllRoles(userId);
+    
+    final allRoles = await getAllRoles(); 
 
     final isRnD = userRoles.any((r) => r.name.toLowerCase() == 'rnd');
     if (isRnD) return allRoles;
