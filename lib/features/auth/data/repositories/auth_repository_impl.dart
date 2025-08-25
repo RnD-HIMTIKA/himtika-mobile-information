@@ -69,4 +69,9 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> updateUserPassword(String newPassword) {
     return remote.updateUserPassword(newPassword);
   }
+
+  @override
+  Future<void> updateFcmToken(String token) {
+    return remote.updateFcmToken(token);
+  }
 }

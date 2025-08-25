@@ -5,10 +5,12 @@ import '../../../core/injection_container.dart';
 import '../../../main.dart'; // Import main.dart untuk mengakses navigatorKey
 import '../domain/usecases/check_user_profile_completeness.dart';
 import '../presentation/pages/form.dart';
+import '../domain/usecases/update_fcm_token.dart';
 
 class AuthController {
   final _supabase = Supabase.instance.client;
   final CheckUserProfileCompleteness _checkUserProfileCompleteness = sl();
+  final UpdateFcmToken _updateFcmToken = sl();
 
   Future<void> signInWithGoogle() async {
     await _supabase.auth.signInWithOAuth(OAuthProvider.google);
@@ -28,6 +30,8 @@ class AuthController {
     }
 
     try {
+      await _updateFcmToken(); 
+      
       debugPrint("[AuthController] SUCCESS: Context is available. Checking profile completeness...");
       final isProfileComplete = await _checkUserProfileCompleteness();
 

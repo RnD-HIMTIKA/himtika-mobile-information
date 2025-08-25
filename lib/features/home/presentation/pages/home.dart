@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/pages/calendar_screen.dart';
+import 'package:himtika_mobile_information/features/calendar/presentation/pages/notification_page.dart';
 import 'package:himtika_mobile_information/features/home/presentation/pages/sidebar_home.dart';
 import '../bloc/home_bloc.dart';
 import '../bloc/home_event.dart';
@@ -76,7 +77,18 @@ class HomePage extends StatelessWidget {
                                 ],
                               ),
                               IconButton(
-                                icon: const Icon(Icons.menu, color: Colors.white),
+                                icon: const Icon(Icons.notifications_outlined, color: Colors.white), // Ganti ikon
+                                onPressed: () {
+                                  // Arahkan ke halaman notifikasi
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(builder: (context) => const NotificationPage()),
+                                  );
+                                },
+                              ),
+                              IconButton(
+                                icon:
+                                    const Icon(Icons.menu, color: Colors.white),
                                 onPressed: () {
                                   Scaffold.of(context).openEndDrawer();
                                 },

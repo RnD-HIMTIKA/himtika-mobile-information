@@ -29,32 +29,31 @@ class _SplashScreenState extends State<SplashScreen>
         Tween<double>(begin: 0.0, end: 1.0).animate(_controller);
 
     _controller.forward();
-    _redirect();
+    _redirect(); // Langsung panggil redirect
   }
 
   Future<void> _redirect() async {
+    // Logika redirect Anda tetap sama, tanpa permintaan izin
     await Future.delayed(const Duration(seconds: 3));
 
     if (mounted) {
       final prefs = await SharedPreferences.getInstance();
       final verificationEmail = prefs.getString('verification_email');
 
-      // 1. Cek apakah ada proses verifikasi yang tertunda
       if (verificationEmail != null) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => OTPVerificationPage(email: verificationEmail)),
         );
-        return; // Hentikan eksekusi
+        return;
       }
 
-      // 2. Jika tidak ada, lanjutkan ke logika sesi seperti biasa
       final session = Supabase.instance.client.auth.currentSession;
       if (session == null) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const Onboarding()),
         );
       }
-      // Jika sesi ADA, listener di main.dart akan mengambil alih.
+      // Jika sesi ada, listener di main.dart akan mengambil alih.
     }
   }
 
