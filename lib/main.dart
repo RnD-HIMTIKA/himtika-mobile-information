@@ -5,14 +5,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-<<<<<<< HEAD
-import 'package:himtika_mobile_information/features/AdminPanel/presentation/pages/dashboard.dart';
-import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/adminpanel_bloc.dart';
-import 'package:himtika_mobile_information/features/AdminPanel/admin_roles/presentation/bloc/admin_roles_bloc.dart';
-=======
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:app_links/app_links.dart';
->>>>>>> Majapahit
 import 'core/supabase_config.dart';
 import 'core/injection_container.dart';
 import 'features/auth/application/auth_controller.dart';

@@ -76,6 +76,14 @@ import 'package:himtika_mobile_information/features/home/data/repositories/home_
 import 'package:himtika_mobile_information/features/home/domain/repositories/home_repository.dart';
 import 'package:himtika_mobile_information/features/home/domain/usecases/get_home_content.dart';
 
+// --- Admin Panel Imports ---
+import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_dashboard_info.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/repositories/admin_panel_repository.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/get_admin_dashboard_info.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/data/datasources/admin_panel_remote_datasource.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/data/repositories/admin_panel_repository_impl.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/adminpanel_bloc.dart';
+
 final GetIt sl = GetIt.instance;
 
 Future<void> initDependencies() async {
@@ -202,6 +210,7 @@ Future<void> initDependencies() async {
         declineInvitation: sl(),
       ));
   
+  
   // ==================== HOME FEATURE ====================
   // Datasource
   sl.registerLazySingleton<HomeRemoteDatasource>(
@@ -217,4 +226,16 @@ Future<void> initDependencies() async {
         getMyRoles: sl(),
         getHomeContent: sl(),
       ));
+
+  // ==================== ADMIN PANEL FEATURE ====================
+  // Datasource
+  sl.registerLazySingleton<AdminPanelRemoteDatasource>(
+      () => AdminPanelRemoteDatasourceImpl(client: sl()));
+  // Repository
+  sl.registerLazySingleton<AdminPanelRepository>(
+      () => AdminPanelRepositoryImpl(remoteDatasource: sl()));
+  // Usecases
+  sl.registerLazySingleton(() => GetAdminDashboardInfo(sl()));
+  // BLoCs
+  sl.registerFactory(() => AdminPanelBloc(getAdminDashboardInfo: sl()));
 }

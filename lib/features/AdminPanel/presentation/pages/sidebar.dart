@@ -1,11 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:himtika_mobile_information/features/AdminPanel/admin_roles/presentation/pages/roles_page.dart';
-import 'package:himtika_mobile_information/features/AdminPanel/admin_roles/presentation/bloc/admin_roles_bloc.dart';
-import 'package:himtika_mobile_information/features/AdminPanel/admin_roles/application/admin_roles_controller.dart';
-import 'package:himtika_mobile_information/features/AdminPanel/admin_roles/data/repositories/admin_roles_repository_impl.dart';
-import 'package:himtika_mobile_information/features/AdminPanel/admin_roles/domain/usecases/get_all_users_with_roles.dart';
+import 'roles.dart';
 import 'dashboard.dart';
 import 'hicode.dart';
 import 'kontakdosen.dart';
@@ -82,19 +76,7 @@ class Sidebar extends StatelessWidget {
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (_) {
-                            final supabase = Supabase.instance.client; // ✅ ambil SupabaseClient
-                            final repository = AdminRolesRepositoryImpl(supabase);
-                            final getAllUsers = GetAllUsersWithRoles(repository);
-                            final controller = AdminRolesController(getAllUsersWithRoles: getAllUsers);
-
-                            return BlocProvider(
-                              create: (_) => AdminRolesBloc(controller),
-                              child: const RolesPage(),
-                            );
-                          },
-                        ),
+                        MaterialPageRoute(builder: (context) => const RolesPage()),
                       );
                     },
                   ),

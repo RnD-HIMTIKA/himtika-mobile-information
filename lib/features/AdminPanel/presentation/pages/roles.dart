@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../presentation/pages/sidebar.dart';
-import '../../application/admin_roles_controller.dart';
-import '../../domain/entities/user_with_roles.dart';
-import '../bloc/admin_roles_bloc.dart';
-import '../bloc/admin_roles_event.dart';
-import '../bloc/admin_roles_state.dart';
+import '../bloc/adminpanel_bloc.dart';
+import '../bloc/adminpanel_event.dart';
+import '../bloc/adminpanel_state.dart';
+import 'sidebar.dart';
 
 class RolesPage extends StatefulWidget {
   const RolesPage({super.key});
@@ -17,15 +15,30 @@ class RolesPage extends StatefulWidget {
 class _RolesPageState extends State<RolesPage> {
   String searchQuery = '';
 
+  final List<Map<String, dynamic>> dummyRoles = List.generate(5, (index) {
+    final usernames = ['Mishiee', 'Adriane', 'Pierro', 'Panjul', 'Menrey'];
+    final roleGroups = [
+      ['Angkatan 23', 'Kelas E'],
+      ['Angkatan 24', 'Kelas F', 'Sekretaris', 'Sekpel'],
+      ['Angkatan 24', 'Kelas A'],
+      ['Angkatan 23', 'Kelas B'],
+    ];
+
+    return {
+      'username': usernames[index % usernames.length],
+      'roles': roleGroups[index % roleGroups.length],
+    };
+  });
+
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    context.read<AdminRolesBloc>().add(LoadUsersWithRoles()); // ✅ aman di sini
+  void initState() {
+    super.initState();
+    context.read<AdminPanelBloc>().add(LoadAdminPanel());
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AdminRolesBloc, AdminRolesState>(
+    return BlocBuilder<AdminPanelBloc, AdminPanelState>(
       builder: (context, state) {
         return Scaffold(
           backgroundColor: const Color(0xFF0175C8),
@@ -46,33 +59,56 @@ class _RolesPageState extends State<RolesPage> {
               child: Divider(height: 1, thickness: 1, color: Colors.white),
             ),
           ),
-          body: Padding(
+          body: SingleChildScrollView(
             padding: const EdgeInsets.all(16),
-            child: switch (state) {
-              AdminRolesLoading => const Center(child: CircularProgressIndicator()),
-              AdminRolesError() => Center(child: Text(state.message)),
-              AdminRolesLoaded() => _buildRoleSection(state.users),
-              _ => const SizedBox(),
-            },
+            child: Column(
+              children: [
+                _buildRoleSection('Hima Roles'),
+                const SizedBox(height: 24),
+                _buildRoleSection('General Roles'),
+              ],
+            ),
           ),
         );
       },
     );
   }
 
-  Widget _buildRoleSection(List<UserWithRoles> users) {
-    final filtered = users
-        .where((user) =>
-            user.username.toLowerCase().contains(searchQuery.toLowerCase()) ||
-            user.npm.toLowerCase().contains(searchQuery.toLowerCase()))
+  Widget _buildRoleSection(String title) {
+    final filtered = dummyRoles
+        .where((item) => item['username']
+            .toString()
+            .toLowerCase()
+            .contains(searchQuery.toLowerCase()))
         .toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildSearchBox(),
-        const SizedBox(height: 16),
-        _buildDataTable(filtered),
+        Padding(
+          padding: const EdgeInsets.only(left: 4, bottom: 8),
+          child: Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+            ),
+          ),
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFC8FFE0),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              _buildSearchBox(),
+              const SizedBox(height: 16),
+              _buildDataTable(filtered),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -92,7 +128,7 @@ class _RolesPageState extends State<RolesPage> {
     );
   }
 
-  Widget _buildDataTable(List<UserWithRoles> users) {
+  Widget _buildDataTable(List<Map<String, dynamic>> data) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Table(
@@ -104,9 +140,9 @@ class _RolesPageState extends State<RolesPage> {
         },
         defaultVerticalAlignment: TableCellVerticalAlignment.middle,
         children: [
-          const TableRow(
-            decoration: BoxDecoration(color: Color(0xFFBEE3F8)),
-            children: [
+          TableRow(
+            decoration: const BoxDecoration(color: Color(0xFFBEE3F8)),
+            children: const [
               Padding(
                 padding: EdgeInsets.all(12),
                 child: Text('Username', style: TextStyle(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
@@ -121,7 +157,7 @@ class _RolesPageState extends State<RolesPage> {
               ),
             ],
           ),
-          ...users.map((user) => TableRow(
+          ...data.map((item) => TableRow(
                 decoration: const BoxDecoration(color: Color(0xFFD2F8D2)),
                 children: [
                   Padding(
@@ -136,7 +172,7 @@ class _RolesPageState extends State<RolesPage> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            user.username,
+                            item['username'],
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
@@ -149,11 +185,11 @@ class _RolesPageState extends State<RolesPage> {
                       scrollDirection: Axis.horizontal,
                       child: Row(
                         children: List.generate(
-                          user.roles.length,
+                          (item['roles'] as List).length,
                           (i) => Padding(
                             padding: const EdgeInsets.only(right: 6),
                             child: Chip(
-                              label: Text(user.roles[i].name),
+                              label: Text(item['roles'][i]),
                               backgroundColor: i.isEven
                                   ? Colors.pink.shade100
                                   : Colors.green.shade100,
@@ -166,7 +202,7 @@ class _RolesPageState extends State<RolesPage> {
                   Padding(
                     padding: const EdgeInsets.all(12),
                     child: ElevatedButton.icon(
-                      onPressed: () => _showEditDialog(user),
+                      onPressed: () => _showEditUsernameDialog(item),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
@@ -182,14 +218,31 @@ class _RolesPageState extends State<RolesPage> {
     );
   }
 
-  void _showEditDialog(UserWithRoles user) {
+  void _showEditUsernameDialog(Map<String, dynamic> user) {
+    final controller = TextEditingController(text: user['username']);
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Edit Roles for ${user.username}'),
-        content: const Text('Nanti muncul dropdown + checkbox roles di sini'),
+        title: const Text('Edit Username'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(labelText: 'New Username'),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Close')),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                user['username'] = controller.text;
+              });
+              Navigator.pop(context);
+            },
+            child: const Text('Save'),
+          ),
         ],
       ),
     );
