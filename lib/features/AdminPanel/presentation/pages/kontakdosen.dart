@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart'; // <-- IMPORT
+import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/adminpanel_bloc.dart'; // <-- IMPORT
+import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/adminpanel_state.dart'; // <-- IMPORT
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/pages/sidebar.dart';
 
 class Kontakdosen extends StatefulWidget {
@@ -27,16 +30,34 @@ class _KontakdosenState extends State<Kontakdosen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: Sidebar(),
+      drawer: const Sidebar(),
       appBar: AppBar(
         backgroundColor: const Color(0xFF0175C8),
         foregroundColor: Colors.white,
         centerTitle: true,
         title: const Text('Kontak Dosen'),
-        actions: const [
-          Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: Icon(Icons.account_circle, size: 32),
+        actions: [
+          // Widget Profile Picture Dinamis
+          BlocBuilder<AdminPanelBloc, AdminPanelState>(
+            builder: (context, state) {
+              String? profileUrl;
+              if (state is AdminPanelLoaded) {
+                profileUrl = state.dashboardInfo.profilePictureUrl;
+              }
+              return Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: CircleAvatar(
+                  radius: 18,
+                  backgroundColor: Colors.white,
+                  backgroundImage:
+                      profileUrl != null ? NetworkImage(profileUrl) : null,
+                  child: profileUrl == null
+                      ? const Icon(Icons.account_circle,
+                          size: 32, color: Colors.grey)
+                      : null,
+                ),
+              );
+            },
           ),
         ],
         bottom: const PreferredSize(

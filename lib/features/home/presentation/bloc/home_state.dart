@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:himtika_mobile_information/features/roles/domain/entities/role.dart';
 import 'package:himtika_mobile_information/features/auth/domain/entities/user.dart';
 import 'package:himtika_mobile_information/features/home/domain/entities/division.dart';
 import 'package:himtika_mobile_information/features/home/domain/entities/home_banner.dart';
@@ -9,6 +10,7 @@ class HomeState extends Equatable {
   final bool isLoading;
   final List<HomeBanner> banners;
   final List<Division> divisions;
+  final List<Role> currentUserRoles;
 
   const HomeState({
     this.currentUser,
@@ -16,6 +18,7 @@ class HomeState extends Equatable {
     this.isLoading = false,
     this.banners = const [],
     this.divisions = const [],
+    this.currentUserRoles = const [],
   });
 
   HomeState copyWith({
@@ -24,6 +27,7 @@ class HomeState extends Equatable {
     bool? isLoading,
     List<HomeBanner>? banners,
     List<Division>? divisions,
+    List<Role>? currentUserRoles,
   }) {
     return HomeState(
       currentUser: currentUser ?? this.currentUser,
@@ -31,9 +35,10 @@ class HomeState extends Equatable {
       isLoading: isLoading ?? this.isLoading,
       banners: banners ?? this.banners,
       divisions: divisions ?? this.divisions,
+      currentUserRoles: currentUserRoles ?? this.currentUserRoles,
     );
   }
 
   @override
-  List<Object?> get props => [currentUser, isPengurus, isLoading, banners, divisions];
+  List<Object?> get props => [currentUser, isPengurus, isLoading, banners, divisions, currentUserRoles];
 }

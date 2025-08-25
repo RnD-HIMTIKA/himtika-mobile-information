@@ -11,7 +11,19 @@ class RoleModel extends Role {
     return RoleModel(
       id: json['id'] as String,
       name: json['name'] as String,
-      groupName: json['group_name'] as String, // perbaikan di sini
+      groupName: json['group_name'] as String,
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'group_name': groupName,
+      };
+
+  Role toEntity() => Role(
+        id: id,
+        name: name,
+        groupName: groupName,
+      );
 }
