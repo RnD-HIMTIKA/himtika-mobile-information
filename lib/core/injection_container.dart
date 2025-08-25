@@ -69,6 +69,13 @@ import 'package:himtika_mobile_information/features/calendar/domain/usecases/cre
 import 'package:himtika_mobile_information/features/calendar/domain/usecases/invite_by_role.dart';
 import 'package:himtika_mobile_information/features/calendar/domain/usecases/create_recurring_event.dart';
 
+// --- Home Imports ---
+import 'package:himtika_mobile_information/features/home/presentation/bloc/home_bloc.dart';
+import 'package:himtika_mobile_information/features/home/data/datasources/home_remote_datasource.dart';
+import 'package:himtika_mobile_information/features/home/data/repositories/home_repository_impl.dart';
+import 'package:himtika_mobile_information/features/home/domain/repositories/home_repository.dart';
+import 'package:himtika_mobile_information/features/home/domain/usecases/get_home_content.dart';
+
 final GetIt sl = GetIt.instance;
 
 Future<void> initDependencies() async {
@@ -193,5 +200,21 @@ Future<void> initDependencies() async {
         acceptInvitationById: sl(),
         acceptInvitationByToken: sl(),
         declineInvitation: sl(),
+      ));
+  
+  // ==================== HOME FEATURE ====================
+  // Datasource
+  sl.registerLazySingleton<HomeRemoteDatasource>(
+      () => HomeRemoteDatasourceImpl(client: sl()));
+  // Repository
+  sl.registerLazySingleton<HomeRepository>(
+      () => HomeRepositoryImpl(remoteDatasource: sl()));
+  // Usecases
+  sl.registerLazySingleton(() => GetHomeContent(sl()));
+  // BLoCs
+  sl.registerFactory(() => HomeBloc(
+        getCurrentUser: sl(),
+        getMyRoles: sl(),
+        getHomeContent: sl(),
       ));
 }

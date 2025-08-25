@@ -1,28 +1,39 @@
 import 'package:equatable/equatable.dart';
+import 'package:himtika_mobile_information/features/auth/domain/entities/user.dart';
+import 'package:himtika_mobile_information/features/home/domain/entities/division.dart';
+import 'package:himtika_mobile_information/features/home/domain/entities/home_banner.dart';
 
 class HomeState extends Equatable {
-  final String username;
+  final User? currentUser;
+  final bool isPengurus;
   final bool isLoading;
-  final List<String> latestItems;
+  final List<HomeBanner> banners;
+  final List<Division> divisions;
 
   const HomeState({
-    this.username = '',
+    this.currentUser,
+    this.isPengurus = false,
     this.isLoading = false,
-    this.latestItems = const [],
+    this.banners = const [],
+    this.divisions = const [],
   });
 
   HomeState copyWith({
-    String? username,
+    User? currentUser,
+    bool? isPengurus,
     bool? isLoading,
-    List<String>? latestItems,
+    List<HomeBanner>? banners,
+    List<Division>? divisions,
   }) {
     return HomeState(
-      username: username ?? this.username,
+      currentUser: currentUser ?? this.currentUser,
+      isPengurus: isPengurus ?? this.isPengurus,
       isLoading: isLoading ?? this.isLoading,
-      latestItems: latestItems ?? this.latestItems,
+      banners: banners ?? this.banners,
+      divisions: divisions ?? this.divisions,
     );
   }
 
   @override
-  List<Object?> get props => [username, isLoading, latestItems];
+  List<Object?> get props => [currentUser, isPengurus, isLoading, banners, divisions];
 }

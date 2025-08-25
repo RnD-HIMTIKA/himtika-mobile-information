@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/pages/calendar_screen.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/pages/notification_page.dart';
 import 'package:himtika_mobile_information/features/home/presentation/pages/sidebar_home.dart';
@@ -14,13 +15,12 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    // Hitung childAspectRatio agar tinggi item proporsional
-    final double gridItemWidth = (screenWidth - 32 - (3 * 8)) / 4; // padding + spacing
-    final double gridItemHeight = 100; // tinggi target item
+    final double gridItemWidth = (screenWidth - 32 - (3 * 8)) / 4;
+    final double gridItemHeight = 100;
     final double childAspectRatio = gridItemWidth / gridItemHeight;
 
     return BlocProvider(
-      create: (_) => HomeBloc()..add(LoadHomeData()),
+      create: (_) => sl<HomeBloc>()..add(LoadHomeData()),
       child: Scaffold(
         endDrawer: const SidebarHome(),
         body: SafeArea(
@@ -47,7 +47,8 @@ class HomePage extends StatelessWidget {
                       children: [
                         // Header
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 20),
                           decoration: const BoxDecoration(
                             color: Colors.blue,
                             borderRadius: BorderRadius.only(
@@ -64,10 +65,11 @@ class HomePage extends StatelessWidget {
                                 children: [
                                   const Text(
                                     "Selamat Datang,",
-                                    style: TextStyle(color: Colors.white, fontSize: 14),
+                                    style: TextStyle(
+                                        color: Colors.white, fontSize: 14),
                                   ),
                                   Text(
-                                    state.username,
+                                    state.currentUser?.fullName ?? 'Pengguna',
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontSize: 18,
@@ -76,22 +78,28 @@ class HomePage extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              IconButton(
-                                icon: const Icon(Icons.notifications_outlined, color: Colors.white), // Ganti ikon
-                                onPressed: () {
-                                  // Arahkan ke halaman notifikasi
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(builder: (context) => const NotificationPage()),
-                                  );
-                                },
-                              ),
-                              IconButton(
-                                icon:
-                                    const Icon(Icons.menu, color: Colors.white),
-                                onPressed: () {
-                                  Scaffold.of(context).openEndDrawer();
-                                },
+                              Row(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+                                    onPressed: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => const NotificationPage()),
+                                      );
+                                    },
+                                  ),
+                                  Builder(
+                                    builder: (context) {
+                                      return IconButton(
+                                        icon: const Icon(Icons.menu, color: Colors.white),
+                                        onPressed: () {
+                                          Scaffold.of(context).openEndDrawer();
+                                        },
+                                      );
+                                    }
+                                  ),
+                                ],
                               ),
                             ],
                           ),
@@ -100,31 +108,45 @@ class HomePage extends StatelessWidget {
                         const SizedBox(height: 48),
 
                         // Terbaru
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16),
-                          child: Text(
-                            "Terbaru",
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        SizedBox(
-                          height: 100,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: 3,
-                            itemBuilder: (_, index) => Container(
-                              width: 200,
-                              margin: const EdgeInsets.only(left: 16),
-                              decoration: BoxDecoration(
-                                color: Colors.blue[200],
-                                borderRadius: BorderRadius.circular(12),
+                        if (state.banners.isNotEmpty)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 16),
+                                child: Text(
+                                  "Terbaru",
+                                  style: TextStyle(
+                                      fontSize: 16, fontWeight: FontWeight.bold),
+                                ),
                               ),
-                            ),
+                              const SizedBox(height: 8),
+                              SizedBox(
+                                height: 100,
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: state.banners.length,
+                                  itemBuilder: (_, index) {
+                                    final banner = state.banners[index];
+                                    return Container(
+                                      width: 200,
+                                      margin: EdgeInsets.only(
+                                          left: index == 0 ? 16 : 8,
+                                          right: index == state.banners.length - 1 ? 16 : 0),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(12),
+                                        image: DecorationImage(
+                                          image: NetworkImage(banner.imageUrl),
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                            ],
                           ),
-                        ),
-
-                        const SizedBox(height: 24),
 
                         // Menu Grid
                         Padding(
@@ -148,54 +170,55 @@ class HomePage extends StatelessWidget {
                                   _menuItem(
                                     "src/features/home/icons/himtika.png",
                                     "HIMTIKA",
-                                    [Color(0xFF32B7FF), Color(0xFF32B7FF)],
+                                    [const Color(0xFF32B7FF), const Color(0xFF32B7FF)],
                                     () {},
                                   ),
                                   _menuItem(
                                     "src/features/home/icons/hicode.svg",
                                     "HiCode",
-                                    [Color(0xFF333C66), Color(0xFF2D365E)],
+                                    [const Color(0xFF333C66), const Color(0xFF2D365E)],
                                     () {},
                                   ),
                                   _menuItem(
                                     "src/features/home/icons/hiconnect.svg",
                                     "HiConnect",
-                                    [Color(0xFFFFC107), Color(0xFFFFC107)],
+                                    [const Color(0xFFFFC107), const Color(0xFFFFC107)],
                                     () {},
                                   ),
                                   _menuItem(
                                     "src/features/home/icons/hiagenda.svg",
                                     "HiAgenda",
-                                    [Color(0xFFDBF6BF), Color(0xFFDBF6BF)],
+                                    [const Color(0xFFDBF6BF), const Color(0xFFDBF6BF)],
                                     () {
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (_) => const CalendarScreen()),
+                                        MaterialPageRoute(
+                                            builder: (_) => const CalendarScreen()),
                                       );
                                     },
                                   ),
                                   _menuItem(
                                     "src/features/home/icons/hispace.svg",
                                     "HiSpace",
-                                    [Color(0xFF402DAE), Color(0xFFBD63D1)],
+                                    [const Color(0xFF402DAE), const Color(0xFFBD63D1)],
                                     () {},
                                   ),
                                   _menuItem(
                                     "src/features/home/icons/kontak.svg",
                                     "Kontak Dosen",
-                                    [Color(0xFFF4BF75), Color(0xFFF4BF75)],
+                                    [const Color(0xFFF4BF75), const Color(0xFFF4BF75)],
                                     () {},
                                   ),
                                   _menuItem(
                                     "src/features/home/icons/event.svg",
                                     "Event",
-                                    [Color(0xFF4CAF50), Color(0xFF4CAF50)],
+                                    [const Color(0xFF4CAF50), const Color(0xFF4CAF50)],
                                     () {},
                                   ),
                                   _menuItem(
                                     "src/features/home/icons/more.svg",
                                     "More",
-                                    [Color(0xFFF7F7F7), Color(0xFFF7F7F7)],
+                                    [const Color(0xFFF7F7F7), const Color(0xFFF7F7F7)],
                                     () {},
                                   ),
                                 ],
@@ -207,29 +230,45 @@ class HomePage extends StatelessWidget {
                         const SizedBox(height: 24),
 
                         // Divisi
-                        const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 16),
-                          child: Text(
-                            "Divisi",
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        SizedBox(
-                          height: 100,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: 3,
-                            itemBuilder: (_, index) => Container(
-                              width: 200,
-                              margin: const EdgeInsets.only(left: 16),
-                              decoration: BoxDecoration(
-                                color: Colors.blue[100],
-                                borderRadius: BorderRadius.circular(12),
+                        if (state.divisions.isNotEmpty)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 16),
+                                child: Text(
+                                  "Divisi",
+                                  style: TextStyle(
+                                      fontSize: 16, fontWeight: FontWeight.bold),
+                                ),
                               ),
-                            ),
+                              const SizedBox(height: 8),
+                              SizedBox(
+                                height: 100,
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: state.divisions.length,
+                                  itemBuilder: (_, index) {
+                                    final division = state.divisions[index];
+                                    return Container(
+                                      width: 200,
+                                      margin: EdgeInsets.only(
+                                          left: index == 0 ? 16 : 8,
+                                          right: index == state.divisions.length - 1 ? 16 : 0),
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(12),
+                                        image: DecorationImage(
+                                          image: NetworkImage(division.logoUrl),
+                                          fit: BoxFit.contain, // Contain agar logo tidak terpotong
+                                        ),
+                                        color: Colors.blue[100],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
                       ],
                     ),
                   ),
