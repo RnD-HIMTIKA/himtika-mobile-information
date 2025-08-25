@@ -1,5 +1,3 @@
-// lib/features/AdminPanel/presentation/pages/dashboard.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/adminpanel_bloc.dart';
@@ -18,30 +16,51 @@ class _DashboardState extends State<Dashboard> {
   @override
   void initState() {
     super.initState();
-    context.read<AdminPanelBloc>().add(LoadAdminPanel());
+    // Memastikan data dimuat saat halaman pertama kali dibuka
+    if (context.read<AdminPanelBloc>().state is! AdminPanelLoaded) {
+      context.read<AdminPanelBloc>().add(LoadAdminPanel());
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<AdminPanelBloc, AdminPanelState>(
-      builder: (context, state) {
-        return Scaffold(
-          drawer: const Sidebar(),
-          appBar: AppBar(
-            backgroundColor: const Color(0xFF0175C8),
-            foregroundColor: Colors.white,
-            centerTitle: true,
-            title: const Text('Dashboard'),
-            actions: const [
-              Padding(
-                padding: EdgeInsets.only(right: 16),
-                child: Icon(Icons.account_circle, size: 32),
-              ),
-            ],
+    return Scaffold(
+      drawer: const Sidebar(),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF0175C8),
+        foregroundColor: Colors.white,
+        centerTitle: true,
+        title: const Text('Dashboard'),
+        actions: [
+          // Widget Profile Picture Dinamis
+          BlocBuilder<AdminPanelBloc, AdminPanelState>(
+            builder: (context, state) {
+              String? profileUrl;
+              if (state is AdminPanelLoaded) {
+                profileUrl = state.dashboardInfo.profilePictureUrl;
+              }
+              return Padding(
+                padding: const EdgeInsets.only(right: 16),
+                child: CircleAvatar(
+                  radius: 18,
+                  backgroundColor: Colors.white,
+                  backgroundImage:
+                      profileUrl != null ? NetworkImage(profileUrl) : null,
+                  child: profileUrl == null
+                      ? const Icon(Icons.account_circle,
+                          size: 32, color: Colors.grey)
+                      : null,
+                ),
+              );
+            },
           ),
-          body: _buildBody(state),
-        );
-      },
+        ],
+      ),
+      body: BlocBuilder<AdminPanelBloc, AdminPanelState>(
+        builder: (context, state) {
+          return _buildBody(state);
+        },
+      ),
     );
   }
 

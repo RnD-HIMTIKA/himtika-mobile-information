@@ -78,11 +78,20 @@ import 'package:himtika_mobile_information/features/home/domain/usecases/get_hom
 
 // --- Admin Panel Imports ---
 import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_dashboard_info.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_user.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/repositories/admin_panel_repository.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/repositories/roles_management_repository.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/get_admin_dashboard_info.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/get_assignable_roles.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/search_admin_users.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/update_user_roles.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/get_all_roles_grouped.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/data/datasources/admin_panel_remote_datasource.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/data/datasources/roles_management_remote_datasource.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/data/repositories/admin_panel_repository_impl.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/data/repositories/roles_management_repository_impl.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/adminpanel_bloc.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/roles_management/roles_management_bloc.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -210,7 +219,7 @@ Future<void> initDependencies() async {
         declineInvitation: sl(),
       ));
   
-  
+
   // ==================== HOME FEATURE ====================
   // Datasource
   sl.registerLazySingleton<HomeRemoteDatasource>(
@@ -231,11 +240,28 @@ Future<void> initDependencies() async {
   // Datasource
   sl.registerLazySingleton<AdminPanelRemoteDatasource>(
       () => AdminPanelRemoteDatasourceImpl(client: sl()));
+  sl.registerLazySingleton<RolesManagementRemoteDatasource>( // <-- BARU
+      () => RolesManagementRemoteDatasourceImpl(client: sl()));
   // Repository
   sl.registerLazySingleton<AdminPanelRepository>(
       () => AdminPanelRepositoryImpl(remoteDatasource: sl()));
+  sl.registerLazySingleton<RolesManagementRepository>( // <-- BARU
+      () => RolesManagementRepositoryImpl(remoteDatasource: sl()));
   // Usecases
   sl.registerLazySingleton(() => GetAdminDashboardInfo(sl()));
+  sl.registerLazySingleton(() => SearchAdminUsers(sl())); // <-- BARU
+  sl.registerLazySingleton(() => GetAssignableRoles(sl())); // <-- BARU
+  sl.registerLazySingleton(() => UpdateUserRoles(sl())); // <-- BARU
+  sl.registerLazySingleton(() => GetAllRolesGrouped(sl()));
   // BLoCs
-  sl.registerFactory(() => AdminPanelBloc(getAdminDashboardInfo: sl()));
+  sl.registerFactory(() => AdminPanelBloc(
+        getAdminDashboardInfo: sl(),
+        getMyRoles: sl(), // <-- TAMBAHKAN INI
+      ));
+  sl.registerFactory(() => RolesManagementBloc( // <-- BARU
+        searchAdminUsers: sl(),
+        getAssignableRoles: sl(),
+        updateUserRoles: sl(),
+        getAllRolesGrouped: sl(),
+      ));
 }

@@ -37,6 +37,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         isPengurus: isPengurus,
         banners: banners,
         divisions: divisions,
+        currentUserRoles: roles,
       ));
     } catch (e) {
       emit(state.copyWith(isLoading: false));

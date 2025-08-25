@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_dashboard_info.dart';
+import 'package:himtika_mobile_information/features/roles/domain/entities/role.dart';
 
 abstract class AdminPanelState extends Equatable {
   const AdminPanelState();
@@ -14,11 +15,15 @@ class AdminPanelLoading extends AdminPanelState {}
 
 class AdminPanelLoaded extends AdminPanelState {
   final AdminDashboardInfo dashboardInfo;
+  final List<Role> currentUserRoles; // <-- TAMBAHKAN INI
 
-  const AdminPanelLoaded({required this.dashboardInfo});
+  const AdminPanelLoaded({
+    required this.dashboardInfo,
+    required this.currentUserRoles, // <-- TAMBAHKAN INI
+  });
 
   @override
-  List<Object?> get props => [dashboardInfo];
+  List<Object?> get props => [dashboardInfo, currentUserRoles];
 }
 
 class AdminPanelFailure extends AdminPanelState {
@@ -26,6 +31,6 @@ class AdminPanelFailure extends AdminPanelState {
 
   const AdminPanelFailure({required this.message});
 
-    @override
+  @override
   List<Object?> get props => [message];
 }
