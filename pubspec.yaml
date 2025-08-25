@@ -125,6 +125,7 @@ flutter:
     - src/features/hicode/images/cpp.png
     - src/features/hicode/images/pattern_card.png
     - src/features/hicode/images/pattern_exam.png
+    - src/features/hicode/images/pattern_score.png
     - src/features/hicode/images/leaderboard.png
     - src/features/hicode/images/dibuka.png
     - src/features/hicode/images/ditutup.png
@@ -144,6 +145,13 @@ flutter:
     - src/features/hicode/materi/kembali.png
     - src/features/hicode/materi/informasi.png
     - src/features/hicode/materi/empty_box.png
+    - src/features/hicode/rank/avatar1.png
+    - src/features/hicode/rank/avatar2.png
+    - src/features/hicode/rank/avatar3.png
+    - src/features/hicode/rank/crown1.png
+    - src/features/hicode/rank/crown2.png
+    - src/features/hicode/rank/crown3.png
+    - src/features/hicode/rank/pattern_rank.png
 
 
   #   - images/a_dot_ham.jpeg

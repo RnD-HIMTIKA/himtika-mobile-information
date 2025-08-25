@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/pages/leaderboard_screen.dart';
 import 'dart:async';
 
 class ScoreScreen extends StatefulWidget {
@@ -127,13 +128,13 @@ class _ScoreScreenState extends State<ScoreScreen> {
   Widget _buildScoreHeader(BuildContext context, int finalScore) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.only(bottom: 60), // Hanya padding bawah
+      padding: const EdgeInsets.only(bottom: 60),
       decoration: const BoxDecoration(
         color: Colors.blue,
         image: DecorationImage(
-          image: AssetImage("assets/images/pattern_bg.png"), // Sesuaikan path
-          fit: BoxFit.cover,
-          opacity: 0.1,
+          image: AssetImage("src/features/hicode/images/pattern_score.png"),
+          fit: BoxFit.contain,
+          opacity: 2.0,
         ),
       ),
       child: Column(
@@ -155,7 +156,12 @@ class _ScoreScreenState extends State<ScoreScreen> {
                   ),
                 ),
                 IconButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    // Navigasi ke halaman Leaderboard
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+                    );
+                  },
                   icon: Image.asset(
                     'src/features/hicode/images/peringkat.png',
                     width: 28,

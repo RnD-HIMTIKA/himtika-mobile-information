@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/bloc/main_screen/main_screen_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/chapter_detail.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/information_screen.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/pages/leaderboard_screen.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/overall_exam.dart';
 
 class HicodeScreen extends StatelessWidget {
@@ -332,7 +333,12 @@ class _LeaderboardCard extends StatelessWidget {
                   SizedBox(
                     height: 24,
                     child: ElevatedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        // Navigasi ke halaman Leaderboard
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         backgroundColor: const Color(0xFF81EAFF),

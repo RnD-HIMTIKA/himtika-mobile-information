@@ -779,7 +779,6 @@ class __FinalExamViewState extends State<_FinalExamView> {
 
   @override
   Widget build(BuildContext context) {
-    // Gunakan 'widget.state' untuk mengakses state dari StatefulWidget
     final currentQuestion = widget.state.questions[widget.state.currentQuestionIndex];
     final options = currentQuestion['options'] as Map<String, String>;
 
@@ -828,7 +827,6 @@ class __FinalExamViewState extends State<_FinalExamView> {
   }
 
   // --- WIDGET-WIDGET PEMBANTU UNTUK UJIAN AKHIR ---
-
   Widget _buildFinalExamTopBar(BuildContext context, QuizState state) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
