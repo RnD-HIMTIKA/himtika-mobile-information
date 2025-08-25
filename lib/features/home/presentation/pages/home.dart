@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/pages/calendar_screen.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/pages/notification_page.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/pages/hicode_screen.dart';
 import 'package:himtika_mobile_information/features/home/presentation/pages/sidebar_home.dart';
 import '../bloc/home_bloc.dart';
 import '../bloc/home_event.dart';
@@ -176,8 +177,13 @@ class HomePage extends StatelessWidget {
                                   _menuItem(
                                     "src/features/home/icons/hicode.svg",
                                     "HiCode",
-                                    [const Color(0xFF333C66), const Color(0xFF2D365E)],
-                                    () {},
+                                    [Color(0xFF333C66), Color(0xFF2D365E)],
+                                    () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (_) => const HicodeScreen()),
+                                      );
+                                    },
                                   ),
                                   _menuItem(
                                     "src/features/home/icons/hiconnect.svg",
@@ -205,8 +211,8 @@ class HomePage extends StatelessWidget {
                                   ),
                                   _menuItem(
                                     "src/features/home/icons/kontak.svg",
-                                    "Kontak Dosen",
-                                    [const Color(0xFFF4BF75), const Color(0xFFF4BF75)],
+                                    "HiLecturer",
+                                    [Color(0xFFF4BF75), Color(0xFFF4BF75)],
                                     () {},
                                   ),
                                   _menuItem(
