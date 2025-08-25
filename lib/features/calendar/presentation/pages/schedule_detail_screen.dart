@@ -451,9 +451,10 @@ class _ScheduleEventCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // PERBAIKAN 2: Ambil data dari objek 'event'
-    final startTime = DateFormat.Hm().format(event.startTime);
-    final endTime = DateFormat.Hm().format(event.endTime);
+    // PERBAIKAN DI SINI: Konversi ke waktu lokal sebelum diformat
+    final startTime = DateFormat.Hm().format(event.startTime.toLocal());
+    final endTime = DateFormat.Hm().format(event.endTime.toLocal());
+    
     final time = '$startTime\n$endTime';
     final title = event.title;
     final detail = event.description ?? '';
@@ -482,7 +483,7 @@ class _ScheduleEventCard extends StatelessWidget {
               SizedBox(
                 width: 60,
                 child: Text(
-                  time, // Gunakan variabel yang sudah didefinisikan
+                  time,
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
@@ -502,7 +503,7 @@ class _ScheduleEventCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      title, // Gunakan variabel yang sudah didefinisikan
+                      title,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -510,7 +511,7 @@ class _ScheduleEventCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      detail, // Gunakan variabel yang sudah didefinisikan
+                      detail,
                       style: TextStyle(
                         color: Colors.grey.shade600,
                         fontSize: 12,
@@ -584,8 +585,9 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
     if (isEditing) {
       _titleController.text = widget.eventToEdit!.title;
       _descriptionController.text = widget.eventToEdit!.description ?? '';
-      _startTime = TimeOfDay.fromDateTime(widget.eventToEdit!.startTime);
-      _endTime = TimeOfDay.fromDateTime(widget.eventToEdit!.endTime);
+      // PERBAIKAN DI SINI: Konversi ke waktu lokal sebelum diubah menjadi TimeOfDay
+      _startTime = TimeOfDay.fromDateTime(widget.eventToEdit!.startTime.toLocal());
+      _endTime = TimeOfDay.fromDateTime(widget.eventToEdit!.endTime.toLocal());
       _selectedReminderMinutes = widget.eventToEdit!.reminderMinutesBefore?.toSet() ?? {};
     } else {
       _startTime = TimeOfDay.now();
@@ -822,35 +824,35 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
               Expanded(
                 child: ElevatedButton(
                   onPressed: () {
-                    final startDateTime = DateTime(
-                        widget.selectedDate.year,
-                        widget.selectedDate.month,
-                        widget.selectedDate.day,
-                        _startTime.hour,
-                        _startTime.minute);
-                    final endDateTime = DateTime(
-                        widget.selectedDate.year,
-                        widget.selectedDate.month,
-                        widget.selectedDate.day,
-                        _endTime.hour,
-                        _endTime.minute);
+                    final localStartDateTime = DateTime(
+                      widget.selectedDate.year,
+                      widget.selectedDate.month,
+                      widget.selectedDate.day,
+                      _startTime.hour,
+                      _startTime.minute
+                    );
+                    final localEndDateTime = DateTime(
+                      widget.selectedDate.year,
+                      widget.selectedDate.month,
+                      widget.selectedDate.day,
+                      _endTime.hour,
+                      _endTime.minute
+                    );
 
                     final updatedEvent = Event(
                       id: widget.eventToEdit!.id,
                       workspaceId: widget.eventToEdit!.workspaceId,
-                      createdBy: widget.eventToEdit!.createdAt
-                          .toString(), // createdBy tidak berubah
+                      createdBy: widget.eventToEdit!.createdBy,
                       title: _titleController.text,
                       description: _descriptionController.text,
-                      startTime: startDateTime,
-                      endTime: endDateTime,
+                      // 2. Konversi ke UTC HANYA saat akan dikirim
+                      startTime: localStartDateTime.toUtc(),
+                      endTime: localEndDateTime.toUtc(),
                       createdAt: widget.eventToEdit!.createdAt,
                       recurrenceId: widget.eventToEdit!.recurrenceId,
                       reminderMinutesBefore: _selectedReminderMinutes.toList(),
                     );
-                    context
-                        .read<EventBloc>()
-                        .add(UpdateEventSubmitted(updatedEvent));
+                    context.read<EventBloc>().add(UpdateEventSubmitted(updatedEvent));
                     Navigator.of(context).pop();
                   },
                   style: ElevatedButton.styleFrom(
@@ -866,8 +868,13 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
-                final startDateTime = _isAllDay ? DateTime(widget.selectedDate.year, widget.selectedDate.month, widget.selectedDate.day) : DateTime(widget.selectedDate.year, widget.selectedDate.month, widget.selectedDate.day, _startTime.hour, _startTime.minute);
-                final endDateTime = _isAllDay ? DateTime(widget.selectedDate.year, widget.selectedDate.month, widget.selectedDate.day, 23, 59) : DateTime(widget.selectedDate.year, widget.selectedDate.month, widget.selectedDate.day, _endTime.hour, _endTime.minute);
+                final localStartDateTime = _isAllDay 
+                    ? DateTime(widget.selectedDate.year, widget.selectedDate.month, widget.selectedDate.day) 
+                    : DateTime(widget.selectedDate.year, widget.selectedDate.month, widget.selectedDate.day, _startTime.hour, _startTime.minute);
+                
+                final localEndDateTime = _isAllDay 
+                    ? DateTime(widget.selectedDate.year, widget.selectedDate.month, widget.selectedDate.day, 23, 59) 
+                    : DateTime(widget.selectedDate.year, widget.selectedDate.month, widget.selectedDate.day, _endTime.hour, _endTime.minute);
                 
                 if (_isRecurring) {
                   context.read<EventBloc>().add(
@@ -875,8 +882,9 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
                           workspaceId: widget.workspaceId,
                           title: _titleController.text,
                           description: _descriptionController.text,
-                          startTime: startDateTime,
-                          endTime: endDateTime,
+                          // 2. Konversi ke UTC HANYA saat akan dikirim
+                          startTime: localStartDateTime.toUtc(),
+                          endTime: localEndDateTime.toUtc(),
                           byDay: _selectedDays.toList(),
                           untilDate: _untilDate!,
                           reminderMinutesBefore: _selectedReminderMinutes.toList(),
@@ -888,8 +896,9 @@ class _ModifyEventDialogState extends State<_ModifyEventDialog> {
                           workspaceId: widget.workspaceId,
                           title: _titleController.text,
                           description: _descriptionController.text,
-                          startTime: startDateTime,
-                          endTime: endDateTime,
+                          // 2. Konversi ke UTC HANYA saat akan dikirim
+                          startTime: localStartDateTime.toUtc(),
+                          endTime: localEndDateTime.toUtc(),
                           reminderMinutesBefore: _selectedReminderMinutes.toList(),
                         ),
                       );
