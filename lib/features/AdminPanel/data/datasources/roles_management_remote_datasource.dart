@@ -1,7 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 abstract class RolesManagementRemoteDatasource {
-  Future<List<Map<String, dynamic>>> searchUsers(String query);
+  Future<List<Map<String, dynamic>>> searchUsers(String query, String scope);
   Future<List<Map<String, dynamic>>> getAssignableRoles();
   Future<void> updateUserRoles(String userId, List<String> roleIds);
   Future<Map<String, dynamic>> getAllRolesGrouped();
@@ -12,8 +12,11 @@ class RolesManagementRemoteDatasourceImpl implements RolesManagementRemoteDataso
   RolesManagementRemoteDatasourceImpl({required this.client});
 
   @override
-  Future<List<Map<String, dynamic>>> searchUsers(String query) async {
-    final data = await client.rpc('search_admin_users', params: {'p_query': query});
+  Future<List<Map<String, dynamic>>> searchUsers(String query, String scope) async { // <-- TAMBAHKAN scope
+    final data = await client.rpc('search_admin_users', params: {
+      'p_query': query,
+      'p_scope': scope, // <-- KIRIM scope KE RPC
+    });
     return List<Map<String, dynamic>>.from(data);
   }
 
