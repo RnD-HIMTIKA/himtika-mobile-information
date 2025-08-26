@@ -8,6 +8,10 @@ import 'package:himtika_mobile_information/features/hicode/domain/repositories/h
 import '../datasources/hicode_remote_datasource.dart';
 import '../models/hicode_chapter_content_model.dart';
 import '../../domain/entities/hicode_chapter_content.dart';
+import '../models/hicode_question_model.dart';
+import '../../domain/entities/hicode_question.dart';
+import '../models/quiz_result_model.dart';
+import '../../domain/entities/quiz_result.dart';
 
 class HiCodeRepositoryImpl implements HiCodeRepository {
   final HiCodeRemoteDatasource remoteDatasource;
@@ -48,5 +52,17 @@ class HiCodeRepositoryImpl implements HiCodeRepository {
   Future<HiCodeChapterContent> getChapterContent(String chapterId) async {
     final data = await remoteDatasource.getChapterContent(chapterId);
     return HiCodeChapterContentModel.fromMap(data);
+  }
+
+  @override
+  Future<List<HiCodeQuestion>> getQuestions(String relatedId, String questionType) async {
+    final data = await remoteDatasource.getQuestions(relatedId, questionType);
+    return data.map((q) => HiCodeQuestionModel.fromMap(q)).toList();
+  }
+
+  @override
+  Future<QuizResult> submitAnswers(Map<String, String> answers) async {
+    final data = await remoteDatasource.submitAnswers(answers);
+    return QuizResultModel.fromMap(data);
   }
 }

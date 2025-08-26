@@ -103,7 +103,9 @@ import 'package:himtika_mobile_information/features/hicode/presentation/bloc/mai
 import 'package:himtika_mobile_information/features/hicode/presentation/bloc/chapter_detail/chapter_detail_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/bloc/sub_chapter_detail/sub_chapter_detail_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/domain/usecases/get_chapter_content.dart';
-import 'package:himtika_mobile_information/features/hicode/presentation/bloc/sub_chapter_detail/sub_chapter_detail_bloc.dart';
+import 'package:himtika_mobile_information/features/hicode/domain/usecases/get_questions.dart';
+import 'package:himtika_mobile_information/features/hicode/domain/usecases/submit_quiz_answers.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/bloc/quiz/quiz_bloc.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -287,8 +289,11 @@ Future<void> initDependencies() async {
   // Usecases
   sl.registerLazySingleton(() => GetMainScreenData(sl()));
   sl.registerLazySingleton(() => GetChapterListData(sl()));
+  sl.registerLazySingleton(() => GetQuestions(sl()));
+  sl.registerLazySingleton(() => SubmitQuizAnswers(sl()));
   // BLoCs
   sl.registerFactory(() => HicodeBloc(getMainScreenData: sl()));
   sl.registerFactory(() => MaterialDetailBloc(getChapterListData: sl()));
   sl.registerLazySingleton(() => GetChapterContent(sl()));
+  sl.registerFactory(() => QuizBloc(getQuestions: sl(), submitQuizAnswers: sl()));
 }
