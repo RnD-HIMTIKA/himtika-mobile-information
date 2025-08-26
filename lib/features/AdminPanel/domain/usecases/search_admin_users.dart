@@ -5,7 +5,7 @@ class SearchAdminUsers {
   final RolesManagementRepository repository;
   SearchAdminUsers(this.repository);
 
-  Future<List<AdminUser>> call(String query) {
-    return repository.searchUsers(query);
+  Future<List<AdminUser>> call(String query, String scope) {
+    return repository.searchUsers(query, scope);
   }
 }

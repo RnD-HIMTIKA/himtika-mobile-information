@@ -8,14 +8,15 @@ class RolesManagementRepositoryImpl implements RolesManagementRepository {
   RolesManagementRepositoryImpl({required this.remoteDatasource});
 
   @override
-  Future<List<AdminUser>> searchUsers(String query) async {
-    final data = await remoteDatasource.searchUsers(query);
+  Future<List<AdminUser>> searchUsers(String query, String scope) async { // <-- TAMBAHKAN scope
+    final data = await remoteDatasource.searchUsers(query, scope); // <-- TAMBAHKAN scope
     return data.map((item) {
+      // ... (sisa logika mapping tetap sama)
       final rolesData = (item['roles'] as List<dynamic>?) ?? [];
       final roles = rolesData.map((roleMap) => Role(
         id: roleMap['id'],
         name: roleMap['name'],
-        groupName: '', // groupName tidak dikirim dari RPC ini, bisa dikosongkan
+        groupName: roleMap['group_name'], // <-- Ambil group_name dari RPC
       )).toList();
 
       return AdminUser(

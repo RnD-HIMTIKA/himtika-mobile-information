@@ -66,6 +66,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   build_runner: ^2.4.0
   freezed: ^3.2.0
+  flutter_launcher_icons: ^0.13.1
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
@@ -187,3 +188,8 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "src/himfo_icon.jpg"

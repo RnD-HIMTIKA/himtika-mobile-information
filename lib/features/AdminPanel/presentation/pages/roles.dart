@@ -6,6 +6,7 @@ import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/a
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/adminpanel_bloc.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/adminpanel_state.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/roles_management/roles_management_bloc.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/adminpanel_event.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/roles_management/roles_management_event.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/roles_management/roles_management_state.dart';
 import 'package:himtika_mobile_information/features/roles/domain/entities/role.dart';
@@ -33,6 +34,7 @@ class _RolesView extends StatefulWidget {
 
 class _RolesViewState extends State<_RolesView> {
   Timer? _debounce;
+  String _currentScope = 'HIMA'; // Untuk melacak tab yang aktif
 
   @override
   void dispose() {
@@ -43,11 +45,14 @@ class _RolesViewState extends State<_RolesView> {
   void _onSearchChanged(String query) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 500), () {
-      context.read<RolesManagementBloc>().add(SearchUsersChanged(query));
+      context
+          .read<RolesManagementBloc>()
+          .add(SearchUsersChanged(query, scope: _currentScope));
     });
   }
 
-  void _showEditRolesDialog(AdminUser user, RolesManagementState state, bool isGeneral) {
+  void _showEditRolesDialog(
+      AdminUser user, RolesManagementState state, bool isGeneral) {
     showDialog(
       context: context,
       builder: (dialogContext) {
@@ -66,112 +71,82 @@ class _RolesViewState extends State<_RolesView> {
   @override
   Widget build(BuildContext context) {
     final adminState = context.watch<AdminPanelBloc>().state;
-    final roles = adminState is AdminPanelLoaded ? adminState.currentUserRoles : [];
+    final roles =
+        adminState is AdminPanelLoaded ? adminState.currentUserRoles : [];
     final isRnD = roles.any((r) => r.name == 'RnD');
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF0175C8),
-      drawer: const Sidebar(),
-      appBar: AppBar(
-        foregroundColor: Colors.white,
-        title: const Text('Kelola Roles'),
-        centerTitle: true,
+    return DefaultTabController(
+      length: isRnD ? 2 : 1, // Jumlah tab tergantung peran
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
         backgroundColor: const Color(0xFF0175C8),
-        actions: [
-          // Widget Profile Picture Dinamis
-          BlocBuilder<AdminPanelBloc, AdminPanelState>(
-            builder: (context, state) {
-              String? profileUrl;
-              if (state is AdminPanelLoaded) {
-                profileUrl = state.dashboardInfo.profilePictureUrl;
-              }
-              return Padding(
-                padding: const EdgeInsets.only(right: 16),
-                child: CircleAvatar(
-                  radius: 18,
-                  backgroundColor: Colors.white,
-                  backgroundImage:
-                      profileUrl != null ? NetworkImage(profileUrl) : null,
-                  child: profileUrl == null
-                      ? const Icon(Icons.account_circle,
-                          size: 32, color: Colors.grey)
-                      : null,
+        drawer: const Sidebar(),
+        appBar: AppBar(
+          foregroundColor: Colors.white,
+          title: const Text('Kelola Roles'),
+          centerTitle: true,
+          backgroundColor: const Color(0xFF0175C8),
+          bottom: TabBar(
+            labelColor: Colors.white,
+            unselectedLabelColor: Colors.white70,
+            indicatorColor: Colors.white,
+            onTap: (index) {
+              final newScope = index == 0 ? 'HIMA' : 'GENERAL';
+              setState(() {
+                _currentScope = newScope;
+              });
+              context
+                  .read<RolesManagementBloc>()
+                  .add(SearchUsersChanged('', scope: newScope));
+            },
+            tabs: [
+              const Tab(text: 'HIMA Roles'),
+              if (isRnD) const Tab(text: 'General Roles'),
+            ],
+          ),
+        ),
+        body: BlocConsumer<RolesManagementBloc, RolesManagementState>(
+          listener: (context, state) {
+            if (state.status == RolesManagementStatus.failure &&
+                state.errorMessage != null) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.errorMessage!),
+                  backgroundColor: Colors.red,
                 ),
               );
-            },
-          ),
-        ],
-      ),
-      body: BlocConsumer<RolesManagementBloc, RolesManagementState>(
-        listener: (context, state) {
-          if (state.status == RolesManagementStatus.failure &&
-              state.errorMessage != null) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.errorMessage!),
-                backgroundColor: Colors.red,
-              ),
+            }
+          },
+          builder: (context, state) {
+            return Padding(
+              padding: const EdgeInsets.all(16),
+              child: _buildRoleSection(state,
+                  (user) => _showEditRolesDialog(user, state, _currentScope == 'GENERAL')),
             );
-          }
-        },
-        builder: (context, state) {
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildRoleSection(
-                  'HIMA Roles',
-                  state,
-                  (user) => _showEditRolesDialog(user, state, false),
-                ),
-                if (isRnD) ...[
-                  const SizedBox(height: 24),
-                  _buildRoleSection(
-                    'General Roles',
-                    state,
-                    (user) => _showEditRolesDialog(user, state, true),
-                  ),
-                ]
-              ],
-            ),
-          );
-        },
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildRoleSection(String title, RolesManagementState state,
-      Function(AdminUser) onEdit) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(left: 4, bottom: 8),
-          child: Text(
-            title,
-            style: const TextStyle(
-                color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-        ),
-        Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFFC8FFE0),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              _buildSearchBox(),
-              const SizedBox(height: 16),
-              if (state.status == RolesManagementStatus.loading)
-                const Center(child: CircularProgressIndicator())
-              else
-                _buildDataTable(state.users, onEdit),
-            ],
-          ),
-        ),
-      ],
+  Widget _buildRoleSection(
+      RolesManagementState state, Function(AdminUser) onEdit) {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFC8FFE0),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          _buildSearchBox(),
+          const SizedBox(height: 16),
+          if (state.status == RolesManagementStatus.loading)
+            const Center(child: CircularProgressIndicator())
+          else
+            _buildDataTable(state.users, onEdit),
+        ],
+      ),
     );
   }
 
@@ -327,9 +302,42 @@ class _EditRolesDialogState extends State<_EditRolesDialog> {
   }
 
   void _onSimpanPressed() {
-    context.read<RolesManagementBloc>().add(UpdateUserRolesSubmitted(
-        widget.user.userId, _selectedRoleIds.toList()));
-    Navigator.of(context).pop();
+    // Tampilkan dialog konfirmasi
+    showDialog(
+      context: context,
+      builder: (confirmContext) => AlertDialog(
+        title: const Text('Konfirmasi Perubahan'),
+        content: const Text(
+            'Apakah Anda yakin ingin menyimpan perubahan role untuk pengguna ini?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(confirmContext).pop(),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              // PERBAIKAN DI SINI
+              // Dapatkan referensi AdminPanelBloc DARI LUAR DIALOG
+              final adminPanelBloc = context.read<AdminPanelBloc>();
+
+              context.read<RolesManagementBloc>().add(
+                    UpdateUserRolesSubmitted(
+                      widget.user.userId,
+                      _selectedRoleIds.toList(),
+                      onSuccess: () {
+                        // Perintahkan AdminPanelBloc untuk memuat ulang datanya
+                        adminPanelBloc.add(LoadAdminPanel());
+                      },
+                    ),
+                  );
+              Navigator.of(confirmContext).pop();
+              Navigator.of(context).pop();
+            },
+            child: const Text('Yakin'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/foundation.dart';
 
 abstract class RolesManagementEvent extends Equatable {
   const RolesManagementEvent();
@@ -8,12 +9,12 @@ abstract class RolesManagementEvent extends Equatable {
 
 class SearchUsersChanged extends RolesManagementEvent {
   final String query;
-  const SearchUsersChanged(this.query);
+  final String scope;
+  const SearchUsersChanged(this.query, {this.scope = 'HIMA'});
   @override
-  List<Object> get props => [query];
+  List<Object> get props => [query, scope];
 }
 
-// TAMBAHKAN EVENT BARU DI SINI
 class LoadAllGroupedRoles extends RolesManagementEvent {
   const LoadAllGroupedRoles();
 }
@@ -21,7 +22,9 @@ class LoadAllGroupedRoles extends RolesManagementEvent {
 class UpdateUserRolesSubmitted extends RolesManagementEvent {
   final String userId;
   final List<String> roleIds;
-  const UpdateUserRolesSubmitted(this.userId, this.roleIds);
+  final VoidCallback onSuccess; // <-- TAMBAHKAN CALLBACK INI
+
+  const UpdateUserRolesSubmitted(this.userId, this.roleIds, {required this.onSuccess});
   @override
   List<Object> get props => [userId, roleIds];
 }

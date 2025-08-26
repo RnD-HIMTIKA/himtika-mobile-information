@@ -200,10 +200,10 @@ class HicodeScreen extends StatelessWidget {
         : 'src/features/hicode/images/ditutup.png';
     final String title = isExamReady
         ? 'Yay! Ujian Akhir Siap Dimulai'
-        : 'Ujian Akhir Masih Terkunci';
+        : 'Yah, Ujian Belum Bisa Dibuka';
     final String subtitle = isExamReady
         ? 'Kamu sudah selesaikan materi, saatnya tunjukkan kemampuanmu!'
-        : 'Selesaikan semua materi terlebih dahulu untuk membuka ujian akhir.';
+        : 'Kamu harus selesaikan semua materi terlebih dahulu. semangat ya!';
     final Color arrowColor = isExamReady ? Colors.white : Colors.white54;
     final String buttonText = isExamReady ? "Kerjakan Sekarang" : "Lihat Materi";
 

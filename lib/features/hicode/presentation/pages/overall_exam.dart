@@ -35,8 +35,8 @@ class OverallExamScreen extends StatelessWidget {
                         children: [
                           _buildSectionTitle('Tentang Ujian Ini:'),
                           const SizedBox(height: 16),
-                          _buildInfoRow(Icons.timer_outlined, 'Waktu pengerjaan 60 menit'),
-                          _buildInfoRow(Icons.article_outlined, '20 Soal Pilihan Ganda'),
+                          _buildInfoRow(Icons.timer_outlined, 'Waktu pengerjaan 30 menit'),
+                          _buildInfoRow(Icons.article_outlined, '30 Soal Pilihan Ganda'),
                           _buildInfoRow(Icons.workspace_premium_outlined, 'Minimal 15 jawaban benar untuk lulus'),
                           const SizedBox(height: 24),
                           _buildSectionTitle('Petunjuk:'),
