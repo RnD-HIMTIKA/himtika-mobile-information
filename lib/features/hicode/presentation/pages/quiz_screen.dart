@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/bloc/quiz/quiz_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/score_screen.dart';
 
@@ -12,12 +13,11 @@ class QuizScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => QuizBloc()..add(FetchQuiz(quizId: quizId)),
+      create: (context) => sl<QuizBloc>()..add(FetchQuiz(quizId: quizId)),
       child: BlocListener<QuizBloc, QuizState>(
-        // Listener untuk menampilkan dialog HANYA saat status berubah menjadi 'submitted'
         listener: (context, state) {
           if (state.status == QuizStatus.submitted) {
-            _showResultDialog(context, state); // Panggil dialog dengan membawa seluruh state
+            _showResultDialog(context, state);
           }
         },
         child: Scaffold(
@@ -29,14 +29,14 @@ class QuizScreen extends StatelessWidget {
                   return const _QuizLoadingView();
                 }
                 
-                if (state.status == QuizStatus.success || state.status == QuizStatus.submitted) {
-                  if (state.quizId == 'OVERALL_EXAM') {
-                    return _FinalExamView(state: state);
-                  } else {
-                    // Untuk semua jenis kuis lainnya (kuis bab & latihan final),
-                    // tampilkan UI kuis standar.
-                    return _QuizView(state: state);
-                  }
+                if (state.questions.isEmpty) {
+                   return const Center(child: Text('Soal tidak ditemukan.'));
+                }
+
+                if (state.status == QuizStatus.success || state.status == QuizStatus.submitting) {
+                  return state.quizId == 'OVERALL_EXAM'
+                      ? _FinalExamView(state: state)
+                      : _QuizView(state: state);
                 }
                 
                 if (state.status == QuizStatus.failure) {
@@ -52,13 +52,21 @@ class QuizScreen extends StatelessWidget {
     );
   }
 
-  // --- FUNGSI DIALOG HASIL KUIS (DENGAN LOGIKA DINAMIS) ---
   void _showResultDialog(BuildContext context, QuizState state) {
-    // Ambil semua data yang dibutuhkan dari state
-    final bool isPassed = state.isPassed;
+    final result = state.result;
+    // Lakukan pengecekan keamanan jika result null
+    if (result == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gagal menampilkan hasil kuis.')),
+      );
+      return;
+    }
+
+    // PERBAIKAN: Ambil data dari objek 'result', bukan langsung dari 'state'
+    final int score = result.correctCount;
+    final int totalQuestions = result.totalQuestions;
+    final bool isPassed = score >= (totalQuestions / 2); // Logika kelulusan
     final String quizId = state.quizId;
-    final int score = state.score;
-    final int totalQuestions = state.questions.length;
 
     // Tentukan konten dialog berdasarkan quizId dan status lulus
     String imagePath = isPassed
@@ -81,8 +89,8 @@ class QuizScreen extends StatelessWidget {
           ),
         ];
       } else {
-        // Pesan GAGAL yang baru untuk Latihan Final
         title = 'Latihan Final\nBelum Tuntas';
+        // PERBAIKAN: Gunakan variabel 'score' dan 'totalQuestions' yang sudah benar
         subtitle = 'Kamu menjawab benar $score dari $totalQuestions soal. Nilai masih belum cukup. Silakan ulang latihan soal final ini.';
         buttons = [
           _buildDialogButton(
@@ -91,15 +99,12 @@ class QuizScreen extends StatelessWidget {
             onPressed: () {
               Navigator.of(context).pop(); // Tutup dialog
               Navigator.of(context).pop(); // Kembali dari halaman kuis
-              Navigator.of(context).pop(); // Kembali dari halaman kuis
             },
           ),
         ];
       }
     } else if (quizId == 'OVERALL_EXAM') {
       // --- KONDISI 3: UJIAN AKHIR (keseluruhan) ---
-      // Menurut Anda, kondisi ini tidak memiliki state "gagal" yang bisa diulang,
-      // jadi kita hanya perlu menampilkan hasil sukses.
       imagePath = 'src/features/hicode/images/success.png';
       title = 'Selamat! Ujian Selesai';
       subtitle = 'Anda menyelesaikan Ujian Akhir HiCode. Jawabanmu telah disimpan dan skor tertinggimu akan tercatat di leaderboard.';
@@ -108,16 +113,14 @@ class QuizScreen extends StatelessWidget {
           text: 'Lihat Skor Anda',
           isPrimary: true,
           onPressed: () {
-            // --- PERBAIKI BAGIAN INI ---
             Navigator.of(context).pop(); // Tutup dialog
-
-            // Ganti halaman kuis dengan halaman skor
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(
                 builder: (_) => ScoreScreen(
-                  score: state.score,
-                  totalQuestions: state.questions.length,
-                  timeTaken: state.timeTaken!,
+                  // PERBAIKAN: Gunakan data dari 'result'
+                  score: result.score, 
+                  totalQuestions: result.totalQuestions,
+                  timeTaken: state.timeTaken ?? Duration.zero,
                 ),
               ),
             );
@@ -126,9 +129,6 @@ class QuizScreen extends StatelessWidget {
       ];
     } else {
       // KONDISI 1: KUIS BAB BIASA
-      imagePath = isPassed
-          ? 'src/features/hicode/images/success.png'
-          : 'src/features/hicode/images/failed.png';
       title = isPassed ? 'Kuis Selesai' : 'Kuis Belum Tuntas';
       subtitle = isPassed
           ? 'Selamat, Anda telah menyelesaikan kuis pada bab ini. Materi berikutnya kini dapat diakses.'
@@ -279,11 +279,10 @@ class _QuizView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentQuestion = state.questions[state.currentQuestionIndex];
-    final options = currentQuestion['options'] as Map<String, String>;
-
     return Column(
       children: [
-        _buildTopBar(context),
+        // PERBAIKAN 2: Pemanggilan _buildTopBar disederhanakan.
+        _buildTopBar(context), 
         const SizedBox(height: 24),
         _ProgressIndicator(
           currentIndex: state.currentQuestionIndex,
@@ -298,7 +297,7 @@ class _QuizView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    currentQuestion['question'],
+                    currentQuestion.questionText, // Mengakses teks langsung dari currentQuestion
                     style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -306,20 +305,17 @@ class _QuizView extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   // Pilihan Jawaban
-                  ...options.entries.map((entry) {
-                    final key = entry.key;
-                    final value = entry.value;
-                    final isSelected =
-                        state.selectedAnswers[state.currentQuestionIndex] ==
-                            key;
+                  // Mengakses 'options' langsung dari currentQuestion
+                  ...currentQuestion.options.map((option) { 
+                    final isSelected = state.selectedAnswers[state.currentQuestionIndex] == option.id;
                     return _OptionTile(
-                      optionKey: key,
-                      optionText: value,
+                      optionKey: '', // Key visual tidak lagi relevan
+                      optionText: option.optionText,
                       isSelected: isSelected,
                       onTap: () {
                         context.read<QuizBloc>().add(AnswerSelected(
                               questionIndex: state.currentQuestionIndex,
-                              answerKey: key,
+                              answerKey: option.id,
                             ));
                       },
                     );
@@ -335,7 +331,6 @@ class _QuizView extends StatelessWidget {
   }
 
   Widget _buildTopBar(BuildContext context) {
-    // Ambil quizId dari state
     final String quizId = context.read<QuizBloc>().state.quizId;
 
     return Container(
@@ -732,7 +727,7 @@ Future<bool?> _showSubmitConfirmationDialog(BuildContext context) {
 }
 
 // --- UI UTAMA BARU UNTUK UJIAN AKHIR ---
-class _FinalExamView extends StatefulWidget { // 2. Ubah menjadi StatefulWidget
+class _FinalExamView extends StatefulWidget {
   final QuizState state;
   const _FinalExamView({required this.state});
 
@@ -780,7 +775,6 @@ class __FinalExamViewState extends State<_FinalExamView> {
   @override
   Widget build(BuildContext context) {
     final currentQuestion = widget.state.questions[widget.state.currentQuestionIndex];
-    final options = currentQuestion['options'] as Map<String, String>;
 
     return Column(
       children: [
@@ -798,20 +792,20 @@ class __FinalExamViewState extends State<_FinalExamView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    currentQuestion['question'],
+                    currentQuestion.questionText,
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, height: 1.5),
                   ),
                   const SizedBox(height: 24),
-                  ...options.entries.map((entry) {
-                    final isSelected = widget.state.selectedAnswers[widget.state.currentQuestionIndex] == entry.key;
-                    return _FinalExamOptionTile(
-                      optionKey: entry.key,
-                      optionText: entry.value,
+                  ...currentQuestion.options.map((option) {
+                    final isSelected = widget.state.selectedAnswers[widget.state.currentQuestionIndex] == option.id;
+                    return _OptionTile( // Menggunakan kembali widget _OptionTile
+                      optionKey: '',
+                      optionText: option.optionText,
                       isSelected: isSelected,
                       onTap: () {
                         context.read<QuizBloc>().add(AnswerSelected(
                               questionIndex: widget.state.currentQuestionIndex,
-                              answerKey: entry.key,
+                              answerKey: option.id,
                             ));
                       },
                     );
