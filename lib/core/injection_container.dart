@@ -92,6 +92,15 @@ import 'package:himtika_mobile_information/features/AdminPanel/data/repositories
 import 'package:himtika_mobile_information/features/AdminPanel/data/repositories/roles_management_repository_impl.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/adminpanel_bloc.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/roles_management/roles_management_bloc.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/hicode_management/hicode_management_bloc.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/repositories/hicode_management_repository.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/data/repositories/hicode_management_repository_impl.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/data/datasources/hicode_management_remote_datasource.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/get_hicode_categories.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/create_hicode_category.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/update_hicode_category.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/delete_hicode_category.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/category_management/category_management_bloc.dart';
 
 // --- Hicode Imports ---
 import 'package:himtika_mobile_information/features/hicode/domain/repositories/hicode_repository.dart';
@@ -277,6 +286,30 @@ Future<void> initDependencies() async {
         getAssignableRoles: sl(),
         updateUserRoles: sl(),
         getAllRolesGrouped: sl(),
+      ));
+  sl.registerFactory(() => HicodeManagementBloc(client: sl()));
+
+  // ==================== ADMIN PANEL HICODE MANAGEMENT ====================
+  // Datasource
+  sl.registerLazySingleton<HiCodeManagementRemoteDatasource>(
+      () => HiCodeManagementRemoteDatasourceImpl(client: sl()));
+  
+  // Repository
+  sl.registerLazySingleton<HiCodeManagementRepository>(
+      () => HiCodeManagementRepositoryImpl(remoteDatasource: sl()));
+  
+  // Usecases
+  sl.registerLazySingleton(() => GetHiCodeCategories(sl()));
+  sl.registerLazySingleton(() => CreateHiCodeCategory(sl()));
+  sl.registerLazySingleton(() => UpdateHiCodeCategory(sl()));
+  sl.registerLazySingleton(() => DeleteHiCodeCategory(sl()));
+
+  // BLoCs
+  sl.registerFactory(() => CategoryManagementBloc(
+        getCategories: sl(),
+        createCategory: sl(),
+        updateCategory: sl(),
+        deleteCategory: sl(),
       ));
 
   // ==================== HICODE FEATURE ====================

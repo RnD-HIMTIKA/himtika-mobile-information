@@ -9,6 +9,7 @@ import 'package:himtika_mobile_information/features/AdminPanel/presentation/page
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/pages/roles.dart';
 import 'package:himtika_mobile_information/features/auth/application/auth_controller.dart';
 import 'package:himtika_mobile_information/features/home/presentation/pages/home.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/presentation/pages/hicode/hicode_admin_home_screen.dart';
 
 class Sidebar extends StatelessWidget {
   const Sidebar({super.key});
@@ -123,14 +124,15 @@ class Sidebar extends StatelessWidget {
                       if (canAccessHiCode)
                         ListTile(
                           leading:
-                              const Icon(Icons.book, color: Colors.white),
-                          title: const Text('HiCode',
+                              const Icon(Icons.code, color: Colors.white), // Ganti ikon agar lebih relevan
+                          title: const Text('Manajemen HiCode', // Ganti teks
                               style: TextStyle(color: Colors.white)),
                           onTap: () {
+                            // PERUBAHAN DI SINI: Arahkan ke Halaman Dashboard HiCode
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const Hicode()),
+                                  builder: (context) => const HicodeAdminHomeScreen()),
                             );
                           },
                         ),

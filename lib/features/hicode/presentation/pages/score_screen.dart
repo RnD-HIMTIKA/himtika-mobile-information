@@ -93,16 +93,13 @@ class _ScoreScreenState extends State<ScoreScreen> {
 
     // Tampilkan halaman skor jika loading sudah selesai
     final int wrongAnswers = widget.totalQuestions - widget.score;
-    final int finalScore = widget.totalQuestions > 0
-        ? (widget.score * 550) ~/ widget.totalQuestions
-        : 0;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       body: SingleChildScrollView(
         child: Column(
           children: [
-            _buildScoreHeader(context, finalScore),
+            _buildScoreHeader(context, widget.score),
             _buildScoreDetails(
               correct: widget.score,
               wrong: wrongAnswers,

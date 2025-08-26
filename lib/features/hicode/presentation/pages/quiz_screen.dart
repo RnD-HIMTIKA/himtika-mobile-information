@@ -30,7 +30,7 @@ class QuizScreen extends StatelessWidget {
                 }
                 
                 if (state.questions.isEmpty) {
-                   return const Center(child: Text('Soal tidak ditemukan.'));
+                   return const Center(child: Text('Soal untuk kuis ini belum tersedia.'));
                 }
 
                 if (state.status == QuizStatus.success || state.status == QuizStatus.submitting) {
@@ -54,71 +54,59 @@ class QuizScreen extends StatelessWidget {
 
   void _showResultDialog(BuildContext context, QuizState state) {
     final result = state.result;
-    // Lakukan pengecekan keamanan jika result null
-    if (result == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gagal menampilkan hasil kuis.')),
-      );
-      return;
-    }
+    if (result == null) return;
 
-    // PERBAIKAN: Ambil data dari objek 'result', bukan langsung dari 'state'
     final int score = result.correctCount;
     final int totalQuestions = result.totalQuestions;
-    final bool isPassed = score >= (totalQuestions / 2); // Logika kelulusan
+    final bool isPassed = score >= (totalQuestions * 0.6); // Lulus jika benar 60%
     final String quizId = state.quizId;
 
-    // Tentukan konten dialog berdasarkan quizId dan status lulus
-    String imagePath = isPassed
-        ? 'src/features/hicode/images/success.png'
-        : 'src/features/hicode/images/failed.png';
+    String imagePath = isPassed ? 'src/features/hicode/images/success.png' : 'src/features/hicode/images/failed.png';
     String title = '';
     String subtitle = '';
     List<Widget> buttons = [];
 
     if (quizId.startsWith('FINAL_')) {
-      // --- KONDISI 2: LATIHAN FINAL (per materi) ---
       if (isPassed) {
         title = 'Latihan Selesai';
-        subtitle = 'Selamat, Anda telah menyelesaikan Latihan Soal Final bab ini. Anda bisa lanjut ke bab berikutnya.';
+        subtitle = 'Selamat, Anda telah menyelesaikan Latihan Soal Final bab ini!';
         buttons = [
           _buildDialogButton(
-            text: 'Kembali ke Beranda',
-            isPrimary: true,
-            onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
-          ),
-        ];
-      } else {
-        title = 'Latihan Final\nBelum Tuntas';
-        // PERBAIKAN: Gunakan variabel 'score' dan 'totalQuestions' yang sudah benar
-        subtitle = 'Kamu menjawab benar $score dari $totalQuestions soal. Nilai masih belum cukup. Silakan ulang latihan soal final ini.';
-        buttons = [
-          _buildDialogButton(
-            text: 'Pelajari Ulang Materi',
+            text: 'Kembali ke Materi',
             isPrimary: true,
             onPressed: () {
               Navigator.of(context).pop(); // Tutup dialog
-              Navigator.of(context).pop(); // Kembali dari halaman kuis
+              Navigator.of(context).pop(); // Kembali dari kuis
+            },
+          ),
+        ];
+      } else {
+        title = 'Latihan Final Belum Tuntas';
+        subtitle = 'Kamu menjawab benar $score dari $totalQuestions soal. Nilai masih belum cukup. Silakan ulang latihan soal final ini.';
+        buttons = [
+          _buildDialogButton(
+            text: 'Ulangi Latihan',
+            isPrimary: true,
+            onPressed: () {
+              Navigator.of(context).pop(); // Tutup dialog
+              context.read<QuizBloc>().add(FetchQuiz(quizId: quizId)); // Muat ulang kuis
             },
           ),
         ];
       }
     } else if (quizId == 'OVERALL_EXAM') {
-      // --- KONDISI 3: UJIAN AKHIR (keseluruhan) ---
-      imagePath = 'src/features/hicode/images/success.png';
       title = 'Selamat! Ujian Selesai';
-      subtitle = 'Anda menyelesaikan Ujian Akhir HiCode. Jawabanmu telah disimpan dan skor tertinggimu akan tercatat di leaderboard.';
+      subtitle = 'Jawabanmu telah disimpan dan skor tertinggimu akan tercatat di leaderboard.';
       buttons = [
         _buildDialogButton(
           text: 'Lihat Skor Anda',
           isPrimary: true,
           onPressed: () {
-            Navigator.of(context).pop(); // Tutup dialog
+            Navigator.of(context).pop();
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(
                 builder: (_) => ScoreScreen(
-                  // PERBAIKAN: Gunakan data dari 'result'
-                  score: result.score, 
+                  score: result.score,
                   totalQuestions: result.totalQuestions,
                   timeTaken: state.timeTaken ?? Duration.zero,
                 ),
@@ -128,48 +116,28 @@ class QuizScreen extends StatelessWidget {
         ),
       ];
     } else {
-      // KONDISI 1: KUIS BAB BIASA
       title = isPassed ? 'Kuis Selesai' : 'Kuis Belum Tuntas';
       subtitle = isPassed
-          ? 'Selamat, Anda telah menyelesaikan kuis pada bab ini. Materi berikutnya kini dapat diakses.'
-          : 'Beberapa jawaban Anda belum benar. Silakan pelajari kembali materi pada chapter ini sebelum melanjutkan.';
-      buttons = isPassed
-          ? [
-              _buildDialogButton(
-                text: 'Materi Berikutnya',
-                isPrimary: true,
-                onPressed: () {
-                  Navigator.of(context).pop(); // Tutup dialog
-                  Navigator.of(context).pop(); // Kembali dari halaman kuis
-                },
-              ),
-              const SizedBox(height: 8),
-              _buildDialogButton(
-                text: 'Kembali ke Beranda',
-                isPrimary: false,
-                onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
-              ),
-            ]
-          : [
-              _buildDialogButton(
-                text: 'Pelajari Ulang Materi',
-                isPrimary: true,
-                onPressed: () {
-                  Navigator.of(context).pop(); // Tutup dialog
-                  Navigator.of(context).pop(); // Kembali dari halaman kuis
-                },
-              ),
-            ];
+          ? 'Selamat! Materi berikutnya kini dapat diakses.'
+          : 'Beberapa jawaban Anda belum benar. Silakan pelajari kembali materi ini.';
+      buttons = [
+        _buildDialogButton(
+          text: isPassed ? 'Lanjut Belajar' : 'Pelajari Ulang',
+          isPrimary: true,
+          onPressed: () {
+            Navigator.of(context).pop();
+            Navigator.of(context).pop();
+          },
+        ),
+      ];
     }
 
-    // Tampilkan dialog dengan konten yang sudah ditentukan
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) {
         return Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
-          backgroundColor: const Color(0xFFF5F9FF),
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -177,7 +145,7 @@ class QuizScreen extends StatelessWidget {
               children: [
                 Image.asset(imagePath, height: 100),
                 const SizedBox(height: 16),
-                Text(title, textAlign: TextAlign.center,  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 16),
                 Text(subtitle, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, color: Colors.black54)),
                 const SizedBox(height: 24),
@@ -190,7 +158,6 @@ class QuizScreen extends StatelessWidget {
     );
   }
 
-  // Widget pembantu baru untuk membuat tombol agar tidak duplikat kode
   Widget _buildDialogButton({
     required String text,
     required bool isPrimary,
@@ -213,7 +180,6 @@ class QuizScreen extends StatelessWidget {
   }
 }
 
-// --- UI UNTUK LOADING SCREEN ---
 class _QuizLoadingView extends StatelessWidget {
   const _QuizLoadingView();
   @override
@@ -224,7 +190,6 @@ class _QuizLoadingView extends StatelessWidget {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
-            // 1. Animasi diterapkan langsung pada List<Widget>
             children: List.generate(5, (index) {
               return Container(
                 width: 20,
@@ -237,11 +202,9 @@ class _QuizLoadingView extends StatelessWidget {
               );
             })
                 .animate(
-                  // 2. Gunakan 'interval' sebagai parameter di sini
                   interval: 200.ms,
                   onPlay: (controller) => controller.repeat(),
                 )
-                // 3. Efek ini sekarang akan diterapkan secara bergiliran ke setiap buku
                 .rotate(
                   begin: 0,
                   end: -0.2,
@@ -259,12 +222,6 @@ class _QuizLoadingView extends StatelessWidget {
           const SizedBox(height: 32),
           const Text('Menyiapkan Kuis...',
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          const Text(
-            'Harap tunggu sebentar. Kami sedang\nmenyiapkan soal-soal untuk kamu kerjakan.',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 16, color: Colors.grey),
-          ),
         ],
       ),
     );
@@ -279,10 +236,10 @@ class _QuizView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentQuestion = state.questions[state.currentQuestionIndex];
+
     return Column(
       children: [
-        // PERBAIKAN 2: Pemanggilan _buildTopBar disederhanakan.
-        _buildTopBar(context), 
+        _buildTopBar(context),
         const SizedBox(height: 24),
         _ProgressIndicator(
           currentIndex: state.currentQuestionIndex,
@@ -297,19 +254,19 @@ class _QuizView extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    currentQuestion.questionText, // Mengakses teks langsung dari currentQuestion
+                    currentQuestion.questionText,
                     style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         height: 1.5),
                   ),
                   const SizedBox(height: 24),
-                  // Pilihan Jawaban
-                  // Mengakses 'options' langsung dari currentQuestion
-                  ...currentQuestion.options.map((option) { 
-                    final isSelected = state.selectedAnswers[state.currentQuestionIndex] == option.id;
+                  ...currentQuestion.options.map((option) {
+                    final isSelected =
+                        state.selectedAnswers[state.currentQuestionIndex] ==
+                            option.id;
                     return _OptionTile(
-                      optionKey: '', // Key visual tidak lagi relevan
+                      optionKey: '',
                       optionText: option.optionText,
                       isSelected: isSelected,
                       onTap: () {
