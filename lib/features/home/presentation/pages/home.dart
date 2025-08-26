@@ -5,6 +5,7 @@ import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/pages/calendar_screen.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/pages/notification_page.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/main_screen.dart';
+import 'package:himtika_mobile_information/features/himtika/presentation/pages/himtika_screen.dart';
 import 'package:himtika_mobile_information/features/home/presentation/pages/sidebar_home.dart';
 import '../bloc/home_bloc.dart';
 import '../bloc/home_event.dart';
@@ -172,7 +173,12 @@ class HomePage extends StatelessWidget {
                                     "src/features/home/icons/himtika.png",
                                     "HIMTIKA",
                                     [const Color(0xFF32B7FF), const Color(0xFF32B7FF)],
-                                    () {},
+                                    () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (_) => const HimtikaScreen()),
+                                      );
+                                    },
                                   ),
                                   _menuItem(
                                     "src/features/home/icons/hicode.svg",
