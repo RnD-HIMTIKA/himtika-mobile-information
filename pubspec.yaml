@@ -162,6 +162,10 @@ flutter:
     - src/features/hicode/rank/crown3.png
     - src/features/hicode/rank/pattern_rank.png
 
+    - src/features/himtika/images/card_hero.png
+    - src/features/himtika/images/kabinet.png
+    - src/features/himtika/images/card_divisi.png
+
 
   #   - images/a_dot_ham.jpeg
 
