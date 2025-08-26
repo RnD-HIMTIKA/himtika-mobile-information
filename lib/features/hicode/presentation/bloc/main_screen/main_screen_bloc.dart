@@ -1,57 +1,37 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:himtika_mobile_information/features/hicode/domain/entities/hicode_category.dart';
+import 'package:himtika_mobile_information/features/hicode/domain/entities/hicode_material.dart';
+import 'package:himtika_mobile_information/features/hicode/domain/usecases/get_main_screen_data.dart';
 
 part 'main_screen_event.dart';
 part 'main_screen_state.dart';
 
 class HicodeBloc extends Bloc<HicodeEvent, HicodeState> {
-  HicodeBloc() : super(const HicodeState()) {
+  final GetMainScreenData _getMainScreenData;
+
+  HicodeBloc({required GetMainScreenData getMainScreenData})
+      : _getMainScreenData = getMainScreenData,
+        super(const HicodeState()) {
     on<HicodeDataFetched>(_onHicodeDataFetched);
   }
 
-  void _onHicodeDataFetched(HicodeDataFetched event, Emitter<HicodeState> emit) {
+  Future<void> _onHicodeDataFetched(
+      HicodeDataFetched event, Emitter<HicodeState> emit) async {
     emit(state.copyWith(status: HicodeStatus.loading));
-
-    // --- DATA DUMMY DIBUAT LANGSUNG DI SINI ---
-    final dummyCategories = [
-      {'name': 'HTML', 'iconPath': 'src/features/hicode/icon/html.png'},
-      {'name': 'CSS', 'iconPath': 'src/features/hicode/icon/css.png'},
-      {'name': 'JavaScript', 'iconPath': 'src/features/hicode/icon/js.png'},
-      {'name': 'C++', 'iconPath': 'src/features/hicode/icon/cpp.png'},
-    ];
-
-    final dummyMaterials = [
-      {
-        'title': 'Materi 1 - HTML',
-        'iconPath': 'src/features/hicode/images/html.png',
-        'chapterProgress': '1/8 Chapter',
-        'exerciseCount': 10
-      },
-      {
-        'title': 'Materi 2 - CSS',
-        'iconPath': 'src/features/hicode/images/css.png',
-        'chapterProgress': '1/8 Chapter',
-        'exerciseCount': 10
-      },
-      {
-        'title': 'Materi 3 - JavaScript',
-        'iconPath': 'src/features/hicode/images/js.png',
-        'chapterProgress': '1/8 Chapter',
-        'exerciseCount': 10
-      },
-      {
-        'title': 'Materi 4 - C++',
-        'iconPath': 'src/features/hicode/images/cpp.png',
-        'chapterProgress': '1/8 Chapter',
-        'exerciseCount': 10
-      },
-    ];
-
-    emit(state.copyWith(
-      status: HicodeStatus.success,
-      categories: dummyCategories,
-      materials: dummyMaterials,
-      isExamReady: true,
-    ));
+    try {
+      final (categories, materials, isExamReady) = await _getMainScreenData();
+      emit(state.copyWith(
+        status: HicodeStatus.success,
+        categories: categories,
+        materials: materials,
+        isExamReady: isExamReady,
+      ));
+    } catch (e) {
+      emit(state.copyWith(
+        status: HicodeStatus.failure,
+        errorMessage: e.toString(),
+      ));
+    }
   }
-} 
+}

@@ -93,6 +93,15 @@ import 'package:himtika_mobile_information/features/AdminPanel/data/repositories
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/adminpanel_bloc.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/roles_management/roles_management_bloc.dart';
 
+// --- Hicode Imports ---
+import 'package:himtika_mobile_information/features/hicode/domain/repositories/hicode_repository.dart';
+import 'package:himtika_mobile_information/features/hicode/data/repositories/hicode_repository_impl.dart';
+import 'package:himtika_mobile_information/features/hicode/data/datasources/hicode_remote_datasource.dart';
+import 'package:himtika_mobile_information/features/hicode/domain/usecases/get_main_screen_data.dart';
+import 'package:himtika_mobile_information/features/hicode/domain/usecases/get_chapter_list_data.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/bloc/main_screen/main_screen_bloc.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/bloc/chapter_detail/chapter_detail_bloc.dart';
+
 final GetIt sl = GetIt.instance;
 
 Future<void> initDependencies() async {
@@ -264,4 +273,19 @@ Future<void> initDependencies() async {
         updateUserRoles: sl(),
         getAllRolesGrouped: sl(),
       ));
+
+  // ==================== HICODE FEATURE ====================
+  // Datasource
+  sl.registerLazySingleton<HiCodeRemoteDatasource>(
+      () => HiCodeRemoteDatasourceImpl(client: sl()));
+  // Repository
+  sl.registerLazySingleton<HiCodeRepository>(
+      () => HiCodeRepositoryImpl(remoteDatasource: sl()));
+  // Usecases
+  sl.registerLazySingleton(() => GetMainScreenData(sl()));
+  sl.registerLazySingleton(() => GetChapterListData(sl()));
+  // BLoCs
+  sl.registerFactory(() => HicodeBloc(getMainScreenData: sl()));
+  sl.registerFactory(() => MaterialDetailBloc(getChapterListData: sl()));
+
 }
