@@ -12,11 +12,3 @@ class FetchDetailData extends MaterialDetailEvent {
   @override
   List<Object> get props => [materialId];
 }
-
-// --- TAMBAHKAN EVENT BARU INI ---
-class SearchQueryChanged extends MaterialDetailEvent {
-  final String query;
-  const SearchQueryChanged({required this.query});
-  @override
-  List<Object> get props => [query];
-}

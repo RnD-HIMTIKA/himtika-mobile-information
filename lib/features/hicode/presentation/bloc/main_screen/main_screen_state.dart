@@ -1,36 +1,38 @@
-// Lokasi: lib/hicode/presentation/bloc/hicode_state.dart
-
 part of 'main_screen_bloc.dart';
 
 enum HicodeStatus { initial, loading, success, failure }
 
 class HicodeState extends Equatable {
+  final HicodeStatus status;
+  final List<HiCodeCategory> categories;
+  final List<HiCodeMaterial> materials;
+  final bool isExamReady;
+  final String? errorMessage;
+
   const HicodeState({
     this.status = HicodeStatus.initial,
-    this.categories = const <Map<String, dynamic>>[],
-    this.materials = const <Map<String, dynamic>>[],
-    this.isExamReady = false, // 1. Tambahkan properti baru dengan nilai default 'false'
+    this.categories = const [],
+    this.materials = const [],
+    this.isExamReady = false,
+    this.errorMessage,
   });
-
-  final HicodeStatus status;
-  final List<Map<String, dynamic>> categories;
-  final List<Map<String, dynamic>> materials;
-  final bool isExamReady; // Properti baru
 
   HicodeState copyWith({
     HicodeStatus? status,
-    List<Map<String, dynamic>>? categories,
-    List<Map<String, dynamic>>? materials,
-    bool? isExamReady, // 2. Tambahkan di copyWith
+    List<HiCodeCategory>? categories,
+    List<HiCodeMaterial>? materials,
+    bool? isExamReady,
+    String? errorMessage,
   }) {
     return HicodeState(
       status: status ?? this.status,
       categories: categories ?? this.categories,
       materials: materials ?? this.materials,
-      isExamReady: isExamReady ?? this.isExamReady, // Tambahkan di sini
+      isExamReady: isExamReady ?? this.isExamReady,
+      errorMessage: errorMessage ?? this.errorMessage,
     );
   }
 
   @override
-  List<Object> get props => [status, categories, materials, isExamReady]; // 3. Tambahkan di props
+  List<Object?> get props => [status, categories, materials, isExamReady, errorMessage];
 }
