@@ -101,6 +101,9 @@ import 'package:himtika_mobile_information/features/hicode/domain/usecases/get_m
 import 'package:himtika_mobile_information/features/hicode/domain/usecases/get_chapter_list_data.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/bloc/main_screen/main_screen_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/bloc/chapter_detail/chapter_detail_bloc.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/bloc/sub_chapter_detail/sub_chapter_detail_bloc.dart';
+import 'package:himtika_mobile_information/features/hicode/domain/usecases/get_chapter_content.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/bloc/sub_chapter_detail/sub_chapter_detail_bloc.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -287,5 +290,5 @@ Future<void> initDependencies() async {
   // BLoCs
   sl.registerFactory(() => HicodeBloc(getMainScreenData: sl()));
   sl.registerFactory(() => MaterialDetailBloc(getChapterListData: sl()));
-
+  sl.registerLazySingleton(() => GetChapterContent(sl()));
 }

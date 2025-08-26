@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 abstract class HiCodeRemoteDatasource {
   Future<Map<String, dynamic>> getMainScreenData();
   Future<Map<String, dynamic>> getChapterListData(String materialId);
+  Future<Map<String, dynamic>> getChapterContent(String chapterId);
 }
 
 class HiCodeRemoteDatasourceImpl implements HiCodeRemoteDatasource {
@@ -35,5 +36,10 @@ class HiCodeRemoteDatasourceImpl implements HiCodeRemoteDatasource {
       'icon_path': 'src/features/hicode/materi/html.png',
       'chapters': [],
     };
+  }
+
+  @override
+  Future<Map<String, dynamic>> getChapterContent(String chapterId) async {
+    return await client.rpc('get_hicode_chapter_content', params: {'p_chapter_id': chapterId});
   }
 }

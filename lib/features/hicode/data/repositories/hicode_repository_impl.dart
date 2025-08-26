@@ -6,6 +6,8 @@ import 'package:himtika_mobile_information/features/hicode/domain/entities/hicod
 import 'package:himtika_mobile_information/features/hicode/domain/entities/hicode_chapter.dart';
 import 'package:himtika_mobile_information/features/hicode/domain/repositories/hicode_repository.dart';
 import '../datasources/hicode_remote_datasource.dart';
+import '../models/hicode_chapter_content_model.dart';
+import '../../domain/entities/hicode_chapter_content.dart';
 
 class HiCodeRepositoryImpl implements HiCodeRepository {
   final HiCodeRemoteDatasource remoteDatasource;
@@ -40,5 +42,11 @@ class HiCodeRepositoryImpl implements HiCodeRepository {
         .toList();
 
     return (title, description, iconPath, chapters);
+  }
+
+  @override
+  Future<HiCodeChapterContent> getChapterContent(String chapterId) async {
+    final data = await remoteDatasource.getChapterContent(chapterId);
+    return HiCodeChapterContentModel.fromMap(data);
   }
 }

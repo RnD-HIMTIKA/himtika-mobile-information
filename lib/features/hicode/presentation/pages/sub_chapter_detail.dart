@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/bloc/sub_chapter_detail/sub_chapter_detail_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/information_screen.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/quiz_screen.dart';
@@ -12,30 +13,31 @@ class SubChapterDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => SubChapterDetailBloc()
+      create: (context) => sl<SubChapterDetailBloc>()
         ..add(FetchSubChapterData(subChapterId: subChapterId)),
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F5F5),
         body: SafeArea(
+          top: false, // Agar konten bisa masuk ke area status bar
           child: BlocBuilder<SubChapterDetailBloc, SubChapterDetailState>(
             builder: (context, state) {
-              if (state.status == SubChapterDetailStatus.loading || state.title == null) {
+              if (state.status == SubChapterDetailStatus.loading || state.status == SubChapterDetailStatus.initial) {
                 return const Center(child: CircularProgressIndicator());
+              }
+              if (state.status == SubChapterDetailStatus.failure) {
+                return Center(child: Text(state.errorMessage ?? 'Gagal memuat materi.'));
               }
 
               return Column(
                 children: [
-                  // --- BAGIAN HEADER BIRU ---
                   _buildBlueHeader(context, state),
-
-                  // --- BAGIAN KONTEN PUTIH ---
                   Expanded(
-                    child: SingleChildScrollView(
+                    child: ListView.builder(
                       padding: const EdgeInsets.all(24.0),
-                      child: Text(
-                        state.content!,
-                        style: const TextStyle(fontSize: 16, height: 1.6),
-                      ),
+                      itemCount: state.contentBlocks.length,
+                      itemBuilder: (context, index) {
+                        return _buildContentBlock(state.contentBlocks[index]);
+                      },
                     ),
                   ),
                 ],
@@ -43,52 +45,58 @@ class SubChapterDetailScreen extends StatelessWidget {
             },
           ),
         ),
-        bottomNavigationBar: BlocBuilder<SubChapterDetailBloc, SubChapterDetailState>(
+        bottomNavigationBar:
+            BlocBuilder<SubChapterDetailBloc, SubChapterDetailState>(
           builder: (context, state) {
-            // Cek jika state belum siap, jangan tampilkan tombol
-            if (state.title == null) {
+            if (state.status != SubChapterDetailStatus.success) {
               return const SizedBox.shrink();
             }
-            
-            return Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: ElevatedButton(
-                onPressed: () {
-                  final quizId = state.title!.replaceAll('\n', ' ');
-                  
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => QuizScreen(quizId: quizId),
-                    ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text('Kerjakan Kuis', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    SizedBox(width: 8),
-                    Icon(Icons.arrow_forward, color: Colors.white),
-                  ],
-                ),
-              ),
-            );
+            return _buildBottomButton(context, state);
           },
         ),
       ),
     );
   }
 
-  // Widget untuk keseluruhan blok header biru
+  // WIDGET-WIDGET PEMBANTU
+  Widget _buildContentBlock(Map<String, dynamic> block) {
+    final type = block['type'];
+
+    switch (type) {
+      case 'paragraph':
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16.0),
+          child: Text(block['data'] ?? '', style: const TextStyle(fontSize: 16, height: 1.6)),
+        );
+      case 'image':
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          child: Image.network(block['url'] ?? ''),
+        );
+      case 'code':
+        return Container(
+          margin: const EdgeInsets.symmetric(vertical: 16.0),
+          padding: const EdgeInsets.all(12.0),
+          decoration: BoxDecoration(
+            color: Colors.grey[900], // Warna gelap untuk blok kode
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Text(
+            block['data'] ?? '', 
+            style: const TextStyle(
+              fontFamily: 'monospace',
+              color: Colors.white,
+            )
+          ),
+        );
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+  
   Widget _buildBlueHeader(BuildContext context, SubChapterDetailState state) {
     return Container(
+      padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
       decoration: const BoxDecoration(
         color: Colors.blue,
         borderRadius: BorderRadius.only(
@@ -96,181 +104,105 @@ class SubChapterDetailScreen extends StatelessWidget {
           bottomRight: Radius.circular(30),
         ),
         image: DecorationImage(
-          image: AssetImage('src/features/hicode/images/pattern_card.png'), // Sesuaikan path
+          image: AssetImage('src/features/hicode/images/pattern_card.png'),
           fit: BoxFit.cover,
-          opacity: 1.0,
+          opacity: 0.5,
         ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 16),
-            _buildTopIconBar(context),
-            const SizedBox(height: 4),
-            _buildHeaderContent(
-              title: state.title!,
-              readTime: state.readTime!,
-              quizCount: state.quizCount!,
-            ),
-            const SizedBox(height: 16),
-          ],
-        ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildTopIconBar(context),
+          _buildHeaderContent(
+            title: state.title!,
+            readTime: state.readTime!,
+            quizCount: state.quizCount!,
+          ),
+          const SizedBox(height: 16),
+        ],
       ),
     );
   }
 
-  // Widget untuk Top Bar (Back & Info)
   Widget _buildTopIconBar(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         IconButton(
-          onPressed: () async {
-            final bool? shouldExit = await _showExitConfirmationDialog(context);
-
-            // Tambahkan pengecekan 'context.mounted' di sini
-            if (shouldExit == true && context.mounted) {
-              Navigator.of(context).pop();
-            }
-          },
-          icon: Image.asset(
-            'src/features/hicode/materi/kembali.png',
-            width: 32, // Atur lebar gambar
-            height: 32, // Atur tinggi gambar
-          ),
+          onPressed: () => Navigator.of(context).pop(),
+          icon: Image.asset('src/features/hicode/materi/kembali.png', width: 32, height: 32, color: Colors.white),
         ),
-        
-        // --- UBAH BAGIAN INI JUGA ---
         IconButton(
           onPressed: () {
             Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const InformationScreen()),
             );
           },
-          icon: Image.asset(
-            'src/features/hicode/materi/informasi.png',
-            width: 28,
-            height: 28,
-          ),
+          icon: Image.asset('src/features/hicode/materi/informasi.png', width: 28, height: 28, color: Colors.white),
         ),
       ],
     );
   }
-  
-  // Widget untuk konten di dalam header (judul, durasi, kuis)
-  Widget _buildHeaderContent(
-      {required String title,
-      required String readTime,
-      required String quizCount}) {
+
+  Widget _buildHeaderContent({required String title, required String readTime, required String quizCount}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: const TextStyle(
-                color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold),
-          ),
+          Text(title, style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold, height: 1.2)),
           const SizedBox(height: 16),
           Row(
             children: [
-              const Icon(Icons.access_time, color: Colors.white, size: 20),
+              const Icon(Icons.access_time, color: Colors.white70, size: 20),
               const SizedBox(width: 8),
-              Text(readTime, style: const TextStyle(color: Colors.white)),
+              Text(readTime, style: const TextStyle(color: Colors.white70)),
             ],
           ),
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.edit_note, color: Colors.white, size: 20),
+              const Icon(Icons.edit_note, color: Colors.white70, size: 20),
               const SizedBox(width: 8),
-              Text(quizCount, style: const TextStyle(color: Colors.white)),
+              Text(quizCount, style: const TextStyle(color: Colors.white70)),
             ],
           ),
         ],
       ),
     );
   }
-}
 
-Future<bool?> _showExitConfirmationDialog(BuildContext context) {
-  return showDialog<bool>(
-    context: context,
-    builder: (context) {
-      return Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20.0),
+  Widget _buildBottomButton(BuildContext context, SubChapterDetailState state) {
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: ElevatedButton(
+        onPressed: state.isQuizUnlocked
+            ? () {
+                final quizId = state.title!.replaceAll('\n', ' ');
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => QuizScreen(quizId: quizId)),
+                );
+              }
+            : null,
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          backgroundColor: Colors.blue,
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: Colors.grey,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         ),
-        backgroundColor: const Color(0xFFF5F9FF),
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min, 
-            children: [
-              const Text(
-                'Keluar dari Materi?',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Anda sedang mengakses materi ini. Keluar sekarang dapat membuat progres belajar Anda tidak tersimpan.',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black54,
-                ),
-              ),
-              const SizedBox(height: 24),              
-              // Tombol Kembali ke Beranda
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Tutup dialog dan kembalikan nilai 'true'
-                    Navigator.of(context).pop(true);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                    elevation: 0, // Hilangkan bayangan
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                  child: const Text('Kembali ke Beranda'),
-                ),
-              ),
-              const SizedBox(height: 8),
-              // Tombol Lanjutkan Belajar
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Tutup dialog dan kembalikan nilai 'false'
-                    Navigator.of(context).pop(false);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    backgroundColor: const Color(0xFFE0E0E0),
-                    foregroundColor: Colors.black54,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                  child: const Text('Lanjutkan Belajar'),
-                ),
-              ),             
-            ],
-          ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              state.isQuizUnlocked ? 'Kerjakan Kuis' : 'Selesaikan Membaca Dahulu',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(width: 8),
+            const Icon(Icons.arrow_forward, color: Colors.white),
+          ],
         ),
-      );
-    },
-  );
+      ),
+    );
+  }
 }

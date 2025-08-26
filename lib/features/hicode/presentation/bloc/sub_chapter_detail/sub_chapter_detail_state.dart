@@ -3,36 +3,44 @@ part of 'sub_chapter_detail_bloc.dart';
 enum SubChapterDetailStatus { initial, loading, success, failure }
 
 class SubChapterDetailState extends Equatable {
+  final SubChapterDetailStatus status;
+  final String? title;
+  final String? readTime;
+  final String? quizCount;
+  final List<Map<String, dynamic>> contentBlocks; // Menggunakan List untuk blok konten
+  final String? errorMessage;
+  final bool isQuizUnlocked;
+
   const SubChapterDetailState({
     this.status = SubChapterDetailStatus.initial,
     this.title,
     this.readTime,
     this.quizCount,
-    this.content,
+    this.contentBlocks = const [],
+    this.errorMessage,
+    this.isQuizUnlocked = false,
   });
-
-  final SubChapterDetailStatus status;
-  final String? title;
-  final String? readTime;
-  final String? quizCount;
-  final String? content;
 
   SubChapterDetailState copyWith({
     SubChapterDetailStatus? status,
     String? title,
     String? readTime,
     String? quizCount,
-    String? content,
+    List<Map<String, dynamic>>? contentBlocks,
+    String? errorMessage,
+    bool? isQuizUnlocked,
   }) {
     return SubChapterDetailState(
       status: status ?? this.status,
       title: title ?? this.title,
       readTime: readTime ?? this.readTime,
       quizCount: quizCount ?? this.quizCount,
-      content: content ?? this.content,
+      contentBlocks: contentBlocks ?? this.contentBlocks,
+      errorMessage: errorMessage ?? this.errorMessage,
+      isQuizUnlocked: isQuizUnlocked ?? this.isQuizUnlocked,
     );
   }
 
   @override
-  List<Object?> get props => [status, title, readTime, quizCount, content];
+  List<Object?> get props => [status, title, readTime, quizCount, contentBlocks, errorMessage, isQuizUnlocked];
 }
