@@ -1,9 +1,7 @@
-// lib/features/AdminPanel/presentation/pages/hicode/hicode_admin_home_screen.dart
-
 import 'package:flutter/material.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/pages/sidebar.dart';
 import 'category_management_screen.dart'; 
-// import 'material_management_screen.dart';
+import 'material_management_screen.dart';
 // import 'question_bank_screen.dart';
 
 class HicodeAdminHomeScreen extends StatelessWidget {
@@ -44,7 +42,7 @@ class HicodeAdminHomeScreen extends StatelessWidget {
             title: 'Kelola Materi',
             subtitle: 'Atur materi dan chapter di setiap kategori',
             onTap: () {
-              // Navigator.push(context, MaterialPageRoute(builder: (_) => const MaterialManagementScreen()));
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const MaterialManagementScreen()));
             },
           ),
           _buildMenuCard(
