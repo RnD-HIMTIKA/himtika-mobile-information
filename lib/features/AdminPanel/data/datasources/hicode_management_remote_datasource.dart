@@ -8,15 +8,24 @@ abstract class HiCodeManagementRemoteDatasource {
   Future<void> createCategory({required String name, required String iconUrl});
   Future<void> updateCategory({required String id, required String name, String? iconUrl});
   Future<void> deleteCategory({required String id});
-
-  // Operasi File Storage
   Future<String> uploadIcon({required File iconFile});
+
+  Future<List<Map<String, dynamic>>> getAdminMaterials();
+  Future<void> createMaterial({
+    required String categoryId,
+    required String title,
+    required String description,
+    required String imageUrl,
+    required String borderColor,
+  });
+  Future<String> uploadMaterialImage({required File imageFile});
 }
 
 class HiCodeManagementRemoteDatasourceImpl implements HiCodeManagementRemoteDatasource {
   final SupabaseClient client;
   HiCodeManagementRemoteDatasourceImpl({required this.client});
 
+  // --- Kategori Implementations ---
   @override
   Future<List<Map<String, dynamic>>> getCategories() async {
     final data = await client.rpc('get_hicode_categories');
@@ -25,21 +34,12 @@ class HiCodeManagementRemoteDatasourceImpl implements HiCodeManagementRemoteData
 
   @override
   Future<void> createCategory({required String name, required String iconUrl}) async {
-    await client.rpc('create_hicode_category', params: {
-      'p_name': name,
-      'p_icon_url': iconUrl,
-    });
+    await client.rpc('create_hicode_category', params: {'p_name': name, 'p_icon_url': iconUrl});
   }
 
   @override
   Future<void> updateCategory({required String id, required String name, String? iconUrl}) async {
-    // Kita akan membuat RPC baru yang lebih fleksibel untuk ini nanti.
-    // Untuk sekarang, kita panggil RPC yang ada dengan logika null check di repository.
-    await client.rpc('update_hicode_category', params: {
-      'p_id': id,
-      'p_name': name,
-      'p_icon_url': iconUrl, // RPC akan menangani jika ini null
-    });
+    await client.rpc('update_hicode_category', params: {'p_id': id, 'p_name': name, 'p_icon_url': iconUrl});
   }
 
   @override
@@ -50,21 +50,52 @@ class HiCodeManagementRemoteDatasourceImpl implements HiCodeManagementRemoteData
   @override
   Future<String> uploadIcon({required File iconFile}) async {
     try {
-      // Buat path file yang unik untuk menghindari penimpaan
       final fileName = '${DateTime.now().millisecondsSinceEpoch}_${basename(iconFile.path)}';
       const bucketName = 'hicode_assets';
-      final filePath = 'icon/$fileName'; // Simpan di dalam folder 'icon'
+      final filePath = 'icon/$fileName';
 
-      // Unggah file ke Supabase Storage
       await client.storage.from(bucketName).upload(filePath, iconFile);
-
-      // Dapatkan URL publik dari file yang baru diunggah
-      final String publicUrl = client.storage.from(bucketName).getPublicUrl(filePath);
-
-      return publicUrl;
+      return client.storage.from(bucketName).getPublicUrl(filePath);
     } catch (e) {
-      // Tangani kemungkinan error saat unggah
       throw Exception('Gagal mengunggah ikon: $e');
+    }
+  }
+
+  // --- Materi Implementations (BARU) ---
+  @override
+  Future<List<Map<String, dynamic>>> getAdminMaterials() async {
+    final data = await client.rpc('get_admin_hicode_materials');
+    return List<Map<String, dynamic>>.from(data ?? []);
+  }
+  
+  @override
+  Future<void> createMaterial({
+    required String categoryId,
+    required String title,
+    required String description,
+    required String imageUrl,
+    required String borderColor,
+  }) async {
+    await client.rpc('create_hicode_material', params: {
+      'p_category_id': categoryId,
+      'p_title': title,
+      'p_description': description,
+      'p_image_url': imageUrl,
+      'p_border_color': borderColor,
+    });
+  }
+
+  @override
+  Future<String> uploadMaterialImage({required File imageFile}) async {
+    try {
+      final fileName = '${DateTime.now().millisecondsSinceEpoch}_${basename(imageFile.path)}';
+      const bucketName = 'hicode_assets';
+      final filePath = 'images/$fileName'; // Simpan di dalam folder 'images'
+
+      await client.storage.from(bucketName).upload(filePath, imageFile);
+      return client.storage.from(bucketName).getPublicUrl(filePath);
+    } catch (e) {
+      throw Exception('Gagal mengunggah gambar materi: $e');
     }
   }
 }

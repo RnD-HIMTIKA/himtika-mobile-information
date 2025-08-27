@@ -1,4 +1,6 @@
 import 'dart:io';
+import 'package:himtika_mobile_information/features/AdminPanel/data/models/admin_hicode_material_model.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_hicode_material.dart';
 import 'package:himtika_mobile_information/features/hicode/data/models/hicode_category_model.dart';
 import 'package:himtika_mobile_information/features/hicode/domain/entities/hicode_category.dart';
 import '../../domain/repositories/hicode_management_repository.dart';
@@ -9,6 +11,7 @@ class HiCodeManagementRepositoryImpl implements HiCodeManagementRepository {
 
   HiCodeManagementRepositoryImpl({required this.remoteDatasource});
 
+  // --- Kategori ---
   @override
   Future<List<HiCodeCategory>> getCategories() async {
     final data = await remoteDatasource.getCategories();
@@ -17,28 +20,47 @@ class HiCodeManagementRepositoryImpl implements HiCodeManagementRepository {
 
   @override
   Future<void> createCategory({required String name, required File iconFile}) async {
-    // 1. Unggah ikon terlebih dahulu
     final iconUrl = await remoteDatasource.uploadIcon(iconFile: iconFile);
-    
-    // 2. Gunakan URL yang didapat untuk membuat kategori di database
     await remoteDatasource.createCategory(name: name, iconUrl: iconUrl);
   }
 
   @override
   Future<void> updateCategory({required String id, required String name, File? iconFile}) async {
     String? newIconUrl;
-    // Jika ada file ikon baru, unggah terlebih dahulu
     if (iconFile != null) {
       newIconUrl = await remoteDatasource.uploadIcon(iconFile: iconFile);
     }
-    
-    // Panggil RPC untuk update. RPC akan menangani jika newIconUrl null.
-    // Kita perlu memodifikasi RPC di Supabase agar bisa menangani URL null.
     await remoteDatasource.updateCategory(id: id, name: name, iconUrl: newIconUrl);
   }
 
   @override
   Future<void> deleteCategory({required String id}) {
     return remoteDatasource.deleteCategory(id: id);
+  }
+
+  // --- Materi (BARU) ---
+  @override
+  Future<List<AdminHiCodeMaterial>> getAdminMaterials() async {
+    final data = await remoteDatasource.getAdminMaterials();
+    // Anda perlu membuat AdminHiCodeMaterialModel
+    return data.map((map) => AdminHiCodeMaterialModel.fromMap(map)).toList();
+  }
+
+  @override
+  Future<void> createMaterial({
+    required String categoryId,
+    required String title,
+    required String description,
+    required File imageFile,
+    required String borderColor,
+  }) async {
+    final imageUrl = await remoteDatasource.uploadMaterialImage(imageFile: imageFile);
+    await remoteDatasource.createMaterial(
+      categoryId: categoryId,
+      title: title,
+      description: description,
+      imageUrl: imageUrl,
+      borderColor: borderColor,
+    );
   }
 }

@@ -101,6 +101,11 @@ import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/h
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/update_hicode_category.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/delete_hicode_category.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/category_management/category_management_bloc.dart';
+// Import untuk HiCode Management Materi
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/get_admin_hicode_materials.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/create_hicode_material.dart';
+// Import BLoC baru yang akan kita buat
+import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/material_management/material_management_bloc.dart';
 
 // --- Hicode Imports ---
 import 'package:himtika_mobile_information/features/hicode/domain/repositories/hicode_repository.dart';
@@ -303,6 +308,8 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => CreateHiCodeCategory(sl()));
   sl.registerLazySingleton(() => UpdateHiCodeCategory(sl()));
   sl.registerLazySingleton(() => DeleteHiCodeCategory(sl()));
+  sl.registerLazySingleton(() => GetAdminHiCodeMaterials(sl()));
+  sl.registerLazySingleton(() => CreateHiCodeMaterial(sl()));
 
   // BLoCs
   sl.registerFactory(() => CategoryManagementBloc(
@@ -310,6 +317,11 @@ Future<void> initDependencies() async {
         createCategory: sl(),
         updateCategory: sl(),
         deleteCategory: sl(),
+      ));
+  sl.registerFactory(() => MaterialManagementBloc(
+        getAdminHiCodeMaterials: sl(),
+        createHiCodeMaterial: sl(),
+        getHiCodeCategories: sl(), // <-- TAMBAHKAN INI
       ));
 
   // ==================== HICODE FEATURE ====================
