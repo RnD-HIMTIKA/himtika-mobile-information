@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:himtika_mobile_information/features/hicode/domain/entities/hicode_category.dart';
 import '../entities/admin_hicode_material.dart';
+import '../entities/hicode_chapter.dart';
 
 abstract class HiCodeManagementRepository {
   Future<List<HiCodeCategory>> getCategories();
@@ -17,4 +18,22 @@ abstract class HiCodeManagementRepository {
     required File imageFile,
     required String borderColor,
   });
+
+  Future<List<HiCodeChapter>> getChaptersByMaterial(String materialId);
+  Future<void> createChapter({
+    required String materialId,
+    required String title,
+    required Map<String, dynamic> content,
+    int? estimatedReadTime,
+    required int order,
+  });
+  Future<void> updateChapter({
+    required String id,
+    String? title,
+    Map<String, dynamic>? content,
+    int? estimatedReadTime,
+    int? order,
+  });
+  Future<void> deleteChapter(String id);
+  Future<void> reorderChapters(String materialId, List<String> chapterIds);
 }

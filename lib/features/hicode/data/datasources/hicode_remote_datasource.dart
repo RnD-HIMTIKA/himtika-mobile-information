@@ -1,4 +1,8 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+// Tambahkan import ini jika belum ada
+import 'package:himtika_mobile_information/core/injection_container.dart';
+import 'package:himtika_mobile_information/features/auth/domain/usecases/get_current_user.dart';
+
 
 abstract class HiCodeRemoteDatasource {
   Future<Map<String, dynamic>> getMainScreenData();
@@ -10,36 +14,47 @@ abstract class HiCodeRemoteDatasource {
 
 class HiCodeRemoteDatasourceImpl implements HiCodeRemoteDatasource {
   final SupabaseClient client;
-  HiCodeRemoteDatasourceImpl({required this.client});
+  // Tambahkan dependency GetCurrentUser untuk mendapatkan user_id
+  final GetCurrentUser getCurrentUser;
+
+  HiCodeRemoteDatasourceImpl({required this.client, required this.getCurrentUser}); // Update constructor
 
   @override
   Future<Map<String, dynamic>> getMainScreenData() async {
-    // Diasumsikan fungsi RPC ini akan dibuat di Fase 1 nanti
-    // Untuk sekarang, kita siapkan panggilannya.
-    // return await client.rpc('get_hicode_main_screen');
-    // Data dummy sementara agar tidak error:
-    await Future.delayed(const Duration(seconds: 1));
-    return {
-      'categories': [],
-      'materials': [],
-      'is_exam_ready': false,
-    };
+    // Dapatkan user ID saat ini
+    final user = await getCurrentUser();
+    if (user == null) {
+      throw Exception('Pengguna tidak terautentikasi.');
+    }
+    // Panggil RPC yang sebenarnya
+    final data = await client.rpc(
+      'get_hicode_main_screen',
+      params: {'p_user_id': user.id}, // Kirim user ID
+    );
+    // Hasil RPC adalah objek tunggal, bukan list, jadi langsung return
+    return data as Map<String, dynamic>;
   }
 
   @override
   Future<Map<String, dynamic>> getChapterListData(String materialId) async {
-    // Diasumsikan fungsi RPC ini akan dibuat di Fase 1 nanti
-    // return await client.rpc('get_chapter_list', params: {'p_material_id': materialId});
-    // Data dummy sementara agar tidak error:
-    await Future.delayed(const Duration(seconds: 1));
-    return {
-      'title': 'Dummy Title',
-      'description': 'Dummy Description',
-      'icon_path': 'src/features/hicode/materi/html.png',
-      'chapters': [],
-    };
+    // Dapatkan user ID saat ini
+    final user = await getCurrentUser();
+    if (user == null) {
+      throw Exception('Pengguna tidak terautentikasi.');
+    }
+    // Panggil RPC yang sebenarnya
+    final data = await client.rpc(
+      'get_chapter_list',
+      params: {
+        'p_user_id': user.id, // Kirim user ID
+        'p_material_id': materialId,
+      },
+    );
+    // Hasil RPC adalah objek tunggal
+    return data as Map<String, dynamic>;
   }
 
+  // --- Implementasi method lain tetap sama ---
   @override
   Future<Map<String, dynamic>> getChapterContent(String chapterId) async {
     return await client.rpc('get_hicode_chapter_content', params: {'p_chapter_id': chapterId});
@@ -56,6 +71,15 @@ class HiCodeRemoteDatasourceImpl implements HiCodeRemoteDatasource {
 
   @override
   Future<Map<String, dynamic>> submitAnswers(Map<String, String> answers) async {
-    return await client.rpc('submit_hicode_answers', params: {'p_answers': answers});
+    // Dapatkan user ID saat ini (diperlukan oleh RPC submit_hicode_answers)
+    final user = await getCurrentUser();
+     if (user == null) {
+       throw Exception('Pengguna tidak terautentikasi.');
+     }
+    // Panggil RPC dengan user_id dan answers
+    return await client.rpc('submit_hicode_answers', params: {
+        'p_user_id': user.id, // Pastikan RPC Anda menerima user_id jika diperlukan
+        'p_answers': answers
+    });
   }
 }

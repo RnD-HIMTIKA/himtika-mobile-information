@@ -10,6 +10,7 @@ abstract class HiCodeManagementRemoteDatasource {
   Future<void> deleteCategory({required String id});
   Future<String> uploadIcon({required File iconFile});
 
+  // Operasi CRUD Materi
   Future<List<Map<String, dynamic>>> getAdminMaterials();
   Future<void> createMaterial({
     required String categoryId,
@@ -19,13 +20,32 @@ abstract class HiCodeManagementRemoteDatasource {
     required String borderColor,
   });
   Future<String> uploadMaterialImage({required File imageFile});
+
+  // Operasi CRUD Chapter (BARU)
+  Future<List<Map<String, dynamic>>> getChaptersByMaterial(String materialId);
+  Future<void> createChapter({
+    required String materialId,
+    required String title,
+    required Map<String, dynamic> content,
+    int? estimatedReadTime,
+    required int order,
+  });
+  Future<void> updateChapter({
+    required String id,
+    String? title,
+    Map<String, dynamic>? content,
+    int? estimatedReadTime,
+    int? order,
+  });
+  Future<void> deleteChapter(String id);
+  Future<void> reorderChapters(String materialId, List<String> chapterIds);
 }
 
 class HiCodeManagementRemoteDatasourceImpl implements HiCodeManagementRemoteDatasource {
   final SupabaseClient client;
   HiCodeManagementRemoteDatasourceImpl({required this.client});
 
-  // --- Kategori Implementations ---
+  // --- Existing Kategori Implementations ---
   @override
   Future<List<Map<String, dynamic>>> getCategories() async {
     final data = await client.rpc('get_hicode_categories');
@@ -61,7 +81,7 @@ class HiCodeManagementRemoteDatasourceImpl implements HiCodeManagementRemoteData
     }
   }
 
-  // --- Materi Implementations (BARU) ---
+  // --- Existing Materi Implementations ---
   @override
   Future<List<Map<String, dynamic>>> getAdminMaterials() async {
     final data = await client.rpc('get_admin_hicode_materials');
@@ -90,12 +110,75 @@ class HiCodeManagementRemoteDatasourceImpl implements HiCodeManagementRemoteData
     try {
       final fileName = '${DateTime.now().millisecondsSinceEpoch}_${basename(imageFile.path)}';
       const bucketName = 'hicode_assets';
-      final filePath = 'images/$fileName'; // Simpan di dalam folder 'images'
+      final filePath = 'images/$fileName';
 
       await client.storage.from(bucketName).upload(filePath, imageFile);
       return client.storage.from(bucketName).getPublicUrl(filePath);
     } catch (e) {
       throw Exception('Gagal mengunggah gambar materi: $e');
+    }
+  }
+
+  // --- Chapter Implementations (BARU) ---
+  @override
+  Future<List<Map<String, dynamic>>> getChaptersByMaterial(String materialId) async {
+    final response = await client
+        .from('hicode_chapters')
+        .select()
+        .eq('material_id', materialId)
+        .order('order');
+    return List<Map<String, dynamic>>.from(response);
+  }
+
+  @override
+  Future<void> createChapter({
+    required String materialId,
+    required String title,
+    required Map<String, dynamic> content,
+    int? estimatedReadTime,
+    required int order,
+  }) async {
+    await client.from('hicode_chapters').insert({
+      'material_id': materialId,
+      'title': title,
+      'content': content,
+      'estimated_read_time': estimatedReadTime,
+      'order': order,
+    });
+  }
+
+  @override
+  Future<void> updateChapter({
+    required String id,
+    String? title,
+    Map<String, dynamic>? content,
+    int? estimatedReadTime,
+    int? order,
+  }) async {
+    final updates = <String, dynamic>{};
+    if (title != null) updates['title'] = title;
+    if (content != null) updates['content'] = content;
+    if (estimatedReadTime != null) updates['estimated_read_time'] = estimatedReadTime;
+    if (order != null) updates['order'] = order;
+    
+    if (updates.isNotEmpty) {
+      await client.from('hicode_chapters').update(updates).eq('id', id);
+    }
+  }
+
+  @override
+  Future<void> deleteChapter(String id) async {
+    await client.from('hicode_chapters').delete().eq('id', id);
+  }
+
+  @override
+  Future<void> reorderChapters(String materialId, List<String> chapterIds) async {
+    // Update order berdasarkan posisi dalam list
+    for (int i = 0; i < chapterIds.length; i++) {
+      await client
+          .from('hicode_chapters')
+          .update({'order': i + 1})
+          .eq('id', chapterIds[i]);
     }
   }
 }

@@ -9,6 +9,7 @@ class MaterialDetailState extends Equatable {
   final String? materialIconPath;
   final List<HiCodeChapter> chapters;
   final String? errorMessage;
+  final String finalPracticeStatus;
 
   const MaterialDetailState({
     this.status = MaterialDetailStatus.initial,
@@ -17,6 +18,7 @@ class MaterialDetailState extends Equatable {
     this.materialIconPath,
     this.chapters = const [],
     this.errorMessage,
+    this.finalPracticeStatus = 'locked',
   });
 
   MaterialDetailState copyWith({
@@ -26,6 +28,7 @@ class MaterialDetailState extends Equatable {
     String? materialIconPath,
     List<HiCodeChapter>? chapters,
     String? errorMessage,
+    String? finalPracticeStatus,
   }) {
     return MaterialDetailState(
       status: status ?? this.status,
@@ -34,9 +37,10 @@ class MaterialDetailState extends Equatable {
       materialIconPath: materialIconPath ?? this.materialIconPath,
       chapters: chapters ?? this.chapters,
       errorMessage: errorMessage ?? this.errorMessage,
+      finalPracticeStatus: finalPracticeStatus ?? this.finalPracticeStatus,
     );
   }
 
   @override
-  List<Object?> get props => [status, title, description, materialIconPath, chapters, errorMessage];
+  List<Object?> get props => [status, title, description, materialIconPath, chapters, errorMessage, finalPracticeStatus];
 }
