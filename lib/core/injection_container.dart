@@ -327,7 +327,7 @@ Future<void> initDependencies() async {
   // ==================== HICODE FEATURE ====================
   // Datasource
   sl.registerLazySingleton<HiCodeRemoteDatasource>(
-      () => HiCodeRemoteDatasourceImpl(client: sl()));
+      () => HiCodeRemoteDatasourceImpl(client: sl(), getCurrentUser: sl()));
   // Repository
   sl.registerLazySingleton<HiCodeRepository>(
       () => HiCodeRepositoryImpl(remoteDatasource: sl()));

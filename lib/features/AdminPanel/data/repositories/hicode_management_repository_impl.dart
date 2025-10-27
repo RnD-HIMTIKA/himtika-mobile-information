@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:himtika_mobile_information/features/AdminPanel/data/models/admin_hicode_material_model.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/data/models/hicode_chapter_model.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_hicode_material.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/hicode_chapter.dart';
 import 'package:himtika_mobile_information/features/hicode/data/models/hicode_category_model.dart';
 import 'package:himtika_mobile_information/features/hicode/domain/entities/hicode_category.dart';
 import '../../domain/repositories/hicode_management_repository.dart';
@@ -11,7 +13,7 @@ class HiCodeManagementRepositoryImpl implements HiCodeManagementRepository {
 
   HiCodeManagementRepositoryImpl({required this.remoteDatasource});
 
-  // --- Kategori ---
+  // --- Existing Kategori Methods ---
   @override
   Future<List<HiCodeCategory>> getCategories() async {
     final data = await remoteDatasource.getCategories();
@@ -38,11 +40,10 @@ class HiCodeManagementRepositoryImpl implements HiCodeManagementRepository {
     return remoteDatasource.deleteCategory(id: id);
   }
 
-  // --- Materi (BARU) ---
+  // --- Existing Materi Methods ---
   @override
   Future<List<AdminHiCodeMaterial>> getAdminMaterials() async {
     final data = await remoteDatasource.getAdminMaterials();
-    // Anda perlu membuat AdminHiCodeMaterialModel
     return data.map((map) => AdminHiCodeMaterialModel.fromMap(map)).toList();
   }
 
@@ -62,5 +63,56 @@ class HiCodeManagementRepositoryImpl implements HiCodeManagementRepository {
       imageUrl: imageUrl,
       borderColor: borderColor,
     );
+  }
+
+  // --- Chapter Methods (BARU) ---
+  @override
+  Future<List<HiCodeChapter>> getChaptersByMaterial(String materialId) async {
+    final data = await remoteDatasource.getChaptersByMaterial(materialId);
+    return data.map((map) => HiCodeChapterModel.fromMap(map)).toList();
+  }
+
+  @override
+  Future<void> createChapter({
+    required String materialId,
+    required String title,
+    required Map<String, dynamic> content,
+    int? estimatedReadTime,
+    required int order,
+  }) {
+    return remoteDatasource.createChapter(
+      materialId: materialId,
+      title: title,
+      content: content,
+      estimatedReadTime: estimatedReadTime,
+      order: order,
+    );
+  }
+
+  @override
+  Future<void> updateChapter({
+    required String id,
+    String? title,
+    Map<String, dynamic>? content,
+    int? estimatedReadTime,
+    int? order,
+  }) {
+    return remoteDatasource.updateChapter(
+      id: id,
+      title: title,
+      content: content,
+      estimatedReadTime: estimatedReadTime,
+      order: order,
+    );
+  }
+
+  @override
+  Future<void> deleteChapter(String id) {
+    return remoteDatasource.deleteChapter(id);
+  }
+
+  @override
+  Future<void> reorderChapters(String materialId, List<String> chapterIds) {
+    return remoteDatasource.reorderChapters(materialId, chapterIds);
   }
 }
