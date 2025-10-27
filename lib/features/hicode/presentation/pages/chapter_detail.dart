@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:himtika_mobile_information/core/injection_container.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/bloc/sub_chapter_detail/sub_chapter_detail_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/bloc/chapter_detail/chapter_detail_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/final_practice_detail.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/information_screen.dart';
@@ -176,8 +177,10 @@ class MaterialDetailScreen extends StatelessWidget {
         ? () {
             Navigator.of(context).push(
               MaterialPageRoute(
-                // Arahkan ke SubChapterDetailScreen dengan ID chapter
-                builder: (_) => SubChapterDetailScreen(subChapterId: chapter.id),
+                builder: (_) => BlocProvider(
+                  create: (context) => sl<SubChapterDetailBloc>(), // Buat BLoC saat navigasi
+                  child: SubChapterDetailScreen(subChapterId: chapter.id), // Berikan ID chapter
+                ),
               ),
             );
           }

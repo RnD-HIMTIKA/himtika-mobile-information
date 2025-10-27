@@ -10,6 +10,7 @@ class SubChapterDetailState extends Equatable {
   final List<Map<String, dynamic>> contentBlocks; // Menggunakan List untuk blok konten
   final String? errorMessage;
   final bool isQuizUnlocked;
+  final double lastScrollPosition;
 
   const SubChapterDetailState({
     this.status = SubChapterDetailStatus.initial,
@@ -19,6 +20,7 @@ class SubChapterDetailState extends Equatable {
     this.contentBlocks = const [],
     this.errorMessage,
     this.isQuizUnlocked = false,
+    this.lastScrollPosition = 0.0,
   });
 
   SubChapterDetailState copyWith({
@@ -29,6 +31,7 @@ class SubChapterDetailState extends Equatable {
     List<Map<String, dynamic>>? contentBlocks,
     String? errorMessage,
     bool? isQuizUnlocked,
+    double? lastScrollPosition,
   }) {
     return SubChapterDetailState(
       status: status ?? this.status,
@@ -38,9 +41,10 @@ class SubChapterDetailState extends Equatable {
       contentBlocks: contentBlocks ?? this.contentBlocks,
       errorMessage: errorMessage ?? this.errorMessage,
       isQuizUnlocked: isQuizUnlocked ?? this.isQuizUnlocked,
+      lastScrollPosition: lastScrollPosition ?? this.lastScrollPosition,
     );
   }
 
   @override
-  List<Object?> get props => [status, title, readTime, quizCount, contentBlocks, errorMessage, isQuizUnlocked];
+  List<Object?> get props => [status, title, readTime, quizCount, contentBlocks, errorMessage, isQuizUnlocked, lastScrollPosition];
 }
