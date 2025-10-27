@@ -129,7 +129,7 @@ class Sidebar extends StatelessWidget {
                               style: TextStyle(color: Colors.white)),
                           onTap: () {
                             // PERUBAHAN DI SINI: Arahkan ke Halaman Dashboard HiCode
-                            Navigator.push(
+                            Navigator.pushReplacement( // Gunakan pushReplacement jika ini level menu utama
                               context,
                               MaterialPageRoute(
                                   builder: (context) => const HicodeAdminHomeScreen()),

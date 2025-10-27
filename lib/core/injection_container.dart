@@ -104,8 +104,15 @@ import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc
 // Import untuk HiCode Management Materi
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/get_admin_hicode_materials.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/create_hicode_material.dart';
+// IMPORT USE CASES UNTUK CHAPTER MANAGEMENT:
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/get_chapters_by_material.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/create_hicode_chapter.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/update_hicode_chapter.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/delete_hicode_chapter.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/reorder_hicode_chapters.dart';
 // Import BLoC baru yang akan kita buat
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/material_management/material_management_bloc.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/chapter_management/chapter_management_bloc.dart';
 
 // --- Hicode Imports ---
 import 'package:himtika_mobile_information/features/hicode/domain/repositories/hicode_repository.dart';
@@ -292,24 +299,34 @@ Future<void> initDependencies() async {
         updateUserRoles: sl(),
         getAllRolesGrouped: sl(),
       ));
-  sl.registerFactory(() => HicodeManagementBloc(client: sl()));
 
   // ==================== ADMIN PANEL HICODE MANAGEMENT ====================
   // Datasource
   sl.registerLazySingleton<HiCodeManagementRemoteDatasource>(
       () => HiCodeManagementRemoteDatasourceImpl(client: sl()));
-  
+
   // Repository
   sl.registerLazySingleton<HiCodeManagementRepository>(
       () => HiCodeManagementRepositoryImpl(remoteDatasource: sl()));
-  
-  // Usecases
+
+  // Usecases (Category)
   sl.registerLazySingleton(() => GetHiCodeCategories(sl()));
   sl.registerLazySingleton(() => CreateHiCodeCategory(sl()));
   sl.registerLazySingleton(() => UpdateHiCodeCategory(sl()));
   sl.registerLazySingleton(() => DeleteHiCodeCategory(sl()));
+
+  // Usecases (Material)
   sl.registerLazySingleton(() => GetAdminHiCodeMaterials(sl()));
   sl.registerLazySingleton(() => CreateHiCodeMaterial(sl()));
+  // TODO: Tambahkan Usecase UpdateHiCodeMaterial dan DeleteHiCodeMaterial nanti
+
+  // --- TAMBAHKAN REGISTRASI USE CASES CHAPTER DI SINI ---
+  sl.registerLazySingleton(() => GetChaptersByMaterial(sl()));
+  sl.registerLazySingleton(() => CreateHiCodeChapter(sl()));
+  sl.registerLazySingleton(() => UpdateHiCodeChapter(sl()));
+  sl.registerLazySingleton(() => DeleteHiCodeChapter(sl()));
+  sl.registerLazySingleton(() => ReorderHiCodeChapters(sl()));
+  // --- END TAMBAHAN USE CASES CHAPTER ---
 
   // BLoCs
   sl.registerFactory(() => CategoryManagementBloc(
@@ -321,8 +338,17 @@ Future<void> initDependencies() async {
   sl.registerFactory(() => MaterialManagementBloc(
         getAdminHiCodeMaterials: sl(),
         createHiCodeMaterial: sl(),
-        getHiCodeCategories: sl(), // <-- TAMBAHKAN INI
+        getHiCodeCategories: sl(),
       ));
+
+  // --- TAMBAHKAN REGISTRASI BLOC CHAPTER DI SINI ---
+  sl.registerFactory(() => ChapterManagementBloc(
+       getChaptersByMaterial: sl(),
+       createChapter: sl(),
+       updateChapter: sl(),
+       deleteChapter: sl(),
+       reorderChapters: sl(),
+     ));
 
   // ==================== HICODE FEATURE ====================
   // Datasource

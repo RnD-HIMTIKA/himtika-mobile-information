@@ -6,6 +6,7 @@ import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_hicode_material.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/material_management/material_management_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/domain/entities/hicode_category.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/presentation/pages/hicode/chapter_management_screen.dart';
 
 class MaterialManagementScreen extends StatelessWidget {
   const MaterialManagementScreen({super.key});
@@ -102,14 +103,51 @@ class MaterialManagementScreen extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            IconButton(icon: Icon(Icons.edit, color: Colors.blue.shade700), onPressed: onEdit),
-            IconButton(icon: Icon(Icons.delete_outline, color: Colors.red.shade700), onPressed: onDelete),
-          ],
-        ),
-        onTap: onEdit,
+            Tooltip(
+            message: 'Edit Info Materi',
+            child: IconButton(icon: Icon(Icons.edit_note, color: Colors.blue.shade700), onPressed: onEdit),
+          ),
+          // Tombol Kelola Chapter (Navigasi)
+          Tooltip(
+            message: 'Kelola Chapter', // Beri tooltip
+            child: IconButton(
+              icon: Icon(Icons.list_alt, color: Colors.green.shade700), // Ganti ikon
+              onPressed: () {
+                // NAVIGASI KE ChapterManagementScreen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ChapterManagementScreen(
+                      materialId: material.id,
+                      materialTitle: material.title,
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          // Tombol Hapus Materi
+          Tooltip(
+            message: 'Hapus Materi',
+            child: IconButton(icon: Icon(Icons.delete_outline, color: Colors.red.shade700), onPressed: onDelete),
+          ),
+        ],
       ),
-    );
-  }
+      // onTap sekarang bisa digunakan untuk navigasi cepat ke chapter management
+      onTap: () {
+         Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ChapterManagementScreen(
+                materialId: material.id,
+                materialTitle: material.title,
+              ),
+            ),
+          );
+      },
+    ),
+  );
+}
 
   void _showModifyMaterialDialog(BuildContext context, List<HiCodeCategory> categories, {AdminHiCodeMaterial? material}) {
     showDialog(

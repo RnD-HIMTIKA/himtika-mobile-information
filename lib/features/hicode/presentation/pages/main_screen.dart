@@ -8,6 +8,7 @@ import 'package:himtika_mobile_information/features/hicode/presentation/pages/le
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/overall_exam.dart';
 import 'package:himtika_mobile_information/features/hicode/domain/entities/hicode_category.dart';
 import 'package:himtika_mobile_information/features/hicode/domain/entities/hicode_material.dart';
+import 'package:himtika_mobile_information/core/theme/app_colors.dart';
 
 class HicodeScreen extends StatelessWidget {
   const HicodeScreen({super.key});
@@ -300,87 +301,119 @@ class _CategoryCard extends StatelessWidget {
 }
 
 class _MaterialCard extends StatelessWidget {
-  final HiCodeMaterial material;
-  final int index;
+   final HiCodeMaterial material;
+   final int index;
 
-  const _MaterialCard({required this.material, required this.index});
+   const _MaterialCard({required this.material, required this.index});
 
-  @override
-  Widget build(BuildContext context) {
-    final Color borderColor = material.borderColor != null
-        ? Color(int.parse(material.borderColor!.replaceFirst('#', '0xff')))
-        : Colors.grey;
+   @override
+   Widget build(BuildContext context) {
+     final Color borderColor = material.borderColor != null
+         ? Color(int.parse(material.borderColor!.replaceFirst('#', '0xff')))
+         : Colors.grey;
 
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: borderColor, width: 2),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (material.imageUrl != null)
-                Image.network(material.imageUrl!, width: 82, height: 82),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(material.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        const Icon(Icons.book_outlined, size: 16, color: Colors.grey),
-                        const SizedBox(width: 8),
-                        Text(
-                          '${material.completedChapters}/${material.totalChapters} Chapter Selesai', // Tambahkan 'Selesai'
-                          style: const TextStyle(color: Colors.grey),
-                        ),
-                        const SizedBox(height: 4), // Beri sedikit jarak
-                        if (material.totalChapters > 0) // Hanya tampilkan jika ada chapter
-                          LinearProgressIndicator(
+     return Container(
+       padding: const EdgeInsets.all(16),
+       decoration: BoxDecoration(
+         color: Colors.white,
+         borderRadius: BorderRadius.circular(15),
+         border: Border.all(color: borderColor, width: 2),
+         boxShadow: [ // Tambahkan sedikit shadow
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.15),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            )
+         ]
+       ),
+       child: Column( // Konten utama dalam Column
+         crossAxisAlignment: CrossAxisAlignment.start,
+         children: [
+           Row( // Baris untuk gambar dan info dasar
+             crossAxisAlignment: CrossAxisAlignment.start,
+             children: [
+               if (material.imageUrl != null)
+                 ClipRRect( // Clip gambar agar sesuai border radius card (opsional)
+                   borderRadius: BorderRadius.circular(8),
+                   child: Image.network(
+                     material.imageUrl!,
+                     width: 82,
+                     height: 82,
+                     fit: BoxFit.cover, // Gunakan cover agar gambar mengisi area
+                     // Tambahkan error builder
+                     errorBuilder: (context, error, stackTrace) =>
+                       Container(width: 82, height: 82, color: Colors.grey[200], child: Icon(Icons.image_not_supported, color: Colors.grey[400])),
+                   ),
+                 ),
+               const SizedBox(width: 16),
+               Expanded( // Teks mengambil sisa ruang
+                 child: Column(
+                   crossAxisAlignment: CrossAxisAlignment.start,
+                   children: [
+                     Text(material.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                     const SizedBox(height: 8),
+                     Row(
+                       children: [
+                         Icon(Icons.book_outlined, size: 16, color: Colors.grey[600]),
+                         const SizedBox(width: 8),
+                         // Tampilkan progress teks
+                         Text(
+                           '${material.completedChapters}/${material.totalChapters} Chapter Selesai',
+                           style: TextStyle(color: Colors.grey[600], fontSize: 13),
+                         ),
+                       ],
+                     ),
+                     const SizedBox(height: 6), // Jarak sebelum progress bar
+                     // Tampilkan progress bar HANYA JIKA ADA CHAPTERS
+                     if (material.totalChapters > 0)
+                        ClipRRect( // Clip progress bar agar ujungnya rounded
+                          borderRadius: BorderRadius.circular(10),
+                          child: LinearProgressIndicator(
                             value: material.completedChapters / material.totalChapters,
                             backgroundColor: Colors.grey[300],
-                            valueColor: AlwaysStoppedAnimation<Color>(borderColor), // Gunakan warna border
-                            minHeight: 6, // Atur tinggi progress bar
+                            valueColor: AlwaysStoppedAnimation<Color>(borderColor),
+                            minHeight: 6,
                           ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => MaterialDetailScreen(materialId: material.id)),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              backgroundColor: const Color(0xFF81EAFF),
-              foregroundColor: const Color(0xFF006EBD),
-              elevation: 0,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text('Pelajari Sekarang', style: TextStyle(fontSize: 12)),
-                SizedBox(width: 4),
-                Icon(Icons.arrow_forward_ios, size: 12),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+                        )
+                     else // Tampilkan placeholder jika tidak ada chapter
+                       Container(
+                          height: 6,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[200],
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                   ],
+                 ),
+               ),
+             ],
+           ),
+           const SizedBox(height: 16), // Jarak sebelum tombol
+           // Tombol Pelajari Sekarang
+           ElevatedButton(
+             onPressed: () {
+               Navigator.of(context).push(
+                 MaterialPageRoute(builder: (_) => MaterialDetailScreen(materialId: material.id)),
+               );
+             },
+             style: ElevatedButton.styleFrom(
+               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+               backgroundColor: AppColors.himfoAccent.withOpacity(0.8), // Gunakan warna aksen
+               foregroundColor: AppColors.himfoDarkBlue, // Warna teks lebih gelap
+               elevation: 0,
+               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+             ),
+             child: const Row(
+               mainAxisSize: MainAxisSize.min,
+               children: [
+                 Text('Pelajari Sekarang', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                 SizedBox(width: 4),
+                 Icon(Icons.arrow_forward_ios, size: 12),
+               ],
+             ),
+           ),
+         ],
+       ),
+     );
+   }
+ }
