@@ -41,13 +41,25 @@ class MaterialDetailScreen extends StatelessWidget {
                           ? _buildNotFoundWidget()
                           : ListView.separated(
                               padding: const EdgeInsets.all(16),
+                              // itemCount sekarang adalah jumlah chapter + 1 (untuk Latihan Final)
                               itemCount: state.chapters.length + 1,
                               itemBuilder: (context, index) {
+                                // Jika index < jumlah chapter, tampilkan chapter item
                                 if (index < state.chapters.length) {
                                   return _buildSubChapterItem(context, state.chapters[index]);
-                                } else {
-                                  // Placeholder for final exam
-                                  return const SizedBox.shrink(); 
+                                }
+                                // Jika index terakhir, tampilkan Latihan Soal Final
+                                else {
+                                  // Ambil nama materi dari state (untuk navigasi kuis)
+                                  final materialName = state.title ?? 'Materi';
+                                  return _buildFinalPracticeItem(
+                                    context,
+                                    materialName, // Kirim nama materi
+                                    state.finalPracticeStatus,
+                                    // Anda bisa ambil jumlah soal dari RPC nanti,
+                                    // untuk sekarang kita hardcode atau ambil dari details chapter terakhir jika perlu
+                                    "10 Soal", // Placeholder
+                                  );
                                 }
                               },
                               separatorBuilder: (context, index) =>
@@ -132,24 +144,78 @@ class MaterialDetailScreen extends StatelessWidget {
   }
 
   Widget _buildSubChapterItem(BuildContext context, HiCodeChapter chapter) {
-    return InkWell(
-      onTap: () {
-        if (chapter.isLocked) return;
-        Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (_) => SubChapterDetailScreen(subChapterId: chapter.id),
-          ),
-        );
-      },
-      borderRadius: BorderRadius.circular(15),
-      child: _SubChapterCard(
-        title: chapter.title,
-        details: chapter.details,
-        isLocked: chapter.isLocked,
-        isCompleted: chapter.isCompleted,
-      ),
-    );
+  // Tentukan style berdasarkan status chapter
+  IconData statusIcon;
+  Color statusColor;
+  String statusText;
+  Color cardColor = Colors.white;
+  Color borderColor = Colors.blue.shade100;
+  bool isTapEnabled = !chapter.isLocked; // Tap dimungkinkan jika tidak terkunci
+
+  if (chapter.isLocked) {
+    statusIcon = Icons.lock_outline; // Ganti ikon gembok
+    statusColor = Colors.grey.shade400;
+    statusText = 'Terkunci';
+    cardColor = Colors.grey.shade100; // Warna lebih redup
+    borderColor = Colors.grey.shade300;
+  } else if (chapter.isCompleted) {
+    statusIcon = Icons.check_circle_outline; // Ganti ikon centang
+    statusColor = Colors.green;
+    statusText = 'Sudah Selesai';
+    borderColor = Colors.green.shade200; // Border hijau jika selesai
+  } else {
+    // Status default: Tersedia untuk dikerjakan
+    statusIcon = Icons.play_circle_outline; // Ganti ikon play
+    statusColor = Colors.blue.shade600;      // Warna biru
+    statusText = 'Kerjakan Sekarang';
   }
+
+  return InkWell(
+    // Hanya bisa di-tap jika tidak terkunci
+    onTap: isTapEnabled
+        ? () {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                // Arahkan ke SubChapterDetailScreen dengan ID chapter
+                builder: (_) => SubChapterDetailScreen(subChapterId: chapter.id),
+              ),
+            );
+          }
+        : null, // Buat null jika terkunci agar tidak ada efek ripple
+    borderRadius: BorderRadius.circular(15),
+    child: Container( // Ganti _SubChapterCard dengan Container langsung
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: borderColor, width: 1.5),
+      ),
+      child: Row(
+        children: [
+          Icon(statusIcon, color: statusColor, size: 40),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(chapter.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                const SizedBox(height: 4),
+                Text(chapter.details, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                const SizedBox(height: 4),
+                // Tampilkan status text hanya jika tidak terkunci
+                if (!chapter.isLocked)
+                  Text(statusText, style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.w500)),
+              ],
+            ),
+          ),
+          // Tampilkan ikon panah hanya jika tidak terkunci
+          if (isTapEnabled)
+            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade400),
+        ],
+      ),
+    ),
+  );
+}
   
   Widget _buildNotFoundWidget() {
     return Center(
@@ -165,46 +231,30 @@ class MaterialDetailScreen extends StatelessWidget {
       ),
     );
   }
-}
 
-class _SubChapterCard extends StatelessWidget {
-  final String title;
-  final String details;
-  final bool isLocked;
-  final bool isCompleted;
+  Widget _buildFinalPracticeItem(BuildContext context, String materialName, String status, String details) {
+  // Tentukan style berdasarkan status ('locked' atau 'unlocked')
+  bool isLocked = status == 'locked';
+  IconData statusIcon = isLocked ? Icons.lock_outline : Icons.assignment_turned_in_outlined; // Ganti ikon
+  Color statusColor = isLocked ? Colors.grey.shade400 : Colors.orange.shade700; // Warna oranye jika unlocked
+  String statusText = isLocked ? 'Selesaikan Semua Chapter' : 'Kerjakan Sekarang';
+  Color cardColor = isLocked ? Colors.grey.shade100 : Colors.white;
+  Color borderColor = isLocked ? Colors.grey.shade300 : Colors.orange.shade200; // Border oranye
+  bool isTapEnabled = !isLocked;
 
-  const _SubChapterCard({
-    required this.title,
-    required this.details,
-    required this.isLocked,
-    required this.isCompleted,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    IconData statusIcon;
-    Color statusColor;
-    String statusText;
-    Color cardColor = Colors.white;
-    Color borderColor = Colors.blue.shade100;
-    
-    if (isLocked) {
-      statusIcon = Icons.lock;
-      statusColor = Colors.grey.shade400;
-      statusText = 'Terkunci';
-      cardColor = Colors.grey.shade100;
-      borderColor = Colors.grey.shade300;
-    } else if (isCompleted) {
-      statusIcon = Icons.check_circle;
-      statusColor = Colors.green;
-      statusText = 'Sudah Selesai';
-    } else {
-      statusIcon = Icons.play_circle_fill;
-      statusColor = Colors.cyan.shade800;
-      statusText = 'Kerjakan Sekarang';
-    }
-
-    return Container(
+  return InkWell(
+    onTap: isTapEnabled
+        ? () {
+            // Navigasi ke halaman detail Latihan Final
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => FinalExamDetailScreen(materialName: materialName),
+              ),
+            );
+          }
+        : null,
+    borderRadius: BorderRadius.circular(15),
+    child: Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: cardColor,
@@ -219,18 +269,19 @@ class _SubChapterCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                const Text('Latihan Soal Final', style: TextStyle(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
                 Text(details, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
                 const SizedBox(height: 4),
-                Text(statusText, style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.w500)),
+                 Text(statusText, style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.w500)),
               ],
             ),
           ),
-          if(!isLocked)
-            const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+          if (isTapEnabled)
+             Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade400),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }

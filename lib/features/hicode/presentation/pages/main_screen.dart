@@ -337,7 +337,18 @@ class _MaterialCard extends StatelessWidget {
                       children: [
                         const Icon(Icons.book_outlined, size: 16, color: Colors.grey),
                         const SizedBox(width: 8),
-                        Text('${material.completedChapters}/${material.totalChapters} Chapter', style: const TextStyle(color: Colors.grey)),
+                        Text(
+                          '${material.completedChapters}/${material.totalChapters} Chapter Selesai', // Tambahkan 'Selesai'
+                          style: const TextStyle(color: Colors.grey),
+                        ),
+                        const SizedBox(height: 4), // Beri sedikit jarak
+                        if (material.totalChapters > 0) // Hanya tampilkan jika ada chapter
+                          LinearProgressIndicator(
+                            value: material.completedChapters / material.totalChapters,
+                            backgroundColor: Colors.grey[300],
+                            valueColor: AlwaysStoppedAnimation<Color>(borderColor), // Gunakan warna border
+                            minHeight: 6, // Atur tinggi progress bar
+                          ),
                       ],
                     ),
                   ],
