@@ -5,7 +5,7 @@ class GetChapterContent {
   final HiCodeRepository repository;
   GetChapterContent(this.repository);
 
-  Future<HiCodeChapterContent> call(String chapterId) {
-    return repository.getChapterContent(chapterId);
+  Future<HiCodeChapterContent> call(String chapterId, String userId) {
+    return repository.getChapterContent(chapterId, userId);
   }
 }

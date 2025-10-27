@@ -127,6 +127,7 @@ import 'package:himtika_mobile_information/features/hicode/domain/usecases/get_c
 import 'package:himtika_mobile_information/features/hicode/domain/usecases/get_questions.dart';
 import 'package:himtika_mobile_information/features/hicode/domain/usecases/submit_quiz_answers.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/bloc/quiz/quiz_bloc.dart';
+import 'package:himtika_mobile_information/features/hicode/domain/usecases/update_scroll_position.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -353,18 +354,20 @@ Future<void> initDependencies() async {
   // ==================== HICODE FEATURE ====================
   // Datasource
   sl.registerLazySingleton<HiCodeRemoteDatasource>(
-      () => HiCodeRemoteDatasourceImpl(client: sl(), getCurrentUser: sl()));
+      () => HiCodeRemoteDatasourceImpl(client: sl(), getCurrentUser: sl())); // Pastikan getCurrentUser ada di sini
   // Repository
   sl.registerLazySingleton<HiCodeRepository>(
       () => HiCodeRepositoryImpl(remoteDatasource: sl()));
   // Usecases
   sl.registerLazySingleton(() => GetMainScreenData(sl()));
   sl.registerLazySingleton(() => GetChapterListData(sl()));
+  sl.registerLazySingleton(() => GetChapterContent(sl()));
+  sl.registerLazySingleton(() => UpdateScrollPosition(sl()));
   sl.registerLazySingleton(() => GetQuestions(sl()));
   sl.registerLazySingleton(() => SubmitQuizAnswers(sl()));
   // BLoCs
   sl.registerFactory(() => HicodeBloc(getMainScreenData: sl()));
   sl.registerFactory(() => MaterialDetailBloc(getChapterListData: sl()));
-  sl.registerLazySingleton(() => GetChapterContent(sl()));
+  sl.registerFactory(() => SubChapterDetailBloc(getChapterContent: sl()));
   sl.registerFactory(() => QuizBloc(getQuestions: sl(), submitQuizAnswers: sl()));
 }

@@ -7,9 +7,10 @@ import 'package:himtika_mobile_information/features/auth/domain/usecases/get_cur
 abstract class HiCodeRemoteDatasource {
   Future<Map<String, dynamic>> getMainScreenData();
   Future<Map<String, dynamic>> getChapterListData(String materialId);
-  Future<Map<String, dynamic>> getChapterContent(String chapterId);
+  Future<Map<String, dynamic>> getChapterContent(String chapterId, String userId);
   Future<List<Map<String, dynamic>>> getQuestions(String relatedId, String questionType);
   Future<Map<String, dynamic>> submitAnswers(Map<String, String> answers);
+  Future<void> updateScrollPosition(String chapterId, double position, bool hasReachedBottom);
 }
 
 class HiCodeRemoteDatasourceImpl implements HiCodeRemoteDatasource {
@@ -54,10 +55,13 @@ class HiCodeRemoteDatasourceImpl implements HiCodeRemoteDatasource {
     return data as Map<String, dynamic>;
   }
 
-  // --- Implementasi method lain tetap sama ---
   @override
-  Future<Map<String, dynamic>> getChapterContent(String chapterId) async {
-    return await client.rpc('get_hicode_chapter_content', params: {'p_chapter_id': chapterId});
+  Future<Map<String, dynamic>> getChapterContent(String chapterId, String userId) async {
+    // Panggil RPC dengan kedua parameter
+    return await client.rpc('get_hicode_chapter_content', params: {
+      'p_chapter_id': chapterId,
+      'p_user_id': userId, // Kirim user ID
+    });
   }
 
   @override
@@ -81,5 +85,19 @@ class HiCodeRemoteDatasourceImpl implements HiCodeRemoteDatasource {
         'p_user_id': user.id, // Pastikan RPC Anda menerima user_id jika diperlukan
         'p_answers': answers
     });
+  }
+
+  @override
+  Future<void> updateScrollPosition(String chapterId, double position, bool hasReachedBottom) async {
+     final user = await getCurrentUser();
+     if (user == null) {
+       throw Exception('Pengguna tidak terautentikasi.');
+     }
+     await client.rpc('update_scroll_position', params: {
+        'p_user_id': user.id,
+        'p_chapter_id': chapterId,
+        'p_position': position,
+        'p_has_reached_bottom': hasReachedBottom,
+     });
   }
 }

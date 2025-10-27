@@ -77,10 +77,11 @@ class HiCodeRepositoryImpl implements HiCodeRepository {
   }
 
 
-  // --- Implementasi method lain tetap sama ---
   @override
-  Future<HiCodeChapterContent> getChapterContent(String chapterId) async {
-    final data = await remoteDatasource.getChapterContent(chapterId);
+  Future<HiCodeChapterContent> getChapterContent(String chapterId, String userId) async {
+    // Teruskan userId ke datasource
+    final data = await remoteDatasource.getChapterContent(chapterId, userId);
+    // Parsing model sudah diupdate untuk handle field baru
     return HiCodeChapterContentModel.fromMap(data);
   }
 
@@ -94,5 +95,11 @@ class HiCodeRepositoryImpl implements HiCodeRepository {
   Future<QuizResult> submitAnswers(Map<String, String> answers) async {
     final data = await remoteDatasource.submitAnswers(answers);
     return QuizResultModel.fromMap(data);
+  }
+
+  @override
+  Future<void> updateScrollPosition(String chapterId, double position, bool hasReachedBottom) async {
+     // Teruskan ke datasource
+     await remoteDatasource.updateScrollPosition(chapterId, position, hasReachedBottom);
   }
 }
