@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/pages/sidebar.dart';
 import 'category_management_screen.dart';
 import 'material_management_screen.dart';
-// import 'question_bank_screen.dart'; // Masih di-comment karena belum siap
+import 'question_bank_screen.dart';
 
 // Definisikan warna tema HIMFO
 const Color himfoBlue = Color(0xFF0175C8);
@@ -60,10 +60,7 @@ class HicodeAdminHomeScreen extends StatelessWidget {
               subtitle: 'Kelola semua soal untuk kuis chapter, latihan final, dan ujian akhir.',
               gradientColors: [const Color(0xFF9370DB), const Color(0xFF8A2BE2)], // Ungu
               onTap: () {
-                // Navigator.push(context, MaterialPageRoute(builder: (_) => const QuestionBankScreen()));
-                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Fitur Bank Soal segera hadir!')),
-                );
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const QuestionBankScreen()));
               },
             ),
              const SizedBox(height: 24), // Jarak antar section

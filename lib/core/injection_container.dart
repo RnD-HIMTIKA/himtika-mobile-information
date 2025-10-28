@@ -113,6 +113,15 @@ import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/h
 // Import BLoC baru yang akan kita buat
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/material_management/material_management_bloc.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/chapter_management/chapter_management_bloc.dart';
+// --- TAMBAHKAN IMPORT USE CASES & REPO BANK SOAL ---
+import 'package:himtika_mobile_information/features/AdminPanel/data/datasources/question_bank_remote_datasource.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/repositories/question_bank_repository.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/data/repositories/question_bank_repository_impl.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/get_admin_questions.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/create_question_with_options.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/question_bank/question_bank_bloc.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/get_all_admin_chapters_map.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/get_all_admin_materials_map.dart';
 
 // --- Hicode Imports ---
 import 'package:himtika_mobile_information/features/hicode/domain/repositories/hicode_repository.dart';
@@ -305,10 +314,14 @@ Future<void> initDependencies() async {
   // Datasource
   sl.registerLazySingleton<HiCodeManagementRemoteDatasource>(
       () => HiCodeManagementRemoteDatasourceImpl(client: sl()));
+  sl.registerLazySingleton<QuestionBankRemoteDatasource>(
+      () => QuestionBankRemoteDatasourceImpl(client: sl()));
 
   // Repository
   sl.registerLazySingleton<HiCodeManagementRepository>(
       () => HiCodeManagementRepositoryImpl(remoteDatasource: sl()));
+  sl.registerLazySingleton<QuestionBankRepository>(
+      () => QuestionBankRepositoryImpl(remoteDatasource: sl()));
 
   // Usecases (Category)
   sl.registerLazySingleton(() => GetHiCodeCategories(sl()));
@@ -328,6 +341,14 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => DeleteHiCodeChapter(sl()));
   sl.registerLazySingleton(() => ReorderHiCodeChapters(sl()));
   // --- END TAMBAHAN USE CASES CHAPTER ---
+
+  // --- TAMBAHKAN REGISTRASI USE CASES BANK SOAL ---
+  sl.registerLazySingleton(() => GetAdminQuestions(sl()));
+  sl.registerLazySingleton(() => CreateQuestionWithOptions(sl()));
+
+  // --- TAMBAHKAN REGISTRASI USE CASES DROPDOWN ---
+    sl.registerLazySingleton(() => GetAllAdminChaptersMap(sl()));
+    sl.registerLazySingleton(() => GetAllAdminMaterialsMap(sl()));
 
   // BLoCs
   sl.registerFactory(() => CategoryManagementBloc(
@@ -349,6 +370,13 @@ Future<void> initDependencies() async {
        updateChapter: sl(),
        deleteChapter: sl(),
        reorderChapters: sl(),
+     ));
+    
+  sl.registerFactory(() => QuestionBankBloc(
+       getAdminQuestions: sl(),
+       createQuestionWithOptions: sl(),
+       getAllAdminChaptersMap: sl(),
+       getAllAdminMaterialsMap: sl(),
      ));
 
   // ==================== HICODE FEATURE ====================

@@ -28,17 +28,17 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
     try {
       // PERBAIKAN: Deklarasikan variabel di sini agar bisa diakses di seluruh blok
       String questionType;
-      String relatedId = event.quizId;
-      
+      String relatedId = event.quizId; 
       if (event.quizId.startsWith('FINAL_')) {
         questionType = 'FINAL_PRACTICE';
         relatedId = event.quizId.replaceFirst('FINAL_', '');
       } else if (event.quizId == 'OVERALL_EXAM') {
         questionType = 'OVERALL_EXAM';
+        // relatedId mungkin tidak relevan di sini
       } else {
         questionType = 'QUIZ';
+        // relatedId sudah benar (UUID chapter)
       }
-
       final questions = await _getQuestions(relatedId, questionType);
       emit(state.copyWith(
         status: QuizStatus.success,

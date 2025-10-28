@@ -5,12 +5,19 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/bloc/quiz/quiz_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/score_screen.dart';
+import 'package:himtika_mobile_information/core/theme/app_colors.dart';
 
 class QuizScreen extends StatelessWidget {
   final String quizId;
-  const QuizScreen({super.key, required this.quizId});
-
+  final String? chapterTitle;
+  
+  const QuizScreen({
+    super.key, 
+    required this.quizId,
+    this.chapterTitle,
+  });
   @override
+
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => sl<QuizBloc>()..add(FetchQuiz(quizId: quizId)),
@@ -35,8 +42,8 @@ class QuizScreen extends StatelessWidget {
 
                 if (state.status == QuizStatus.success || state.status == QuizStatus.submitting) {
                   return state.quizId == 'OVERALL_EXAM'
-                      ? _FinalExamView(state: state)
-                      : _QuizView(state: state);
+                    ? _FinalExamView(state: state)
+                    : _QuizView(state: state, quizId: quizId, chapterTitle: chapterTitle);
                 }
                 
                 if (state.status == QuizStatus.failure) {
@@ -56,36 +63,52 @@ class QuizScreen extends StatelessWidget {
     final result = state.result;
     if (result == null) return;
 
-    final int score = result.correctCount;
+    final int correctAnswers = result.correctCount; // Ganti nama variabel agar lebih jelas
     final int totalQuestions = result.totalQuestions;
-    final bool isPassed = score >= (totalQuestions * 0.6); // Lulus jika benar 60%
     final String quizId = state.quizId;
 
-    String imagePath = isPassed ? 'src/features/hicode/images/success.png' : 'src/features/hicode/images/failed.png';
+    bool isPassed = false; // Default
+    String imagePath;
     String title = '';
     String subtitle = '';
     List<Widget> buttons = [];
 
-    if (quizId.startsWith('FINAL_')) {
+    // --- LOGIKA KELULUSAN & PESAN ---
+    if (quizId.startsWith('FINAL_')) { // Latihan Final
+      final materialName = quizId.replaceFirst('FINAL_', '');
+      // Syarat Lulus: minimal 60% benar (atau minimal 6 jika soalnya 10)
+      // Kita gunakan persentase agar fleksibel jika jumlah soal berubah
+      isPassed = totalQuestions > 0 && (correctAnswers / totalQuestions) >= 0.6;
+
       if (isPassed) {
-        title = 'Latihan Selesai';
-        subtitle = 'Selamat, Anda telah menyelesaikan Latihan Soal Final bab ini!';
+        title = 'Latihan Final Selesai!';
+        subtitle = 'Hebat! Kamu lulus latihan final untuk materi "$materialName".';
         buttons = [
           _buildDialogButton(
-            text: 'Kembali ke Materi',
+            text: 'Kembali ke Chapter',
             isPrimary: true,
             onPressed: () {
               Navigator.of(context).pop(); // Tutup dialog
-              Navigator.of(context).pop(); // Kembali dari kuis
+              // Keluar 2x: dari QuizScreen dan FinalExamDetailScreen
+              Navigator.of(context)..pop()..pop();
             },
           ),
         ];
       } else {
         title = 'Latihan Final Belum Tuntas';
-        subtitle = 'Kamu menjawab benar $score dari $totalQuestions soal. Nilai masih belum cukup. Silakan ulang latihan soal final ini.';
+        subtitle = 'Kamu menjawab benar $correctAnswers dari $totalQuestions soal ($materialName). Minimal 60% jawaban benar diperlukan untuk lulus. Coba lagi!';
         buttons = [
-          _buildDialogButton(
-            text: 'Ulangi Latihan',
+           _buildDialogButton( // Tombol Kembali
+            text: 'Kembali ke Detail Latihan',
+            isPrimary: false, // Buat sekunder
+            onPressed: () {
+              Navigator.of(context).pop(); // Tutup dialog
+              Navigator.of(context).pop(); // Kembali dari QuizScreen ke FinalExamDetailScreen
+            },
+          ),
+          const SizedBox(height: 8), // Jarak
+          _buildDialogButton( // Tombol Ulangi
+            text: 'Ulangi Latihan Final',
             isPrimary: true,
             onPressed: () {
               Navigator.of(context).pop(); // Tutup dialog
@@ -94,20 +117,30 @@ class QuizScreen extends StatelessWidget {
           ),
         ];
       }
-    } else if (quizId == 'OVERALL_EXAM') {
-      title = 'Selamat! Ujian Selesai';
-      subtitle = 'Jawabanmu telah disimpan dan skor tertinggimu akan tercatat di leaderboard.';
+    } else if (quizId == 'OVERALL_EXAM') { // Ujian Akhir
+      // Syarat Lulus: minimal 15 jawaban benar (sesuai konsep Anda)
+      isPassed = correctAnswers >= 15;
+
+      // Pesan tidak bergantung pada lulus/tidak, karena skor dicatat
+      title = 'Ujian Akhir Selesai!';
+      subtitle = 'Kamu menjawab benar $correctAnswers dari $totalQuestions soal. Skor akhirmu adalah ${result.score} poin. Hasil terbaikmu akan tercatat di leaderboard.';
+      if (!isPassed) {
+        subtitle += '\n\nSayangnya, kamu belum memenuhi syarat kelulusan (minimal 15 benar). Kamu bisa mencoba lagi nanti.';
+      }
       buttons = [
         _buildDialogButton(
-          text: 'Lihat Skor Anda',
+          text: 'Lihat Detail Skor', // Arahkan ke ScoreScreen
           isPrimary: true,
           onPressed: () {
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(); // Tutup dialog
+            // Ganti halaman QuizScreen dengan ScoreScreen
             Navigator.of(context).pushReplacement(
               MaterialPageRoute(
                 builder: (_) => ScoreScreen(
-                  score: result.score,
-                  totalQuestions: result.totalQuestions,
+                  score: result.score, // Kirim skor poin
+                  // Kirim jumlah benar/salah untuk ditampilkan di ScoreScreen juga
+                  correctAnswers: correctAnswers, // Nama parameter baru
+                  totalQuestions: totalQuestions,
                   timeTaken: state.timeTaken ?? Duration.zero,
                 ),
               ),
@@ -115,23 +148,28 @@ class QuizScreen extends StatelessWidget {
           },
         ),
       ];
-    } else {
-      title = isPassed ? 'Kuis Selesai' : 'Kuis Belum Tuntas';
-      subtitle = isPassed
-          ? 'Selamat! Materi berikutnya kini dapat diakses.'
-          : 'Beberapa jawaban Anda belum benar. Silakan pelajari kembali materi ini.';
+    } else { // Kuis Chapter Biasa
+      // Syarat Lulus: Selesaikan saja (semua soal terjawab)
+      isPassed = true; // Kuis chapter selalu dianggap "selesai" jika di-submit
+      title = 'Kuis Chapter Selesai!';
+      subtitle = 'Kamu menjawab benar $correctAnswers dari $totalQuestions soal. Materi berikutnya kini dapat diakses.';
       buttons = [
         _buildDialogButton(
-          text: isPassed ? 'Lanjut Belajar' : 'Pelajari Ulang',
+          text: 'Lanjut Belajar',
           isPrimary: true,
           onPressed: () {
-            Navigator.of(context).pop();
-            Navigator.of(context).pop();
+            Navigator.of(context).pop(); // Tutup dialog
+            Navigator.of(context).pop(true);
           },
         ),
       ];
     }
+    // --- END LOGIKA KELULUSAN & PESAN ---
 
+    // Tentukan gambar berdasarkan isPassed
+    imagePath = isPassed ? 'src/features/hicode/images/success.png' : 'src/features/hicode/images/failed.png';
+
+    // Tampilkan dialog (kode ini sebagian besar sama seperti sebelumnya)
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -149,14 +187,14 @@ class QuizScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 Text(subtitle, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, color: Colors.black54)),
                 const SizedBox(height: 24),
-                ...buttons,
+                ...buttons, // Tampilkan tombol yang sudah disiapkan
               ],
             ),
           ),
         );
       },
     );
-  }
+ }
 
   Widget _buildDialogButton({
     required String text,
@@ -231,7 +269,10 @@ class _QuizLoadingView extends StatelessWidget {
 // --- UI UTAMA UNTUK KUIS ---
 class _QuizView extends StatelessWidget {
   final QuizState state;
-  const _QuizView({required this.state});
+  final String quizId;
+  final String? chapterTitle;
+
+  const _QuizView({required this.state, required this.quizId, this.chapterTitle});
 
   @override
   Widget build(BuildContext context) {
@@ -239,7 +280,7 @@ class _QuizView extends StatelessWidget {
 
     return Column(
       children: [
-        _buildTopBar(context),
+        _buildTopBar(context, quizId, chapterTitle),
         const SizedBox(height: 24),
         _ProgressIndicator(
           currentIndex: state.currentQuestionIndex,
@@ -253,6 +294,25 @@ class _QuizView extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (currentQuestion.imageUrl != null && currentQuestion.imageUrl!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: Center( // Pusatkan gambar
+                        child: Image.network(
+                          currentQuestion.imageUrl!,
+                          // Atur tinggi maksimum agar tidak terlalu besar
+                          height: MediaQuery.of(context).size.height * 0.25,
+                          fit: BoxFit.contain,
+                          loadingBuilder: (context, child, progress) {
+                            if (progress == null) return child;
+                            return const SizedBox(height: 100, child: Center(child: CircularProgressIndicator()));
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return const SizedBox(height: 100, child: Center(child: Icon(Icons.broken_image, color: Colors.grey)));
+                          },
+                        ),
+                      ),
+                    ),
                   Text(
                     currentQuestion.questionText,
                     style: const TextStyle(
@@ -287,42 +347,54 @@ class _QuizView extends StatelessWidget {
     );
   }
 
-  Widget _buildTopBar(BuildContext context) {
-    final String quizId = context.read<QuizBloc>().state.quizId;
-
-    return Container(
-      color: const Color(0xFFDBF7FF),
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () async {
-              // Kirim quizId ke fungsi dialog
-              final bool? shouldExit = await _showExitQuizDialog(context, quizId);
-
-              if (shouldExit == true && context.mounted) {
-                Navigator.of(context).pop();
-              }
-            },
-            icon: Image.asset(
-              'src/features/hicode/icon/kembali.png',
-              width: 32,
-              height: 32,
-            ),
-          ),
-          const Expanded(
-            child: Text('Kuis Chapter 1',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue)),
-          ),
-          const SizedBox(width: 48),
-        ],
-      ),
-    );
+  Widget _buildTopBar(BuildContext context, String quizId, String? chapterTitle) { // <-- Tambahkan parameter
+  String title = 'Kuis'; // Default
+  if (chapterTitle != null && quizId != 'OVERALL_EXAM' && !quizId.startsWith('FINAL_')) {
+     title = 'Kuis: $chapterTitle';
+  } else if (quizId.startsWith('FINAL_')) {
+    final materialName = quizId.replaceFirst('FINAL_', '');
+    title = 'Latihan Final: $materialName';
+  } else if (quizId == 'OVERALL_EXAM') {
+     title = 'Ujian Akhir HiCode';
   }
+
+  return Container(
+    color: const Color(0xFFDBF7FF),
+    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+    child: Row(
+      children: [
+        IconButton(
+          onPressed: () async {
+            // Gunakan quizId dari parameter
+            final bool? shouldExit = await _showExitQuizDialog(context, quizId); // <-- Gunakan parameter
+            if (shouldExit == true && context.mounted) {
+              Navigator.of(context).pop();
+            }
+          },
+          icon: Image.asset(
+            'src/features/hicode/icon/kembali.png',
+            width: 32,
+            height: 32,
+            color: AppColors.himfoBlue, // Beri warna biru agar terlihat di background cerah
+          ),
+        ),
+        Expanded(
+          child: Text(
+            title,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.himfoBlue,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const SizedBox(width: 48),
+      ],
+    ),
+  );
+}
 
   Future<bool?> _showExitQuizDialog(BuildContext context, String quizId) {
     // --- LOGIKA UNTUK KONTEN DIALOG DINAMIS ---
@@ -748,6 +820,24 @@ class __FinalExamViewState extends State<_FinalExamView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  if (currentQuestion.imageUrl != null && currentQuestion.imageUrl!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: Center(
+                        child: Image.network(
+                          currentQuestion.imageUrl!,
+                          height: MediaQuery.of(context).size.height * 0.25,
+                          fit: BoxFit.contain,
+                          loadingBuilder: (context, child, progress) {
+                            if (progress == null) return child;
+                            return const SizedBox(height: 100, child: Center(child: CircularProgressIndicator()));
+                          },
+                          errorBuilder: (context, error, stackTrace) {
+                            return const SizedBox(height: 100, child: Center(child: Icon(Icons.broken_image, color: Colors.grey)));
+                          },
+                        ),
+                      ),
+                    ),
                   Text(
                     currentQuestion.questionText,
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, height: 1.5),
@@ -779,39 +869,41 @@ class __FinalExamViewState extends State<_FinalExamView> {
 
   // --- WIDGET-WIDGET PEMBANTU UNTUK UJIAN AKHIR ---
   Widget _buildFinalExamTopBar(BuildContext context, QuizState state) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () async {
-              // 3. Perbaiki pemanggilan dialog
-              final quizView = _QuizView(state: state);
-              final bool? shouldExit = await quizView._showExitQuizDialog(context, state.quizId);
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+    child: Row(
+      children: [
+        IconButton(
+          onPressed: () async {
+            // Gunakan _QuizView sementara untuk akses dialog keluar
+            final quizView = _QuizView(state: state, quizId: state.quizId);
+             final bool? shouldExit = await quizView._showExitQuizDialog(context, state.quizId);
 
-              if (shouldExit == true && context.mounted) {
-                Navigator.of(context).pop();
-              }
-            },
-            icon: Image.asset(
-              'src/features/hicode/icon/kembali.png',
-              width: 32,
-              height: 32,
-            ),
+            if (shouldExit == true && context.mounted) {
+              Navigator.of(context).pop();
+            }
+          },
+          icon: Image.asset(
+            'src/features/hicode/icon/kembali.png',
+            width: 32,
+            height: 32,
+            // Beri warna biru agar kontras dengan background putih
+            color: AppColors.himfoBlue,
           ),
-          const Expanded(
-            child: Text('Ujian Akhir HiCode',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue)),
-          ),
-          const SizedBox(width: 48),
-        ],
-      ),
-    );
-  }
+        ),
+        Expanded(
+          child: Text('Ujian Akhir HiCode', // Judul tetap
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.himfoBlue)), // Warna global
+        ),
+        const SizedBox(width: 48), // Placeholder
+      ],
+    ),
+  );
+}
 
   Widget _buildFinalExamProgressBar(QuizState state) {
     final double progress = state.questions.isEmpty ? 0 : (state.currentQuestionIndex + 1) / state.questions.length;
