@@ -7,12 +7,14 @@ class ScoreScreen extends StatefulWidget {
   final int score;
   final int totalQuestions;
   final Duration timeTaken;
+  final int correctAnswers;
 
   const ScoreScreen({
     super.key,
     required this.score,
     required this.totalQuestions,
     required this.timeTaken,
+    required this.correctAnswers,
   });
 
   @override
@@ -100,11 +102,7 @@ class _ScoreScreenState extends State<ScoreScreen> {
         child: Column(
           children: [
             _buildScoreHeader(context, widget.score),
-            _buildScoreDetails(
-              correct: widget.score,
-              wrong: wrongAnswers,
-              total: widget.totalQuestions,
-            ),
+            _buildScoreDetails(),
             _buildNotes(),
           ],
         ),
@@ -196,21 +194,23 @@ class _ScoreScreenState extends State<ScoreScreen> {
     );
   }
 
-  Widget _buildScoreDetails(
-    {required int correct, required int wrong, required int total}) {
-    // Gunakan Column untuk menyusun Row kartu dan kartu Waktu Pengerjaan
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 0), // Atur padding
+  Widget _buildScoreDetails() { // Hapus parameter dari sini
+    // Hitung jawaban salah berdasarkan correctAnswers dan totalQuestions dari widget
+    final int wrongAnswers = widget.totalQuestions - widget.correctAnswers;
+    final int total = widget.totalQuestions; // Ambil total dari widget
+
+    // Pastikan return statement ada dan benar
+    return Padding( // <- Kemungkinan error ada di sekitar sini atau sebelumnya
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
       child: Column(
         children: [
-          // Baris pertama berisi Jawaban Benar dan Jawaban Salah
           Row(
             children: [
               Expanded(
                 child: _buildStatCard(
                   title: 'Jawaban Benar',
-                  value: '$correct',
-                  progress: total > 0 ? correct / total : 0,
+                  value: '${widget.correctAnswers}', // Gunakan widget.correctAnswers
+                  progress: total > 0 ? widget.correctAnswers / total : 0.0, // Pastikan 0.0 jika total 0
                   color: Colors.green,
                 ),
               ),
@@ -218,25 +218,24 @@ class _ScoreScreenState extends State<ScoreScreen> {
               Expanded(
                 child: _buildStatCard(
                   title: 'Jawaban Salah',
-                  value: '$wrong',
-                  progress: total > 0 ? wrong / total : 0,
+                  value: '$wrongAnswers', // Gunakan wrongAnswers yang dihitung
+                  progress: total > 0 ? wrongAnswers / total : 0.0, // Pastikan 0.0 jika total 0
                   color: Colors.red,
                 ),
               ),
             ],
-          ),
+          ), // <- Pastikan koma ini ada
           const SizedBox(height: 16),
-          // Baris kedua hanya berisi kartu Waktu Pengerjaan
           _buildStatCard(
             title: 'Waktu Pengerjaan',
-            value: _formatDuration(widget.timeTaken),
+            value: _formatDuration(widget.timeTaken), // Ini sudah benar
             color: Colors.orange,
             progress: 1.0,
           ),
         ],
-      ),
-    );
-  }
+      ), // <- Pastikan kurung tutup Column ada
+    ); // <- Pastikan titik koma return Padding ada
+  } // <- Pastikan kurung kurawal penutup method ada
 
   Widget _buildStatCard({
     required String title,

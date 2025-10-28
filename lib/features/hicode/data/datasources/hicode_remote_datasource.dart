@@ -75,16 +75,23 @@ class HiCodeRemoteDatasourceImpl implements HiCodeRemoteDatasource {
 
   @override
   Future<Map<String, dynamic>> submitAnswers(Map<String, String> answers) async {
-    // Dapatkan user ID saat ini (diperlukan oleh RPC submit_hicode_answers)
     final user = await getCurrentUser();
      if (user == null) {
-       throw Exception('Pengguna tidak terautentikasi.');
+       throw Exception('Pengguna tidak terautentikasi saat mencoba submit jawaban.');
      }
-    // Panggil RPC dengan user_id dan answers
-    return await client.rpc('submit_hicode_answers', params: {
-        'p_user_id': user.id, // Pastikan RPC Anda menerima user_id jika diperlukan
-        'p_answers': answers
+
+    final answersPayload = answers.entries.map((entry) => {
+        'questionId': entry.key, // UUID Soal (String)
+        'optionId': entry.value   // UUID Opsi (String)
+    }).toList();
+
+    // Panggil RPC dengan user.id dan payload jawaban yang baru
+    final result = await client.rpc('submit_hicode_answers', params: {
+        'p_user_id': user.id,          // Kirim ID user
+        'p_answers': answersPayload   // Kirim List<Map>
     });
+    // Pastikan hasil RPC di-cast dengan benar
+    return result as Map<String, dynamic>;
   }
 
   @override

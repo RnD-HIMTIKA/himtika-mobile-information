@@ -1,5 +1,3 @@
-// lib/features/hicode/presentation/pages/chapter_detail.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:himtika_mobile_information/core/injection_container.dart';
@@ -30,7 +28,8 @@ class MaterialDetailScreen extends StatelessWidget {
                 return const Center(child: CircularProgressIndicator());
               }
               if (state.status == MaterialDetailStatus.failure) {
-                return Center(child: Text(state.errorMessage ?? 'Gagal memuat data.'));
+                return Center(
+                    child: Text(state.errorMessage ?? 'Gagal memuat data.'));
               }
               if (state.status == MaterialDetailStatus.success) {
                 return Column(
@@ -47,7 +46,8 @@ class MaterialDetailScreen extends StatelessWidget {
                               itemBuilder: (context, index) {
                                 // Jika index < jumlah chapter, tampilkan chapter item
                                 if (index < state.chapters.length) {
-                                  return _buildSubChapterItem(context, state.chapters[index]);
+                                  return _buildSubChapterItem(
+                                      context, state.chapters[index]);
                                 }
                                 // Jika index terakhir, tampilkan Latihan Soal Final
                                 else {
@@ -118,7 +118,8 @@ class MaterialDetailScreen extends StatelessWidget {
         children: [
           IconButton(
             onPressed: () => Navigator.pop(context),
-            icon: Image.asset('src/features/hicode/materi/kembali.png', width: 32, height: 32, color: Colors.white),
+            icon: Image.asset('src/features/hicode/materi/kembali.png',
+                width: 32, height: 32, color: Colors.white),
           ),
           IconButton(
             onPressed: () {
@@ -126,100 +127,166 @@ class MaterialDetailScreen extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => const InformationScreen()),
               );
             },
-            icon: Image.asset('src/features/hicode/materi/informasi.png', width: 28, height: 28, color: Colors.white),
+            icon: Image.asset('src/features/hicode/materi/informasi.png',
+                width: 28, height: 28, color: Colors.white),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHeaderContent({required String title, required String description}) {
+  Widget _buildHeaderContent(
+      {required String title, required String description}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
+        Text(title,
+            style: const TextStyle(
+                color: Colors.white,
+                fontSize: 32,
+                fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
-        Text(description, style: const TextStyle(color: Colors.white, fontSize: 14, height: 1.5)),
+        Text(description,
+            style: const TextStyle(
+                color: Colors.white, fontSize: 14, height: 1.5)),
       ],
     );
   }
 
   Widget _buildSubChapterItem(BuildContext context, HiCodeChapter chapter) {
-  // Tentukan style berdasarkan status chapter
-  IconData statusIcon;
-  Color statusColor;
-  String statusText;
-  Color cardColor = Colors.white;
-  Color borderColor = Colors.blue.shade100;
-  bool isTapEnabled = !chapter.isLocked; // Tap dimungkinkan jika tidak terkunci
+    final String? materialIconUrl = context.read<MaterialDetailBloc>().state.materialIconPath;
+    // Tentukan style berdasarkan status chapter
+    IconData statusIcon;
+    Color statusColor;
+    String statusText;
+    Color cardColor = Colors.white;
+    Color borderColor = Colors.blue.shade100;
+    bool isTapEnabled =
+        !chapter.isLocked; // Tap dimungkinkan jika tidak terkunci
 
-  if (chapter.isLocked) {
-    statusIcon = Icons.lock_outline; // Ganti ikon gembok
-    statusColor = Colors.grey.shade400;
-    statusText = 'Terkunci';
-    cardColor = Colors.grey.shade100; // Warna lebih redup
-    borderColor = Colors.grey.shade300;
-  } else if (chapter.isCompleted) {
-    statusIcon = Icons.check_circle_outline; // Ganti ikon centang
-    statusColor = Colors.green;
-    statusText = 'Sudah Selesai';
-    borderColor = Colors.green.shade200; // Border hijau jika selesai
-  } else {
-    // Status default: Tersedia untuk dikerjakan
-    statusIcon = Icons.play_circle_outline; // Ganti ikon play
-    statusColor = Colors.blue.shade600;      // Warna biru
-    statusText = 'Kerjakan Sekarang';
+    if (chapter.isLocked) {
+      // statusIcon = Icons.lock_outline; // Kita tidak pakai ikon utama lagi
+      statusColor = Colors.grey.shade400;
+      statusText = 'Terkunci';
+      cardColor = Colors.grey.shade100;
+      borderColor = Colors.grey.shade300;
+    } else if (chapter.isCompleted) {
+      statusIcon = Icons.check_circle; // Ikon centang tetap dipakai (overlay)
+      statusColor = Colors.green;
+      statusText = 'Sudah Selesai';
+      borderColor = Colors.green.shade200;
+    } else {
+      // statusIcon = Icons.play_circle_outline; // Kita tidak pakai ikon utama lagi
+      statusColor = Colors.blue.shade600;
+      statusText = 'Kerjakan Sekarang';
+    }
+
+    return InkWell(
+      onTap: isTapEnabled
+          ? () async {
+              // <-- Jadikan async
+              // NAVIGASI KE SUB CHAPTER
+              final bool? quizCompleted =
+                  await Navigator.of(context).push<bool>(
+                // <-- await dan tangkap hasil <bool>
+                MaterialPageRoute(
+                  builder: (_) => BlocProvider(
+                    create: (context) => sl<SubChapterDetailBloc>(),
+                    child: SubChapterDetailScreen(subChapterId: chapter.id),
+                  ),
+                ),
+              );
+
+              // --- TAMBAHKAN BLOK INI ---
+              // Cek apakah kembali dari QuizScreen dengan hasil 'true'
+              if (quizCompleted == true && context.mounted) {
+                // Panggil event untuk refresh data chapter
+                context.read<MaterialDetailBloc>().add(FetchDetailData(
+                    materialId: materialId)); // Gunakan materialId dari widget
+              }
+              // --- END TAMBAHKAN ---
+            }
+          : null,
+      borderRadius: BorderRadius.circular(15),
+      child: Container(
+        // Ganti _SubChapterCard dengan Container langsung
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(color: borderColor, width: 1.5),
+        ),
+        child: Row(
+          children: [
+            // --- PERBAIKAN: Ganti Icon dengan Stack Gambar + Status ---
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: Stack(
+                clipBehavior: Clip.none, // Izinkan ikon status keluar sedikit
+                children: [
+                  // Gambar Materi
+                  if (materialIconUrl != null && materialIconUrl.isNotEmpty)
+                     ClipRRect( // Beri border radius pada gambar
+                       borderRadius: BorderRadius.circular(8),
+                       child: Image.network(
+                        materialIconUrl,
+                        width: 40,
+                        height: 40,
+                        fit: BoxFit.cover, // Coba cover
+                         errorBuilder: (context, error, stackTrace) =>
+                           Container(width: 40, height: 40, color: Colors.grey[200], child: Icon(Icons.image_not_supported, size: 24, color: Colors.grey[400])),
+                       ),
+                     )
+                  else // Fallback jika tidak ada URL gambar
+                     Container(width: 40, height: 40, decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(8)), child: Icon(Icons.image_not_supported, size: 24, color: Colors.grey[400])),
+
+                  // Ikon Status (Overlay di pojok kanan bawah) - Hanya jika Selesai atau Terkunci
+                  if (chapter.isCompleted || chapter.isLocked)
+                    Positioned(
+                      bottom: -4,
+                      right: -4,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: cardColor, // Background sesuai warna kartu
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          chapter.isLocked ? Icons.lock : Icons.check_circle, // Ikon gembok atau centang
+                          color: statusColor,
+                          size: 18, // Ukuran ikon status
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            // --- END PERBAIKAN ---
+
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(chapter.title, style: const TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(chapter.details, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                  const SizedBox(height: 4),
+                  // Tampilkan status text hanya jika tidak terkunci
+                  if (!chapter.isLocked)
+                    Text(statusText, style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.w500)),
+                ],
+              ),
+            ),
+            if (isTapEnabled)
+              Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade400),
+          ],
+        ),
+      ),
+    );
   }
 
-  return InkWell(
-    // Hanya bisa di-tap jika tidak terkunci
-    onTap: isTapEnabled
-        ? () {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => BlocProvider(
-                  create: (context) => sl<SubChapterDetailBloc>(), // Buat BLoC saat navigasi
-                  child: SubChapterDetailScreen(subChapterId: chapter.id), // Berikan ID chapter
-                ),
-              ),
-            );
-          }
-        : null, // Buat null jika terkunci agar tidak ada efek ripple
-    borderRadius: BorderRadius.circular(15),
-    child: Container( // Ganti _SubChapterCard dengan Container langsung
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: borderColor, width: 1.5),
-      ),
-      child: Row(
-        children: [
-          Icon(statusIcon, color: statusColor, size: 40),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(chapter.title, style: const TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text(chapter.details, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                const SizedBox(height: 4),
-                // Tampilkan status text hanya jika tidak terkunci
-                if (!chapter.isLocked)
-                  Text(statusText, style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.w500)),
-              ],
-            ),
-          ),
-          // Tampilkan ikon panah hanya jika tidak terkunci
-          if (isTapEnabled)
-            Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade400),
-        ],
-      ),
-    ),
-  );
-}
-  
   Widget _buildNotFoundWidget() {
     return Center(
       child: Column(
@@ -227,64 +294,83 @@ class MaterialDetailScreen extends StatelessWidget {
         children: [
           Image.asset('src/features/hicode/materi/empty_box.png', width: 150),
           const SizedBox(height: 16),
-          const Text('Chapter Tidak Ditemukan', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const Text('Chapter Tidak Ditemukan',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          Text('Belum ada chapter untuk materi ini.', style: TextStyle(color: Colors.grey.shade600)),
+          Text('Belum ada chapter untuk materi ini.',
+              style: TextStyle(color: Colors.grey.shade600)),
         ],
       ),
     );
   }
 
-  Widget _buildFinalPracticeItem(BuildContext context, String materialName, String status, String details) {
-  // Tentukan style berdasarkan status ('locked' atau 'unlocked')
-  bool isLocked = status == 'locked';
-  IconData statusIcon = isLocked ? Icons.lock_outline : Icons.assignment_turned_in_outlined; // Ganti ikon
-  Color statusColor = isLocked ? Colors.grey.shade400 : Colors.orange.shade700; // Warna oranye jika unlocked
-  String statusText = isLocked ? 'Selesaikan Semua Chapter' : 'Kerjakan Sekarang';
-  Color cardColor = isLocked ? Colors.grey.shade100 : Colors.white;
-  Color borderColor = isLocked ? Colors.grey.shade300 : Colors.orange.shade200; // Border oranye
-  bool isTapEnabled = !isLocked;
+  Widget _buildFinalPracticeItem(BuildContext context, String materialName,
+      String status, String details) {
+    // Tentukan style berdasarkan status ('locked' atau 'unlocked')
+    bool isLocked = status == 'locked';
+    IconData statusIcon = isLocked
+        ? Icons.lock_outline
+        : Icons.assignment_turned_in_outlined; // Ganti ikon
+    Color statusColor = isLocked
+        ? Colors.grey.shade400
+        : Colors.orange.shade700; // Warna oranye jika unlocked
+    String statusText =
+        isLocked ? 'Selesaikan Semua Chapter' : 'Kerjakan Sekarang';
+    Color cardColor = isLocked ? Colors.grey.shade100 : Colors.white;
+    Color borderColor = isLocked
+        ? Colors.grey.shade300
+        : Colors.orange.shade200; // Border oranye
+    bool isTapEnabled = !isLocked;
 
-  return InkWell(
-    onTap: isTapEnabled
-        ? () {
-            // Navigasi ke halaman detail Latihan Final
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => FinalExamDetailScreen(materialName: materialName),
+    return InkWell(
+      onTap: isTapEnabled
+          ? () {
+              // Navigasi ke halaman detail Latihan Final
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) =>
+                      FinalExamDetailScreen(materialName: materialName),
+                ),
+              );
+            }
+          : null,
+      borderRadius: BorderRadius.circular(15),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: cardColor,
+          borderRadius: BorderRadius.circular(15),
+          border: Border.all(color: borderColor, width: 1.5),
+        ),
+        child: Row(
+          children: [
+            Icon(statusIcon, color: statusColor, size: 40),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Latihan Soal Final',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text(details,
+                      style:
+                          TextStyle(color: Colors.grey.shade600, fontSize: 12)),
+                  const SizedBox(height: 4),
+                  Text(statusText,
+                      style: TextStyle(
+                          color: statusColor,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500)),
+                ],
               ),
-            );
-          }
-        : null,
-    borderRadius: BorderRadius.circular(15),
-    child: Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: borderColor, width: 1.5),
-      ),
-      child: Row(
-        children: [
-          Icon(statusIcon, color: statusColor, size: 40),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Latihan Soal Final', style: TextStyle(fontWeight: FontWeight.bold)),
-                const SizedBox(height: 4),
-                Text(details, style: TextStyle(color: Colors.grey.shade600, fontSize: 12)),
-                const SizedBox(height: 4),
-                 Text(statusText, style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.w500)),
-              ],
             ),
-          ),
-          if (isTapEnabled)
-             Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey.shade400),
-        ],
+            if (isTapEnabled)
+              Icon(Icons.arrow_forward_ios,
+                  size: 16, color: Colors.grey.shade400),
+          ],
+        ),
       ),
-    ),
-  );
-}
+    );
+  }
 }

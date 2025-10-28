@@ -26,10 +26,12 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
   final GetCurrentUser _getCurrentUser = sl<GetCurrentUser>();
   String? _currentUserId;
   double _lastSavedScrollPosition = 0.0;
+  late SubChapterDetailBloc _bloc;
 
   @override
   void initState() {
     super.initState();
+    _bloc = context.read<SubChapterDetailBloc>();
     // Ambil User ID saat init
     _getCurrentUser().then((user) {
        if (mounted && user != null) {
@@ -50,7 +52,7 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
     final bool currentReachedBottom = _scrollController.position.pixels >= _scrollController.position.maxScrollExtent * 0.95;
 
     // Dapatkan state BLoC saat ini
-    final currentBlocState = context.read<SubChapterDetailBloc>().state;
+    final currentBlocState = _bloc.state;
 
     // Update hasReachedBottom HANYA JIKA belum pernah true sebelumnya
     final bool newHasReachedBottom = currentBlocState.isQuizUnlocked || currentReachedBottom;
@@ -64,7 +66,7 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
 
         // Jika baru saja mencapai bawah, update state BLoC juga
         if (currentReachedBottom && !currentBlocState.isQuizUnlocked) {
-           context.read<SubChapterDetailBloc>().add(const QuizManuallyUnlocked()); // Event baru untuk update UI saja
+           _bloc.add(const QuizManuallyUnlocked());
         }
       }
     });
@@ -76,7 +78,7 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
     _debounceTimer?.cancel(); // Batalkan timer sebelum panggil update terakhir
 
     // Dapatkan state BLoC sebelum dispose
-    final currentBlocState = context.read<SubChapterDetailBloc>().state;
+    final currentBlocState = _bloc.state;
     final bool finalHasReachedBottom = currentBlocState.isQuizUnlocked || // Jika sudah unlocked
                                        (_scrollController.hasClients && // Atau jika mencapai bawah saat ini
                                        _scrollController.position.pixels >= _scrollController.position.maxScrollExtent * 0.95);
@@ -326,9 +328,7 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
 
   // Modifikasi _buildBottomButton
   Widget _buildBottomButton(BuildContext context, SubChapterDetailState state, String chapterId) {
-    // Tentukan quizId berdasarkan chapterId (atau cara lain sesuai struktur Anda)
-    // Contoh sederhana: quizId sama dengan chapterId
-    final String quizId = chapterId;
+    final String chapterTitle = state.title ?? 'Chapter Quiz';
 
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -338,7 +338,9 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
             ? () {
                  // Navigasi ke QuizScreen dengan quizId yang benar
                  Navigator.of(context).push(
-                   MaterialPageRoute(builder: (_) => QuizScreen(quizId: quizId)),
+                   MaterialPageRoute(
+                    builder: (_) => QuizScreen(quizId: chapterId, chapterTitle: chapterTitle),
+                   ),
                  );
               }
             : null, // null akan membuat tombol disable
