@@ -6,14 +6,17 @@ abstract class SubChapterDetailEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class QuizManuallyUnlocked extends SubChapterDetailEvent { 
-  const QuizManuallyUnlocked(); 
+// --- TAMBAHKAN EVENT INI ---
+// Event untuk unlock UI secara instan
+class QuizManuallyUnlocked extends SubChapterDetailEvent {
+  const QuizManuallyUnlocked();
 }
+// --- END TAMBAHAN ---
 
 class FetchSubChapterData extends SubChapterDetailEvent {
   final String subChapterId;
-  final String userId; // Tambahkan ini
-  const FetchSubChapterData({required this.subChapterId, required this.userId}); // Update constructor
+  final String userId; // Pastikan userId ada
+  const FetchSubChapterData({required this.subChapterId, required this.userId});
   @override
-  List<Object> get props => [subChapterId, userId]; // Update props
+  List<Object> get props => [subChapterId, userId];
 }

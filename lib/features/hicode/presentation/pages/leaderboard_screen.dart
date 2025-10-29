@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/bloc/leaderboard/leaderboard_bloc.dart';
+import '../../domain/entities/leaderboard_entry.dart';
+import 'package:himtika_mobile_information/core/injection_container.dart';
 
 class LeaderboardScreen extends StatelessWidget {
   const LeaderboardScreen({super.key});
@@ -8,7 +10,8 @@ class LeaderboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => LeaderboardBloc()..add(FetchLeaderboard()),
+      // Perhatikan: Inject GetLeaderboard ke Bloc
+      create: (context) => LeaderboardBloc(getLeaderboard: sl())..add(FetchLeaderboard()),
       child: Scaffold(
         backgroundColor: Colors.blue,
         body: SafeArea(
@@ -25,33 +28,70 @@ class LeaderboardScreen extends StatelessWidget {
                 ),
               ),
 
-              BlocBuilder<LeaderboardBloc, LeaderboardState>(
+              BlocConsumer<LeaderboardBloc, LeaderboardState>( // Ganti ke BlocConsumer
+                listener: (context, state) {
+                   if (state.status == LeaderboardStatus.failure) {
+                     ScaffoldMessenger.of(context).showSnackBar(
+                       SnackBar(
+                         content: Text(state.errorMessage ?? 'Gagal memuat leaderboard.'),
+                         backgroundColor: Colors.red,
+                       ),
+                     );
+                   }
+                },
                 builder: (context, state) {
+                  // Tampilkan loading di tengah jika data awal belum ada
                   if (state.status == LeaderboardStatus.loading && state.users.isEmpty) {
                     return const Center(child: CircularProgressIndicator(color: Colors.white));
                   }
+                   // Tampilkan pesan jika data kosong setelah load
+                  if (state.status == LeaderboardStatus.success && state.users.isEmpty) {
+                    return Column( // Bungkus dalam Column agar bisa menempatkan TopBar dll.
+                      children: [
+                        const _TopBar(),
+                        _FilterButtons(selectedFilter: state.selectedFilter),
+                        const Expanded(
+                          child: Center(
+                            child: Text(
+                              'Belum ada data peringkat untuk filter ini.', // Pesan lebih jelas
+                              style: TextStyle(color: Colors.white70),
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                }
 
+
+                  // Ambil data top 3 dan lainnya dari state.users (List<LeaderboardEntry>)
                   final topThree = state.users.length > 2 ? state.users.sublist(0, 3) : state.users;
                   final others = state.users.length > 3 ? state.users.sublist(3) : [];
 
-                  // Struktur Column Anda tetap sama persis
                   return Stack(
                     children: [
-                      // Lapisan 1: Bagian Atas (Top Bar, Filter, Podium)
                       Column(
                         children: [
                           const _TopBar(),
                           _FilterButtons(selectedFilter: state.selectedFilter),
                           const SizedBox(height: 24),
+                          // Kirim List<LeaderboardEntry> ke _Podium
                           _Podium(topThree: topThree),
                         ],
                       ),
-                      // Lapisan 2: Bagian Bawah (Daftar Pengguna)
+                       // Tampilkan loading indicator di atas list jika sedang refresh filter
+                      if (state.status == LeaderboardStatus.loading && state.users.isNotEmpty)
+                         Positioned.fill(
+                            child: Container(
+                                color: Colors.black.withOpacity(0.3),
+                                child: const Center(child: CircularProgressIndicator(color: Colors.white))
+                            )
+                         ),
                       Positioned(
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        child: _UserListSection(users: others.cast<Map<String, dynamic>>()),
+                        // Kirim List<LeaderboardEntry> ke _UserListSection
+                        child: _UserListSection(users: others.cast<LeaderboardEntry>()),
                       ),
                     ],
                   );
@@ -150,39 +190,45 @@ class _FilterButtons extends StatelessWidget {
 }
 
 class _Podium extends StatelessWidget {
-  final List<Map<String, dynamic>> topThree;
+  final List<LeaderboardEntry> topThree;
   const _Podium({required this.topThree});
 
   @override
   Widget build(BuildContext context) {
-    if (topThree.isEmpty) return const SizedBox.shrink();
-
-    final rank2 = topThree.length > 1 ? topThree[1] : null;
-    final rank1 = topThree.isNotEmpty ? topThree[0] : null;
-    final rank3 = topThree.length > 2 ? topThree[2] : null;
+    // Tetap siapkan placeholder meskipun data kurang dari 3
+    final LeaderboardEntry? rank2 = topThree.length > 1 ? topThree[1] : null;
+    final LeaderboardEntry? rank1 = topThree.isNotEmpty ? topThree[0] : null;
+    final LeaderboardEntry? rank3 = topThree.length > 2 ? topThree[2] : null;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (rank2 != null) _PodiumPlace(user: rank2, rank: 2),
-        if (rank1 != null) _PodiumPlace(user: rank1, rank: 1),
-        if (rank3 != null) _PodiumPlace(user: rank3, rank: 3),
+        // Gunakan _PodiumPlace dengan data atau null (untuk placeholder)
+        _PodiumPlace(user: rank2, rank: 2), // Kirim null jika rank2 tidak ada
+        _PodiumPlace(user: rank1, rank: 1), // Kirim null jika rank1 tidak ada
+        _PodiumPlace(user: rank3, rank: 3), // Kirim null jika rank3 tidak ada
       ],
     );
   }
 }
 
 class _UserListSection extends StatelessWidget {
-  final List<Map<String, dynamic>> users;
+   // Terima List<LeaderboardEntry>
+  final List<LeaderboardEntry> users;
   const _UserListSection({required this.users});
 
   @override
   Widget build(BuildContext context) {
+     // Tentukan tinggi berdasarkan persentase layar (sesuaikan jika perlu)
+     final screenHeight = MediaQuery.of(context).size.height;
+     // Perkirakan tinggi podium, topbar, filter, dan padding
+     final availableHeight = screenHeight * 0.41; // Contoh
+
     return SizedBox(
-      height: MediaQuery.of(context).size.height * 0.41,
+      height: availableHeight, // Gunakan tinggi yang dihitung
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16.0), 
+        margin: const EdgeInsets.symmetric(horizontal: 16.0),
         decoration: BoxDecoration(
           color: Colors.blue.shade800,
           borderRadius: const BorderRadius.only(
@@ -190,6 +236,7 @@ class _UserListSection extends StatelessWidget {
             topRight: Radius.circular(30),
           ),
         ),
+        // Kirim List<LeaderboardEntry> ke _UserList
         child: _UserList(users: users),
       ),
     );
@@ -197,7 +244,8 @@ class _UserListSection extends StatelessWidget {
 }
 
 class _UserList extends StatelessWidget {
-  final List<Map<String, dynamic>> users;
+   // Terima List<LeaderboardEntry>
+  final List<LeaderboardEntry> users;
   const _UserList({required this.users});
 
   @override
@@ -219,6 +267,8 @@ class _UserList extends StatelessWidget {
             itemCount: users.length,
             itemBuilder: (context, index) {
               final user = users[index];
+              // Kirim LeaderboardEntry ke _UserListTile
+              // Rank dihitung dari index + 4 (karena top 3 di podium)
               return _UserListTile(user: user, rank: index + 4);
             },
             separatorBuilder: (context, index) => const SizedBox(height: 12),
@@ -257,7 +307,8 @@ class _FilterButton extends StatelessWidget {
 }
 
 class _PodiumPlace extends StatelessWidget {
-  final Map<String, dynamic> user;
+  // Ubah user menjadi nullable
+  final LeaderboardEntry? user;
   final int rank;
 
   const _PodiumPlace({required this.user, required this.rank});
@@ -270,6 +321,7 @@ class _PodiumPlace extends StatelessWidget {
   Widget build(BuildContext context) {
     final double height = rank == 1 ? 180 : (rank == 2 ? 140 : 120);
     final double width = rank == 1 ? 110 : 100;
+    final bool hasUser = user != null;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4.0),
@@ -281,60 +333,67 @@ class _PodiumPlace extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 30,
-                backgroundImage: AssetImage(user['avatar']),
+                backgroundImage: (hasUser && user!.profileUrl != null && user!.profileUrl!.isNotEmpty)
+                  ? NetworkImage(user!.profileUrl!)
+                  : null,
+                // Tampilkan ikon placeholder jika tidak ada user atau tidak ada gambar
+                child: (!hasUser || user!.profileUrl == null || user!.profileUrl!.isEmpty)
+                  ? Icon(Icons.person, size: 30, color: Colors.white.withOpacity(0.5)) // Ikon placeholder abu-abu
+                  : null,
+                backgroundColor: Colors.white.withOpacity(0.2), // Background fallback
               ),
-              Positioned(
-                top: rank == 1 ? -15 : null,
-                bottom: rank != 1 ? -5 : null,
-                right: rank != 1 ? -5 : null,
-                child: Image.asset(_getCrownAsset(), width: rank == 1 ? 30 : 20, height: rank == 1 ? 30 : 20),
-              ),
+               // Tampilkan mahkota hanya jika ada user
+               if (hasUser)
+                 Positioned(
+                  top: rank == 1 ? -15 : null,
+                  bottom: rank != 1 ? -5 : null,
+                  right: rank != 1 ? -5 : null,
+                  child: Image.asset(_getCrownAsset(), width: rank == 1 ? 30 : 20, height: rank == 1 ? 30 : 20),
+                ),
             ],
           ),
           const SizedBox(height: 8),
-          Text(user['name'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          // Tampilkan nama atau placeholder
+          Text(
+             hasUser ? user!.fullName : '-', // Tampilkan '-' jika tidak ada user
+             style: TextStyle(
+                color: Colors.white,
+                fontWeight: hasUser ? FontWeight.bold : FontWeight.normal, // Sedikit bedakan style
+                fontSize: hasUser ? 14 : 12 // Sedikit bedakan style
+             ),
+             textAlign: TextAlign.center,
+             maxLines: 1,
+             overflow: TextOverflow.ellipsis,
+           ),
           const SizedBox(height: 4),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withOpacity(hasUser ? 0.2 : 0.1), // Buat lebih transparan jika kosong
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Text(user['score'], style: const TextStyle(color: Colors.white, fontSize: 12)),
+            // Tampilkan skor atau placeholder
+            child: Text(
+              hasUser ? '${user!.highestScore} PTS' : '- PTS',
+              style: TextStyle(color: Colors.white.withOpacity(hasUser ? 1.0 : 0.5), fontSize: 12)
+            ),
           ),
           const SizedBox(height: 8),
-          Container(
+           Container(
             height: height,
             width: width,
             decoration: BoxDecoration(
-              // Warna dasar podium
-              color: const Color.fromARGB(255, 139, 197, 245).withOpacity(1.0),
-              // Border atas untuk efek 3D
-              border: Border(
-                top: BorderSide(
-                  color: Colors.white.withOpacity(0.4),
-                  width: 8,
-                ),
-              ),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(10),
-                topRight: Radius.circular(10),
-              ),
+              // Buat warna lebih transparan jika tidak ada user
+              color: const Color.fromARGB(255, 139, 197, 245).withOpacity(hasUser ? 1.0 : 0.5),
+              border: Border(top: BorderSide(color: Colors.white.withOpacity(hasUser ? 0.4 : 0.2), width: 8)),
+              borderRadius: const BorderRadius.only(topLeft: Radius.circular(10), topRight: Radius.circular(10)),
             ),
             child: Center(
               child: Text(
                 '$rank',
-                style: const TextStyle(
-                  fontSize: 64,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  shadows: [
-                    Shadow(
-                      offset: Offset(2, 2),
-                      blurRadius: 3.0,
-                      color: Color.fromRGBO(0, 0, 0, 0.2),
-                    ),
-                  ],
+                style: TextStyle(
+                  fontSize: 64, fontWeight: FontWeight.bold, color: Colors.white.withOpacity(hasUser ? 1.0 : 0.5),
+                  shadows: hasUser ? [Shadow(offset: Offset(2, 2), blurRadius: 3.0, color: Color.fromRGBO(0, 0, 0, 0.2))] : null
                 ),
               ),
             ),
@@ -346,7 +405,7 @@ class _PodiumPlace extends StatelessWidget {
 }
 
 class _UserListTile extends StatelessWidget {
-  final Map<String, dynamic> user;
+  final LeaderboardEntry user;
   final int rank;
 
   const _UserListTile({required this.user, required this.rank});
@@ -364,16 +423,22 @@ class _UserListTile extends StatelessWidget {
           Text('$rank', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey)),
           const SizedBox(width: 16),
           CircleAvatar(
-            backgroundImage: AssetImage(user['avatar']),
+             backgroundImage: (user.profileUrl != null && user.profileUrl!.isNotEmpty)
+               ? NetworkImage(user.profileUrl!)
+               : null,
+             child: (user.profileUrl == null || user.profileUrl!.isEmpty)
+               ? Icon(Icons.person, size: 20, color: Colors.white.withOpacity(0.7)) // Ikon default
+               : null,
+             backgroundColor: Colors.grey.shade400, // Background default
           ),
           const SizedBox(width: 16),
           Expanded(
-            child: Text(user['name'],
-                style: const TextStyle(fontWeight: FontWeight.bold)),
+            child: Text(user.fullName, style: const TextStyle(fontWeight: FontWeight.bold)),
           ),
-          Text(user['score'],
-              style: const TextStyle(
-                  color: Colors.blue, fontWeight: FontWeight.bold)),
+          Text(
+            '${user.highestScore} PTS',
+            style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)
+          ),
         ],
       ),
     );

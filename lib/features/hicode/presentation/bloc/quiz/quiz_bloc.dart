@@ -26,30 +26,58 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
   Future<void> _onFetchQuiz(FetchQuiz event, Emitter<QuizState> emit) async {
     emit(state.copyWith(status: QuizStatus.loading));
     try {
-      // PERBAIKAN: Deklarasikan variabel di sini agar bisa diakses di seluruh blok
       String questionType;
-      String relatedId = event.quizId; 
+      String relatedId; // Tipe tetap String, tapi isinya UUID
+
       if (event.quizId.startsWith('FINAL_')) {
         questionType = 'FINAL_PRACTICE';
-        relatedId = event.quizId.replaceFirst('FINAL_', '');
-      } else if (event.quizId == 'OVERALL_EXAM') {
+        // Ekstrak UUID setelah "FINAL_"
+        relatedId = event.quizId.substring(6); // Ambil string setelah "FINAL_"
+        // Validasi sederhana apakah itu UUID (opsional tapi bagus)
+        if (relatedId.length != 36) { // Panjang UUID
+           throw Exception('Format quizId untuk Latihan Final tidak valid.');
+        }
+      } else if (event.quizId == '00000000-0000-0000-0000-000000000000') { // Gunakan UUID placeholder
         questionType = 'OVERALL_EXAM';
-        // relatedId mungkin tidak relevan di sini
+        relatedId = event.quizId; // Gunakan UUID placeholder sebagai relatedId
       } else {
+        // Asumsi ini adalah UUID chapter untuk tipe QUIZ
         questionType = 'QUIZ';
-        // relatedId sudah benar (UUID chapter)
+        relatedId = event.quizId;
+         // Validasi sederhana apakah itu UUID (opsional tapi bagus)
+        if (relatedId.length != 36) { // Panjang UUID
+           throw Exception('Format quizId untuk Kuis Chapter tidak valid (bukan UUID).');
+        }
       }
+
+      // Panggil use case dengan relatedId (yang sekarang seharusnya UUID) dan questionType
       final questions = await _getQuestions(relatedId, questionType);
-      emit(state.copyWith(
-        status: QuizStatus.success,
-        quizId: event.quizId,
-        questions: questions,
-        currentQuestionIndex: 0,
-        selectedAnswers: {},
-        quizStartTime: DateTime.now(),
-      ));
+
+      // --- Periksa apakah soal kosong SETELAH fetch ---
+      if (questions.isEmpty) {
+         emit(state.copyWith(
+           status: QuizStatus.success, // Tetap success, tapi list kosong
+           quizId: event.quizId,
+           questions: [], // Kirim list kosong
+           currentQuestionIndex: 0,
+           selectedAnswers: {},
+           quizStartTime: DateTime.now(), // Tetap set start time
+         ));
+         // Tidak perlu throw error, biarkan UI menampilkan pesan "soal belum tersedia"
+      } else {
+         // --- Jika soal ADA, lanjutkan seperti biasa ---
+         emit(state.copyWith(
+           status: QuizStatus.success,
+           quizId: event.quizId,
+           questions: questions,
+           currentQuestionIndex: 0,
+           selectedAnswers: {},
+           quizStartTime: DateTime.now(),
+         ));
+      }
+
     } catch (e) {
-      emit(state.copyWith(status: QuizStatus.failure, error: e.toString()));
+      emit(state.copyWith(status: QuizStatus.failure, error: e.toString().replaceFirst('Exception: ', '')));
     }
   }
 
@@ -72,28 +100,51 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
   }
 
   Future<void> _onSubmitQuiz(SubmitQuiz event, Emitter<QuizState> emit) async {
-    // PERBAIKAN: Gunakan status 'submitting' yang sudah ada
-    emit(state.copyWith(status: QuizStatus.submitting));
-    try {
-      final Map<String, String> answersToSubmit = {};
-      state.selectedAnswers.forEach((questionIndex, optionId) {
-        // PERBAIKAN: Akses .id dari entitas HiCodeQuestion
-        final questionId = state.questions[questionIndex].id;
-        answersToSubmit[questionId] = optionId;
-      });
+    // Jangan proses jika sudah submitting
+    if (state.status == QuizStatus.submitting) return;
 
-      final result = await _submitQuizAnswers(answersToSubmit);
-      
-      final endTime = DateTime.now();
-      final timeTaken = state.quizStartTime != null ? endTime.difference(state.quizStartTime!) : Duration.zero;
+    emit(state.copyWith(status: QuizStatus.submitting, error: null)); // Hapus error lama saat mulai submit
+    try {
+      // ... (logika hitung timeTakenSeconds dan panggil _submitQuizAnswers) ...
+       final Map<String, String> answersToSubmit = {};
+        state.selectedAnswers.forEach((questionIndex, optionId) {
+          final questionId = state.questions[questionIndex].id;
+          answersToSubmit[questionId] = optionId;
+        });
+
+        final endTime = DateTime.now();
+        final timeTakenDuration = state.quizStartTime != null ? endTime.difference(state.quizStartTime!) : Duration.zero;
+        int? timeTakenSeconds;
+
+        // PASTIKAN UUID UJIAN AKHIR BENAR DAN KONSISTEN
+        const String overallExamId = '00000000-0000-0000-0000-000000000000'; // Definisikan di satu tempat
+        if (state.quizId == overallExamId) {
+            timeTakenSeconds = timeTakenDuration.inSeconds <= 0 ? 1 : timeTakenDuration.inSeconds;
+        }
+
+        // Debugging Print
+        print('Submitting Quiz ID: ${state.quizId}');
+        print('Calculated Duration (seconds): ${timeTakenDuration.inSeconds}');
+        print('Time Taken Seconds Sent: $timeTakenSeconds'); // Nilai yang dikirim ke RPC
+
+        final result = await _submitQuizAnswers(answersToSubmit, timeTakenSeconds: timeTakenSeconds);
 
       emit(state.copyWith(
         status: QuizStatus.submitted,
         result: result,
-        timeTaken: timeTaken,
+        timeTaken: timeTakenDuration,
       ));
     } catch (e) {
-      emit(state.copyWith(status: QuizStatus.failure, error: e.toString()));
+      // 1. Emit failure dengan error message
+      final errorMessage = e.toString()
+          .replaceFirst('Exception: ', '')
+          .replaceFirst('PostgrestException', ''); // Bersihkan pesan error
+      print('Submit Error: $errorMessage'); // Log error
+      emit(state.copyWith(status: QuizStatus.failure, error: errorMessage));
+
+      // 2. Revert status ke success agar UI tidak stuck (error ditampilkan via listener)
+      //    Jangan hapus jawaban yang sudah dipilih user.
+      emit(state.copyWith(status: QuizStatus.success));
     }
   }
 }

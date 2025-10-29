@@ -5,11 +5,13 @@ class SubmitQuizAnswers {
   final HiCodeRepository repository;
   SubmitQuizAnswers(this.repository);
 
-  Future<QuizResult> call(Map<String, String> answers) {
+  // Tambahkan parameter timeTakenSeconds (opsional, karena hanya relevan untuk Ujian Akhir)
+  Future<QuizResult> call(Map<String, String> answers, {int? timeTakenSeconds}) {
     // Validasi: pastikan ada jawaban yang dikirim
     if (answers.isEmpty) {
       throw Exception('Tidak ada jawaban yang dipilih.');
     }
-    return repository.submitAnswers(answers);
+    // Teruskan timeTakenSeconds ke repository
+    return repository.submitAnswers(answers, timeTakenSeconds: timeTakenSeconds);
   }
 }

@@ -3,14 +3,14 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:himtika_mobile_information/features/auth/domain/usecases/get_current_user.dart';
 
-
 abstract class HiCodeRemoteDatasource {
   Future<Map<String, dynamic>> getMainScreenData();
   Future<Map<String, dynamic>> getChapterListData(String materialId);
   Future<Map<String, dynamic>> getChapterContent(String chapterId, String userId);
   Future<List<Map<String, dynamic>>> getQuestions(String relatedId, String questionType);
-  Future<Map<String, dynamic>> submitAnswers(Map<String, String> answers);
+  Future<Map<String, dynamic>> submitAnswers(Map<String, String> answers, {int? timeTakenSeconds});
   Future<void> updateScrollPosition(String chapterId, double position, bool hasReachedBottom);
+  Future<List<Map<String, dynamic>>> getLeaderboard(String filter);
 }
 
 class HiCodeRemoteDatasourceImpl implements HiCodeRemoteDatasource {
@@ -74,23 +74,24 @@ class HiCodeRemoteDatasourceImpl implements HiCodeRemoteDatasource {
   }
 
   @override
-  Future<Map<String, dynamic>> submitAnswers(Map<String, String> answers) async {
+  // Modifikasi implementasi method ini
+  Future<Map<String, dynamic>> submitAnswers(Map<String, String> answers, {int? timeTakenSeconds}) async {
     final user = await getCurrentUser();
      if (user == null) {
        throw Exception('Pengguna tidak terautentikasi saat mencoba submit jawaban.');
      }
 
     final answersPayload = answers.entries.map((entry) => {
-        'questionId': entry.key, // UUID Soal (String)
-        'optionId': entry.value   // UUID Opsi (String)
+        'questionId': entry.key,
+        'optionId': entry.value
     }).toList();
 
-    // Panggil RPC dengan user.id dan payload jawaban yang baru
+    // Panggil RPC dengan parameter baru
     final result = await client.rpc('submit_hicode_answers', params: {
-        'p_user_id': user.id,          // Kirim ID user
-        'p_answers': answersPayload   // Kirim List<Map>
+        'p_user_id': user.id,
+        'p_answers': answersPayload,
+        'p_time_taken_seconds': timeTakenSeconds // <-- Teruskan parameter waktu
     });
-    // Pastikan hasil RPC di-cast dengan benar
     return result as Map<String, dynamic>;
   }
 
@@ -106,5 +107,11 @@ class HiCodeRemoteDatasourceImpl implements HiCodeRemoteDatasource {
         'p_position': position,
         'p_has_reached_bottom': hasReachedBottom,
      });
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> getLeaderboard(String filter) async { // <-- Tambahkan ini nanti
+    final data = await client.rpc('get_leaderboard', params: {'p_filter': filter});
+    return List<Map<String, dynamic>>.from(data ?? []);
   }
 }
