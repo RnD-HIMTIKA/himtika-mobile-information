@@ -7,6 +7,9 @@ import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/question_bank/question_bank_state.dart';
 import 'package:intl/intl.dart'; // Untuk format tanggal
 import 'widgets/add_question_dialog.dart';
+import 'widgets/edit_question_dialog.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_question.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_question_detail.dart';
 
 class QuestionBankScreen extends StatelessWidget {
   const QuestionBankScreen({super.key});
@@ -62,22 +65,23 @@ class QuestionBankScreen extends StatelessWidget {
             }
 
             // Tampilkan daftar soal
-            return RefreshIndicator( // Tambahkan RefreshIndicator
+            return RefreshIndicator(
               onRefresh: () async {
                  context.read<QuestionBankBloc>().add(const LoadAdminQuestions());
               },
-              child: ListView.separated(
-                padding: const EdgeInsets.all(16.0),
-                itemCount: state.questions.length,
-                itemBuilder: (context, index) {
-                  final question = state.questions[index];
-                  // Format tanggal agar lebih mudah dibaca
-                  final formattedDate = DateFormat('dd MMM yyyy, HH:mm').format(question.createdAt.toLocal());
+              child: Stack( // <-- Bungkus ListView dengan Stack
+                children: [
+                  ListView.separated(
+                    padding: const EdgeInsets.all(16.0),
+                    itemCount: state.questions.length,
+                    itemBuilder: (context, index) {
+                      final question = state.questions[index];
+                      final formattedDate = DateFormat('dd MMM yyyy, HH:mm').format(question.createdAt.toLocal());
 
-                  return Card(
-                    elevation: 2,
-                    margin: const EdgeInsets.only(bottom: 12),
-                    child: ListTile(
+                      return Card(
+                        elevation: 2,
+                        margin: const EdgeInsets.only(bottom: 12),
+                        child: ListTile(
                       title: Text(
                         question.questionText,
                         maxLines: 2,
@@ -91,42 +95,44 @@ class QuestionBankScreen extends StatelessWidget {
                         style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       ),
                       trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Chip(label: Text('${question.optionCount} Opsi')), // Tampilkan jumlah opsi
-                           IconButton(
-                             icon: Icon(Icons.edit_note, color: AppColors.himfoBlue),
-                             tooltip: 'Edit Soal',
-                             onPressed: () {
-                               // TODO: Implementasi Edit Dialog
-                               ScaffoldMessenger.of(context).showSnackBar(
-                                 const SnackBar(content: Text('Fitur edit segera hadir!')),
-                               );
-                             },
-                           ),
-                           IconButton(
-                             icon: Icon(Icons.delete_outline, color: Colors.red[700]),
-                              tooltip: 'Hapus Soal',
-                             onPressed: () {
-                               // TODO: Implementasi Delete Confirmation Dialog
-                               ScaffoldMessenger.of(context).showSnackBar(
-                                 const SnackBar(content: Text('Fitur hapus segera hadir!')),
-                               );
-                             },
-                           ),
-                        ],
-                      ),
-                      isThreeLine: true, // Agar subtitle bisa lebih dari 1 baris
-                      onTap: () {
-                         // TODO: Implementasi Edit Dialog
-                         ScaffoldMessenger.of(context).showSnackBar(
-                           const SnackBar(content: Text('Fitur edit segera hadir!')),
-                         );
-                      },
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Chip(label: Text('${question.optionCount} Opsi')),
+                               IconButton(
+                                 icon: Icon(Icons.edit_note, color: AppColors.himfoBlue),
+                                 tooltip: 'Edit Soal',
+                                 onPressed: () {
+                                   // Panggil dialog edit
+                                   _showEditQuestionDialog(context, question);
+                                 },
+                               ),
+                               IconButton(
+                                 icon: Icon(Icons.delete_outline, color: Colors.red[700]),
+                                  tooltip: 'Hapus Soal',
+                                 onPressed: () {
+                                   // Panggil dialog konfirmasi hapus
+                                   _showDeleteConfirmationDialog(context, question);
+                                 },
+                               ),
+                            ],
+                          ),
+                          isThreeLine: true,
+                          onTap: () {
+                             // Panggil dialog edit saat list tile di-tap
+                             _showEditQuestionDialog(context, question);
+                          },
+                        ),
+                      );
+                    },
+                     separatorBuilder: (context, index) => const SizedBox(height: 0),
+                  ),
+                  // Tambahkan overlay loading saat submitting (Edit/Delete)
+                  if (state.status == QuestionBankStatus.submitting)
+                    Container(
+                      color: Colors.black.withOpacity(0.3),
+                      child: const Center(child: CircularProgressIndicator()),
                     ),
-                  );
-                },
-                 separatorBuilder: (context, index) => const SizedBox(height: 0), // Tidak perlu separator jika sudah pakai Card
+                ],
               ),
             );
           },
@@ -167,4 +173,69 @@ class QuestionBankScreen extends StatelessWidget {
     );
   }
 
+  void _showEditQuestionDialog(BuildContext context, AdminQuestion question) async { // <-- Jadikan async
+      final bloc = context.read<QuestionBankBloc>();
+      // Panggil event untuk load dropdown DULU
+      bloc.add(const LoadDropdownData());
+
+      // Panggil event untuk fetch detail dan TUNGGU
+      bloc.add(FetchQuestionDetailsForEdit(questionId: question.id));
+
+      // Tunggu sampai status berubah dari fetchingDetails atau terjadi failure
+      final currentState = await bloc.stream.firstWhere(
+         (state) => state.status != QuestionBankStatus.fetchingDetails
+      );
+
+      // Cek apakah fetch berhasil dan context masih valid
+      if (currentState.status == QuestionBankStatus.success && currentState.questionDetail != null && context.mounted) {
+         // Tampilkan dialog HANYA jika fetch berhasil
+         showDialog(
+           context: context,
+           barrierDismissible: false,
+           builder: (dialogContext) {
+              return BlocProvider.value(
+                 value: bloc,
+                 // Kirim questionDetail ke dialog
+                 child: EditQuestionDialog(questionDetail: currentState.questionDetail!),
+              );
+           },
+         );
+      } else if (context.mounted) {
+         // Tampilkan pesan error jika fetch gagal
+         ScaffoldMessenger.of(context).showSnackBar(
+           SnackBar(
+             content: Text(currentState.errorMessage ?? 'Gagal memuat detail soal.'),
+             backgroundColor: Colors.red,
+           ),
+         );
+      }
+  }
+
+  // --- Fungsi BARU untuk Dialog Konfirmasi Hapus ---
+  void _showDeleteConfirmationDialog(BuildContext context, AdminQuestion question) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Hapus Soal'),
+          content: Text('Anda yakin ingin menghapus soal "${question.questionText.substring(0, (question.questionText.length > 50 ? 50 : question.questionText.length)) + (question.questionText.length > 50 ? '...' : '')}"? Aksi ini tidak dapat dibatalkan.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () {
+                // Kirim event DeleteQuestionPressed ke BLoC
+                context.read<QuestionBankBloc>().add(DeleteQuestionPressed(questionId: question.id));
+                Navigator.of(dialogContext).pop(); // Tutup dialog konfirmasi
+              },
+              child: const Text('Hapus', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }

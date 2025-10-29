@@ -23,6 +23,7 @@ abstract class QuestionBankRemoteDatasource {
     required List<QuestionOptionInput> options,
   });
   Future<void> deleteQuestion({required String questionId});
+  Future<Map<String, dynamic>> getQuestionDetails({required String questionId});
   // Method map tetap ada
   Future<List<Map<String, dynamic>>> getChaptersForAdmin();
   Future<List<Map<String, dynamic>>> getMaterialsForAdmin();
@@ -90,6 +91,19 @@ class QuestionBankRemoteDatasourceImpl implements QuestionBankRemoteDatasource {
      await client.rpc('delete_hicode_question', params: {
         'p_question_id': questionId, // <-- ID Soal
      });
+  }
+
+  @override
+  Future<Map<String, dynamic>> getQuestionDetails({required String questionId}) async {
+     // Panggil RPC get_question_details
+     final data = await client.rpc('get_question_details', params: {
+        'p_question_id': questionId,
+     });
+     // Hasil RPC adalah satu objek JSON
+     if (data == null) {
+       throw Exception('Detail soal tidak ditemukan.');
+     }
+     return data as Map<String, dynamic>;
   }
 
   @override
