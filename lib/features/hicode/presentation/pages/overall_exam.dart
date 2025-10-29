@@ -183,14 +183,12 @@ class OverallExamScreen extends StatelessWidget {
       padding: const EdgeInsets.all(16.0),
       child: ElevatedButton(
         onPressed: () async {
-          // Panggil dialog dan tunggu hasilnya
           final bool? shouldStart = await _showStartConfirmationDialog(context);
-
-          // Jika pengguna menekan "Mulai Kerjakan" (true)
           if (shouldStart == true && context.mounted) {
             Navigator.of(context).push(
               MaterialPageRoute(
-                  builder: (_) => const QuizScreen(quizId: 'OVERALL_EXAM')),
+                  // Gunakan UUID placeholder sebagai quizId
+                  builder: (_) => const QuizScreen(quizId: '00000000-0000-0000-0000-000000000000')),
             );
           }
         },

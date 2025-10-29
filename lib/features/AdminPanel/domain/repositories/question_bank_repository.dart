@@ -11,6 +11,18 @@ abstract class QuestionBankRepository {
     String? imageUrl,
     required List<QuestionOptionInput> options,
   });
+  // Tambahkan method baru
+  Future<void> updateQuestionWithOptions({
+    required String questionId,
+    required String relatedId,
+    required String questionType,
+    required String difficulty,
+    required String questionText,
+    String? imageUrl,
+    required List<QuestionOptionInput> options,
+  });
+  Future<void> deleteQuestion({required String questionId});
+  // Method map tetap ada
   Future<Map<String, String>> getChaptersMapForAdmin();
   Future<Map<String, String>> getMaterialsMapForAdmin();
 }

@@ -1,51 +1,56 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import '../../../domain/entities/leaderboard_entry.dart'; // <-- Import entity baru
+import '../../../domain/usecases/get_leaderboard.dart'; // <-- Import use case
 
 part 'leaderboard_event.dart';
 part 'leaderboard_state.dart';
 
-final List<Map<String, dynamic>> _allTimeUsers = [
-  {'name': 'King Mahes', 'score': '2,569 PTS', 'avatar': 'src/features/hicode/rank/avatar3.png'},
-  {'name': 'Auf Kucai', 'score': '1,469 PTS', 'avatar': 'src/features/hicode/rank/avatar2.png'},
-  {'name': 'Raika Maulana', 'score': '1,053 PTS', 'avatar': 'src/features/hicode/rank/avatar3.png'},
-  {'name': 'Manray Batagor', 'score': '590 points', 'avatar': 'src/features/hicode/rank/avatar1.png'},
-  {'name': 'Geral Sayang', 'score': '448 points', 'avatar': 'src/features/hicode/rank/avatar2.png'},
-  {'name': 'Geral Sayang', 'score': '448 points', 'avatar': 'src/features/hicode/rank/avatar2.png'},
-  {'name': 'Geral Sayang', 'score': '448 points', 'avatar': 'src/features/hicode/rank/avatar2.png'},
-  {'name': 'Geral Sayang', 'score': '448 points', 'avatar': 'src/features/hicode/rank/avatar2.png'},
-  {'name': 'Geral Sayang', 'score': '448 points', 'avatar': 'src/features/hicode/rank/avatar2.png'},
-  {'name': 'Geral Sayang', 'score': '448 points', 'avatar': 'src/features/hicode/rank/avatar2.png'},
-];
-
-final List<Map<String, dynamic>> _weeklyUsers = [
-  {'name': 'Auf Kucai', 'score': '820 PTS', 'avatar': 'src/features/hicode/rank/avatar1.png'},
-  {'name': 'Geral Sayang', 'score': '750 PTS', 'avatar': 'src/features/hicode/rank/avatar2.png'},
-  {'name': 'King Mahes', 'score': '610 PTS', 'avatar': 'src/features/hicode/rank/avatar3.png'},
-  {'name': 'Raika Maulana', 'score': '400 points', 'avatar': 'src/features/hicode/rank/avatar3.png'},
-  {'name': 'Manray Batagor', 'score': '210 points', 'avatar': 'src/features/hicode/rank/avatar1.png'},
-  {'name': 'Manray Batagor', 'score': '210 points', 'avatar': 'src/features/hicode/rank/avatar1.png'},
-  {'name': 'Manray Batagor', 'score': '210 points', 'avatar': 'src/features/hicode/rank/avatar1.png'},
-];
-
+// Hapus data dummy _allTimeUsers dan _weeklyUsers
 
 class LeaderboardBloc extends Bloc<LeaderboardEvent, LeaderboardState> {
-  LeaderboardBloc() : super(const LeaderboardState()) {
+  // Tambahkan dependency GetLeaderboard
+  final GetLeaderboard _getLeaderboard;
+
+  // Modifikasi constructor
+  LeaderboardBloc({required GetLeaderboard getLeaderboard})
+      : _getLeaderboard = getLeaderboard,
+        super(const LeaderboardState()) { // State awal tetap
     on<FetchLeaderboard>(_onFetchLeaderboard);
     on<FilterChanged>(_onFilterChanged);
   }
 
-  void _onFetchLeaderboard(FetchLeaderboard event, Emitter<LeaderboardState> emit) {
+  // Modifikasi handler FetchLeaderboard
+  Future<void> _onFetchLeaderboard(FetchLeaderboard event, Emitter<LeaderboardState> emit) async {
     emit(state.copyWith(status: LeaderboardStatus.loading));
-    emit(state.copyWith(
-        status: LeaderboardStatus.success, users: _allTimeUsers));
+    try {
+      // Panggil use case dengan filter awal ('all')
+      final users = await _getLeaderboard('all');
+      emit(state.copyWith(
+          status: LeaderboardStatus.success,
+          users: users, // Simpan List<LeaderboardEntry>
+          selectedFilter: LeaderboardFilter.allTime // Pastikan filter awal benar
+      ));
+    } catch (e) {
+      emit(state.copyWith(status: LeaderboardStatus.failure, errorMessage: e.toString()));
+    }
   }
 
-  void _onFilterChanged(FilterChanged event, Emitter<LeaderboardState> emit) {
-    emit(state.copyWith(status: LeaderboardStatus.loading));
-    final usersToShow = event.filter == LeaderboardFilter.allTime ? _allTimeUsers : _weeklyUsers;
-    emit(state.copyWith(
-        status: LeaderboardStatus.success,
-        selectedFilter: event.filter,
-        users: usersToShow));
+  // Modifikasi handler FilterChanged
+  Future<void> _onFilterChanged(FilterChanged event, Emitter<LeaderboardState> emit) async {
+    // Tentukan string filter berdasarkan enum
+    final filterString = event.filter == LeaderboardFilter.allTime ? 'all' : 'weekly';
+
+    emit(state.copyWith(status: LeaderboardStatus.loading, selectedFilter: event.filter)); // Update filter di state
+    try {
+      // Panggil use case dengan filter yang dipilih
+      final users = await _getLeaderboard(filterString);
+      emit(state.copyWith(
+          status: LeaderboardStatus.success,
+          users: users // Simpan data baru
+      ));
+    } catch (e) {
+      emit(state.copyWith(status: LeaderboardStatus.failure, errorMessage: e.toString()));
+    }
   }
 }

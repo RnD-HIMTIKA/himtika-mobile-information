@@ -5,8 +5,13 @@ import '../bloc/final_practice_detail/final_practice_detail_bloc.dart';
 
 class FinalExamDetailScreen extends StatelessWidget {
   final String materialName;
+  final String materialId;
 
-  const FinalExamDetailScreen({super.key, required this.materialName});
+  const FinalExamDetailScreen({
+    super.key, 
+    required this.materialName,
+    required this.materialId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -113,7 +118,7 @@ class FinalExamDetailScreen extends StatelessWidget {
             },
           ),
         ),
-        bottomNavigationBar: _buildBottomButton(context, materialName),
+        bottomNavigationBar: _buildBottomButton(context, materialName, materialId),
       ),
     );
   }
@@ -186,20 +191,17 @@ class FinalExamDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomButton(BuildContext context, String materialName) {
-    // Ganti Container menjadi Padding agar lebih sederhana
+  Widget _buildBottomButton(BuildContext context, String materialName, String materialId) { // <-- Tambahkan materialId
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: ElevatedButton(
         onPressed: () async {
-          // Panggil dialog dan tunggu hasilnya
           final bool? shouldStart = await _showStartConfirmationDialog(context);
-
-          // Jika pengguna menekan "Mulai Kerjakan" (true)
           if (shouldStart == true && context.mounted) {
             Navigator.of(context).push(
               MaterialPageRoute(
-                  builder: (_) => QuizScreen(quizId: 'FINAL_$materialName')),
+                  // Ubah quizId menjadi format "FINAL_" + UUID
+                  builder: (_) => QuizScreen(quizId: 'FINAL_$materialId', chapterTitle: 'Latihan Final: $materialName')), // <-- Beri judul juga
             );
           }
         },

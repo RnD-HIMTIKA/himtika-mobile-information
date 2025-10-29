@@ -36,38 +36,37 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
     _getCurrentUser().then((user) {
        if (mounted && user != null) {
           setState(() {
-            _currentUserId = user.id;
+            _currentUserId = user.id; // Simpan user.id (UUID dari public.users)
           });
           // Panggil FetchSubChapterData setelah user ID didapat
-          context.read<SubChapterDetailBloc>().add(FetchSubChapterData(subChapterId: widget.subChapterId, userId: _currentUserId!));
-        }
-     });
+          _bloc.add(FetchSubChapterData(subChapterId: widget.subChapterId, userId: _currentUserId!));
+       } else if (mounted) {
+         // Handle jika user tidak ditemukan (meskipun seharusnya tidak terjadi di sini)
+         _bloc.add(const FetchSubChapterData(subChapterId: '', userId: '')); // Kirim event gagal
+       }
+    });
      _scrollController.addListener(_scrollListener);
    }
 
   void _scrollListener() {
     _lastSavedScrollPosition = _scrollController.offset;
-
-    // Tentukan apakah sudah mencapai bawah
     final bool currentReachedBottom = _scrollController.position.pixels >= _scrollController.position.maxScrollExtent * 0.95;
-
-    // Dapatkan state BLoC saat ini
     final currentBlocState = _bloc.state;
-
-    // Update hasReachedBottom HANYA JIKA belum pernah true sebelumnya
     final bool newHasReachedBottom = currentBlocState.isQuizUnlocked || currentReachedBottom;
 
-    // Debounce untuk update scroll position
+    // --- PERBAIKAN UX DI SINI ---
+    // 1. Update UI (BLoC State) secara instan jika kondisi terpenuhi
+    if (currentReachedBottom && !currentBlocState.isQuizUnlocked) {
+       _bloc.add(const QuizManuallyUnlocked()); // Panggil event BLoC instan
+    }
+    // --- END PERBAIKAN ---
+
+    // 2. Update Database tetap menggunakan debounce
     if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
     _debounceTimer = Timer(const Duration(seconds: 2), () {
       if (mounted && _currentUserId != null) {
         // Kirim status newHasReachedBottom ke backend
         _updateScrollPosition(widget.subChapterId, _lastSavedScrollPosition, newHasReachedBottom);
-
-        // Jika baru saja mencapai bawah, update state BLoC juga
-        if (currentReachedBottom && !currentBlocState.isQuizUnlocked) {
-           _bloc.add(const QuizManuallyUnlocked());
-        }
       }
     });
   }

@@ -10,47 +10,63 @@ import 'package:himtika_mobile_information/core/theme/app_colors.dart';
 class QuizScreen extends StatelessWidget {
   final String quizId;
   final String? chapterTitle;
-  
+
   const QuizScreen({
-    super.key, 
+    super.key,
     required this.quizId,
     this.chapterTitle,
   });
-  @override
 
+  @override
   Widget build(BuildContext context) {
     return BlocProvider(
       create: (context) => sl<QuizBloc>()..add(FetchQuiz(quizId: quizId)),
       child: BlocListener<QuizBloc, QuizState>(
-        listener: (context, state) {
+        listener: (context, state) { // Context di sini adalah context QuizScreen
           if (state.status == QuizStatus.submitted) {
-            _showResultDialog(context, state);
+            // Panggil fungsi global _showResultDialog
+            _showResultDialog(context, state, quizId, chapterTitle); // Kirim context QuizScreen
+          }
+          else if (state.status == QuizStatus.failure && state.error != null) {
+             // Penanganan error submit (jika perlu)
+             WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (context.mounted) { // Cek mounted sebelum panggil ScaffoldMessenger
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Gagal submit: ${state.error}'), backgroundColor: Colors.red),
+                  );
+                }
+             });
           }
         },
         child: Scaffold(
-          backgroundColor: Colors.white,
-          body: SafeArea(
-            child: BlocBuilder<QuizBloc, QuizState>(
-              builder: (context, state) {
+           backgroundColor: Colors.white,
+           body: SafeArea(
+             child: BlocBuilder<QuizBloc, QuizState>(
+               builder: (context, state) {
                 if (state.status == QuizStatus.loading || state.status == QuizStatus.initial) {
                   return const _QuizLoadingView();
                 }
-                
-                if (state.questions.isEmpty) {
-                   return const Center(child: Text('Soal untuk kuis ini belum tersedia.'));
+
+                if (state.questions.isEmpty && state.status == QuizStatus.success) { // Tambahkan pengecekan status success
+                  return Center(child: Text('Soal untuk ${state.quizId.startsWith('FINAL_') ? 'latihan final' : state.quizId == '00000000-0000-0000-0000-000000000000' ? 'ujian akhir' : 'kuis'} ini belum tersedia.'));
                 }
 
+                // Gabungkan kondisi untuk _QuizView dan _FinalExamView
                 if (state.status == QuizStatus.success || state.status == QuizStatus.submitting) {
-                  return state.quizId == 'OVERALL_EXAM'
-                    ? _FinalExamView(state: state)
-                    : _QuizView(state: state, quizId: quizId, chapterTitle: chapterTitle);
+                  // Tampilkan _FinalExamView jika quizId adalah UUID Ujian Akhir
+                  if (state.quizId == '00000000-0000-0000-0000-000000000000') {
+                    return _FinalExamView(state: state);
+                  } else {
+                    // Selain itu, tampilkan _QuizView (untuk Kuis Chapter & Latihan Final)
+                    return _QuizView(state: state, quizId: state.quizId, chapterTitle: chapterTitle); // Gunakan state.quizId
+                  }
                 }
-                
+
                 if (state.status == QuizStatus.failure) {
                   return Center(child: Text(state.error ?? 'Gagal memuat kuis.'));
                 }
-                
-                return const SizedBox.shrink();
+
+                return const SizedBox.shrink(); // Fallback
               },
             ),
           ),
@@ -59,144 +75,162 @@ class QuizScreen extends StatelessWidget {
     );
   }
 
-  void _showResultDialog(BuildContext context, QuizState state) {
-    final result = state.result;
-    if (result == null) return;
+  void _showResultDialog(BuildContext dialogContext, QuizState state, String currentQuizId, String? currentChapterTitle) {
+  final result = state.result;
+  if (result == null) return;
 
-    final int correctAnswers = result.correctCount; // Ganti nama variabel agar lebih jelas
-    final int totalQuestions = result.totalQuestions;
-    final String quizId = state.quizId;
+  final int correctAnswers = result.correctCount;
+  final int totalQuestions = result.totalQuestions;
+  final String quizId = currentQuizId; // Gunakan parameter
+  final String? displayTitle = currentChapterTitle; // Gunakan parameter
 
-    bool isPassed = false; // Default
-    String imagePath;
-    String title = '';
-    String subtitle = '';
-    List<Widget> buttons = [];
+  bool isPassed = false;
+  String imagePath;
+  String title = '';
+  String subtitle = '';
+  List<Widget> buttons = [];
 
-    // --- LOGIKA KELULUSAN & PESAN ---
-    if (quizId.startsWith('FINAL_')) { // Latihan Final
-      final materialName = quizId.replaceFirst('FINAL_', '');
-      // Syarat Lulus: minimal 60% benar (atau minimal 6 jika soalnya 10)
-      // Kita gunakan persentase agar fleksibel jika jumlah soal berubah
-      isPassed = totalQuestions > 0 && (correctAnswers / totalQuestions) >= 0.6;
+  // --- LOGIKA KELULUSAN & PESAN (Sama seperti sebelumnya) ---
+  if (quizId.startsWith('FINAL_')) { // Latihan Final
+    final materialNameForDisplay = displayTitle ?? quizId; // Fallback
+    isPassed = totalQuestions > 0 && (correctAnswers / totalQuestions) >= 0.6;
 
-      if (isPassed) {
-        title = 'Latihan Final Selesai!';
-        subtitle = 'Hebat! Kamu lulus latihan final untuk materi "$materialName".';
-        buttons = [
-          _buildDialogButton(
-            text: 'Kembali ke Chapter',
-            isPrimary: true,
-            onPressed: () {
-              Navigator.of(context).pop(); // Tutup dialog
-              // Keluar 2x: dari QuizScreen dan FinalExamDetailScreen
-              Navigator.of(context)..pop()..pop();
-            },
-          ),
-        ];
-      } else {
-        title = 'Latihan Final Belum Tuntas';
-        subtitle = 'Kamu menjawab benar $correctAnswers dari $totalQuestions soal ($materialName). Minimal 60% jawaban benar diperlukan untuk lulus. Coba lagi!';
-        buttons = [
-           _buildDialogButton( // Tombol Kembali
-            text: 'Kembali ke Detail Latihan',
-            isPrimary: false, // Buat sekunder
-            onPressed: () {
-              Navigator.of(context).pop(); // Tutup dialog
-              Navigator.of(context).pop(); // Kembali dari QuizScreen ke FinalExamDetailScreen
-            },
-          ),
-          const SizedBox(height: 8), // Jarak
-          _buildDialogButton( // Tombol Ulangi
-            text: 'Ulangi Latihan Final',
-            isPrimary: true,
-            onPressed: () {
-              Navigator.of(context).pop(); // Tutup dialog
-              context.read<QuizBloc>().add(FetchQuiz(quizId: quizId)); // Muat ulang kuis
-            },
-          ),
-        ];
-      }
-    } else if (quizId == 'OVERALL_EXAM') { // Ujian Akhir
-      // Syarat Lulus: minimal 15 jawaban benar (sesuai konsep Anda)
-      isPassed = correctAnswers >= 15;
-
-      // Pesan tidak bergantung pada lulus/tidak, karena skor dicatat
-      title = 'Ujian Akhir Selesai!';
-      subtitle = 'Kamu menjawab benar $correctAnswers dari $totalQuestions soal. Skor akhirmu adalah ${result.score} poin. Hasil terbaikmu akan tercatat di leaderboard.';
-      if (!isPassed) {
-        subtitle += '\n\nSayangnya, kamu belum memenuhi syarat kelulusan (minimal 15 benar). Kamu bisa mencoba lagi nanti.';
-      }
+    if (isPassed) {
+      title = 'Latihan Final Selesai!';
+      subtitle = 'Hebat! Kamu lulus latihan final untuk "$materialNameForDisplay".';
       buttons = [
-        _buildDialogButton(
-          text: 'Lihat Detail Skor', // Arahkan ke ScoreScreen
+        _buildDialogButton( // Tombol ini dibuat sebagai fungsi helper statis atau di luar
+          context: dialogContext, // Kirim context dialog
+          text: 'Kembali ke Chapter',
           isPrimary: true,
           onPressed: () {
-            Navigator.of(context).pop(); // Tutup dialog
-            // Ganti halaman QuizScreen dengan ScoreScreen
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (_) => ScoreScreen(
-                  score: result.score, // Kirim skor poin
-                  // Kirim jumlah benar/salah untuk ditampilkan di ScoreScreen juga
-                  correctAnswers: correctAnswers, // Nama parameter baru
-                  totalQuestions: totalQuestions,
-                  timeTaken: state.timeTaken ?? Duration.zero,
-                ),
-              ),
-            );
+            Navigator.of(dialogContext).pop(); // Tutup dialog
+            // Keluar 2x: dari QuizScreen dan FinalExamDetailScreen/MaterialDetailScreen
+            Navigator.of(dialogContext)..pop()..pop();
           },
         ),
       ];
-    } else { // Kuis Chapter Biasa
-      // Syarat Lulus: Selesaikan saja (semua soal terjawab)
-      isPassed = true; // Kuis chapter selalu dianggap "selesai" jika di-submit
-      title = 'Kuis Chapter Selesai!';
-      subtitle = 'Kamu menjawab benar $correctAnswers dari $totalQuestions soal. Materi berikutnya kini dapat diakses.';
+    } else {
+      title = 'Latihan Final Belum Tuntas';
+      subtitle = 'Kamu menjawab benar $correctAnswers dari $totalQuestions soal ($materialNameForDisplay). Minimal 60% benar diperlukan...';
       buttons = [
         _buildDialogButton(
-          text: 'Lanjut Belajar',
+          context: dialogContext, // Kirim context dialog
+          text: 'Kembali ke Detail Latihan',
+          isPrimary: false,
+          onPressed: () {
+            Navigator.of(dialogContext).pop(); // Tutup dialog
+            Navigator.of(dialogContext).pop(); // Kembali dari QuizScreen
+          },
+        ),
+        const SizedBox(height: 8),
+        _buildDialogButton(
+          context: dialogContext, // Kirim context dialog
+          text: 'Ulangi Latihan Final',
           isPrimary: true,
           onPressed: () {
-            Navigator.of(context).pop(); // Tutup dialog
-            Navigator.of(context).pop(true);
+            Navigator.of(dialogContext).pop(); // Tutup dialog
+            // Dapatkan BLoC dari context dialog (yang mana adalah context QuizScreen)
+            dialogContext.read<QuizBloc>().add(FetchQuiz(quizId: quizId));
           },
         ),
       ];
     }
-    // --- END LOGIKA KELULUSAN & PESAN ---
+  } else if (quizId == '00000000-0000-0000-0000-000000000000') { // Ujian Akhir
+    isPassed = correctAnswers >= 15; // Syarat lulus Ujian Akhir
+    title = 'Ujian Akhir Selesai!';
+    subtitle = 'Kamu menjawab benar $correctAnswers dari $totalQuestions soal. Skor akhirmu adalah ${result.score} poin...'; // Pesan lengkap
+    if (!isPassed) {
+       subtitle += '\n\nSayangnya, kamu belum memenuhi syarat kelulusan (minimal 15 benar)...';
+    }
 
-    // Tentukan gambar berdasarkan isPassed
-    imagePath = isPassed ? 'src/features/hicode/images/success.png' : 'src/features/hicode/images/failed.png';
-
-    // Tampilkan dialog (kode ini sebagian besar sama seperti sebelumnya)
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) {
-        return Dialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.asset(imagePath, height: 100),
-                const SizedBox(height: 16),
-                Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 16),
-                Text(subtitle, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, color: Colors.black54)),
-                const SizedBox(height: 24),
-                ...buttons, // Tampilkan tombol yang sudah disiapkan
-              ],
+    buttons = [
+      _buildDialogButton(
+        context: dialogContext, // Kirim context dialog
+        text: 'Lihat Detail Skor',
+        isPrimary: true,
+        onPressed: () {
+          Navigator.of(dialogContext).pop(); // Tutup dialog
+          Navigator.of(dialogContext).pushReplacement( // Ganti halaman QuizScreen
+            MaterialPageRoute(
+              builder: (_) => ScoreScreen(
+                score: result.score,
+                correctAnswers: correctAnswers,
+                totalQuestions: totalQuestions,
+                timeTaken: state.timeTaken ?? Duration.zero,
+              ),
             ),
+          );
+        },
+      ),
+    ];
+  } else { // Kuis Chapter Biasa
+    final chapterNameForDisplay = displayTitle ?? 'Chapter'; // Fallback
+    isPassed = (correctAnswers == totalQuestions && totalQuestions > 0);
+    if (isPassed) {
+      title = 'Kuis $chapterNameForDisplay Selesai!';
+      subtitle = 'Kamu menjawab semua soal dengan benar...';
+      buttons = [
+        _buildDialogButton(
+          context: dialogContext, // Kirim context dialog
+          text: 'Lanjut Belajar',
+          isPrimary: true,
+          onPressed: () {
+            Navigator.of(dialogContext).pop(); // Tutup dialog
+            // Pop 2 kali (keluar dari QuizScreen & SubChapterDetailScreen), kirim true
+            Navigator.of(dialogContext).pop(true);
+          },
+        ),
+      ];
+    } else {
+      title = 'Kuis $chapterNameForDisplay Belum Tuntas';
+      subtitle = 'Kamu menjawab benar $correctAnswers dari $totalQuestions soal...';
+      buttons = [
+        _buildDialogButton(
+          context: dialogContext, // Kirim context dialog
+          text: 'Pelajari Ulang',
+          isPrimary: true,
+          onPressed: () {
+            Navigator.of(dialogContext).pop(); // Tutup dialog
+            // Pop 1 kali (keluar dari QuizScreen), kirim false
+            Navigator.of(dialogContext).pop(false);
+          },
+        ),
+      ];
+    }
+  }
+  // --- END LOGIKA ---
+
+  imagePath = isPassed ? 'src/features/hicode/images/success.png' : 'src/features/hicode/images/failed.png';
+
+  showDialog(
+    context: dialogContext, // Gunakan context dialog
+    barrierDismissible: false,
+    builder: (_) { // Tidak perlu dialogContext lagi di sini
+      return Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(imagePath, height: 100),
+              const SizedBox(height: 16),
+              Text(title, textAlign: TextAlign.center, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              Text(subtitle, textAlign: TextAlign.center, style: const TextStyle(fontSize: 16, color: Colors.black54)),
+              const SizedBox(height: 24),
+              ...buttons,
+            ],
           ),
-        );
-      },
-    );
- }
+        ),
+      );
+    },
+  );
+}
 
   Widget _buildDialogButton({
+    required BuildContext context, // Terima context
     required String text,
     required bool isPrimary,
     required VoidCallback onPressed,
@@ -347,16 +381,17 @@ class _QuizView extends StatelessWidget {
     );
   }
 
-  Widget _buildTopBar(BuildContext context, String quizId, String? chapterTitle) { // <-- Tambahkan parameter
-  String title = 'Kuis'; // Default
-  if (chapterTitle != null && quizId != 'OVERALL_EXAM' && !quizId.startsWith('FINAL_')) {
-     title = 'Kuis: $chapterTitle';
-  } else if (quizId.startsWith('FINAL_')) {
-    final materialName = quizId.replaceFirst('FINAL_', '');
-    title = 'Latihan Final: $materialName';
-  } else if (quizId == 'OVERALL_EXAM') {
-     title = 'Ujian Akhir HiCode';
-  }
+  Widget _buildTopBar(BuildContext context, String quizId, String? chapterTitle) {
+    String title = 'Kuis'; // Default
+    // Gunakan chapterTitle jika tersedia dan BUKAN Final/Overall
+    if (chapterTitle != null && quizId != '00000000-0000-0000-0000-000000000000' && !quizId.startsWith('FINAL_')) {
+       title = 'Kuis: $chapterTitle';
+    // Gunakan chapterTitle jika tersedia dan INI Final (karena kita set judulnya di final_practice_detail)
+    } else if (chapterTitle != null && quizId.startsWith('FINAL_')) {
+       title = chapterTitle; // Langsung gunakan judul dari parameter
+    } else if (quizId == '00000000-0000-0000-0000-000000000000') {
+       title = 'Ujian Akhir HiCode';
+    }
 
   return Container(
     color: const Color(0xFFDBF7FF),
@@ -646,12 +681,12 @@ class _BottomNavBar extends StatelessWidget {
           ),
           // Tombol Submit
           ElevatedButton(
-            onPressed: () async {
+            onPressed: (state.status == QuizStatus.submitting) ? null : () async { // Disable saat submitting
               // Panggil dialog dan tunggu hasilnya
               final bool? shouldSubmit = await _showSubmitConfirmationDialog(context);
 
-              // Jika pengguna memilih "Submit Kuis" (true)
-              if (shouldSubmit == true) {
+              // Jika pengguna memilih "Submit" (true)
+              if (shouldSubmit == true && context.mounted) { // Tambah cek context.mounted
                 context.read<QuizBloc>().add(SubmitQuiz());
               }
             },
@@ -662,7 +697,10 @@ class _BottomNavBar extends StatelessWidget {
               foregroundColor: Colors.blue,
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
             ),
-            child: Text(isFinalExam ? 'Submit Ujian' : 'Submit Kuis'),
+            // Gunakan teks "Submit" saja
+            child: (state.status == QuizStatus.submitting)
+              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2,))
+              : const Text('Submit'),
           ),
           // Tombol Lanjut
           IconButton(

@@ -137,6 +137,8 @@ import 'package:himtika_mobile_information/features/hicode/domain/usecases/get_q
 import 'package:himtika_mobile_information/features/hicode/domain/usecases/submit_quiz_answers.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/bloc/quiz/quiz_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/domain/usecases/update_scroll_position.dart';
+import 'package:himtika_mobile_information/features/hicode/domain/usecases/get_leaderboard.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/bloc/leaderboard/leaderboard_bloc.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -393,9 +395,11 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => UpdateScrollPosition(sl()));
   sl.registerLazySingleton(() => GetQuestions(sl()));
   sl.registerLazySingleton(() => SubmitQuizAnswers(sl()));
+  sl.registerLazySingleton(() => GetLeaderboard(sl()));
   // BLoCs
   sl.registerFactory(() => HicodeBloc(getMainScreenData: sl()));
   sl.registerFactory(() => MaterialDetailBloc(getChapterListData: sl()));
   sl.registerFactory(() => SubChapterDetailBloc(getChapterContent: sl()));
   sl.registerFactory(() => QuizBloc(getQuestions: sl(), submitQuizAnswers: sl()));
+  sl.registerFactory(() => LeaderboardBloc(getLeaderboard: sl()));
 }

@@ -12,6 +12,18 @@ abstract class QuestionBankRemoteDatasource {
     String? imageUrl,
     required List<QuestionOptionInput> options,
   });
+  // Tambahkan method baru
+  Future<void> updateQuestionWithOptions({
+    required String questionId,
+    required String relatedId,
+    required String questionType,
+    required String difficulty,
+    required String questionText,
+    String? imageUrl,
+    required List<QuestionOptionInput> options,
+  });
+  Future<void> deleteQuestion({required String questionId});
+  // Method map tetap ada
   Future<List<Map<String, dynamic>>> getChaptersForAdmin();
   Future<List<Map<String, dynamic>>> getMaterialsForAdmin();
 }
@@ -22,12 +34,10 @@ class QuestionBankRemoteDatasourceImpl implements QuestionBankRemoteDatasource {
 
   @override
   Future<List<Map<String, dynamic>>> getAdminQuestions({int limit = 50, int offset = 0}) async {
-    // Panggil RPC get_hicode_questions_admin
     final data = await client.rpc('get_hicode_questions_admin', params: {
       'p_limit': limit,
       'p_offset': offset,
     });
-    // Hasil RPC adalah list of maps (karena return type TABLE)
     return List<Map<String, dynamic>>.from(data ?? []);
   }
 
@@ -40,20 +50,46 @@ class QuestionBankRemoteDatasourceImpl implements QuestionBankRemoteDatasource {
     String? imageUrl,
     required List<QuestionOptionInput> options,
   }) async {
-
     final optionsPayload = options.map((opt) => opt.toJson()).toList();
-
-    // Panggil RPC create_hicode_question_with_options
     final newQuestionId = await client.rpc('create_hicode_question_with_options', params: {
         'p_related_id': relatedId,
         'p_question_type': questionType,
         'p_difficulty': difficulty,
         'p_question_text': questionText,
-        'p_image_url': imageUrl, // Akan null jika tidak diberikan
-        'p_options': optionsPayload, // Kirim sebagai JSON
+        'p_image_url': imageUrl,
+        'p_options': optionsPayload,
     });
-    // Kembalikan ID pertanyaan baru
     return newQuestionId as String;
+  }
+
+  // Implementasi method baru
+  @override
+  Future<void> updateQuestionWithOptions({
+    required String questionId,
+    required String relatedId,
+    required String questionType,
+    required String difficulty,
+    required String questionText,
+    String? imageUrl,
+    required List<QuestionOptionInput> options,
+  }) async {
+     final optionsPayload = options.map((opt) => opt.toJson()).toList();
+     await client.rpc('update_hicode_question_with_options', params: {
+        'p_question_id': questionId, // <-- ID Soal
+        'p_related_id': relatedId,
+        'p_question_type': questionType,
+        'p_difficulty': difficulty,
+        'p_question_text': questionText,
+        'p_image_url': imageUrl,
+        'p_options': optionsPayload,
+     });
+  }
+
+  @override
+  Future<void> deleteQuestion({required String questionId}) async {
+     await client.rpc('delete_hicode_question', params: {
+        'p_question_id': questionId, // <-- ID Soal
+     });
   }
 
   @override

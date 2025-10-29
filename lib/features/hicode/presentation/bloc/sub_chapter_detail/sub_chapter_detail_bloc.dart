@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../../../domain/usecases/get_chapter_content.dart';
+// Ganti import ke path domain
+import 'package:himtika_mobile_information/features/hicode/domain/usecases/get_chapter_content.dart';
 
 part 'sub_chapter_detail_event.dart';
 part 'sub_chapter_detail_state.dart';
@@ -12,14 +13,17 @@ class SubChapterDetailBloc extends Bloc<SubChapterDetailEvent, SubChapterDetailS
       : _getChapterContent = getChapterContent,
         super(const SubChapterDetailState()) {
     on<FetchSubChapterData>(_onFetchSubChapterData);
+    // --- TAMBAHKAN HANDLER INI ---
     on<QuizManuallyUnlocked>(_onQuizManuallyUnlocked);
+    // --- END TAMBAHAN ---
   }
 
   Future<void> _onFetchSubChapterData(
       FetchSubChapterData event, Emitter<SubChapterDetailState> emit) async {
-    // Set isQuizUnlocked ke false di awal loading
+    // Pastikan isQuizUnlocked = false saat loading awal
     emit(state.copyWith(status: SubChapterDetailStatus.loading, isQuizUnlocked: false));
     try {
+      // Pastikan use case dipanggil dengan 2 argumen
       final content = await _getChapterContent(event.subChapterId, event.userId);
 
       emit(state.copyWith(
@@ -38,14 +42,15 @@ class SubChapterDetailBloc extends Bloc<SubChapterDetailEvent, SubChapterDetailS
     }
   }
 
-  // TAMBAHKAN HANDLER BARU:
+  // --- TAMBAHKAN HANDLER INI ---
   void _onQuizManuallyUnlocked(
     QuizManuallyUnlocked event,
     Emitter<SubChapterDetailState> emit,
   ) {
-    // Handler ini hanya mengupdate UI jika diperlukan (misal setelah debounce selesai)
-     if (state.status == SubChapterDetailStatus.success && !state.isQuizUnlocked) {
+    // Handler ini hanya mengupdate UI (isQuizUnlocked) secara instan
+    if (state.status == SubChapterDetailStatus.success && !state.isQuizUnlocked) {
        emit(state.copyWith(isQuizUnlocked: true));
     }
   }
+  // --- END TAMBAHAN ---
 }

@@ -12,6 +12,8 @@ import '../models/hicode_question_model.dart';
 import '../../domain/entities/hicode_question.dart';
 import '../models/quiz_result_model.dart';
 import '../../domain/entities/quiz_result.dart';
+import '../../domain/entities/leaderboard_entry.dart'; // <-- Tambahkan ini nanti
+import '../models/leaderboard_entry_model.dart';
 
 class HiCodeRepositoryImpl implements HiCodeRepository {
   final HiCodeRemoteDatasource remoteDatasource;
@@ -92,8 +94,9 @@ class HiCodeRepositoryImpl implements HiCodeRepository {
   }
 
   @override
-  Future<QuizResult> submitAnswers(Map<String, String> answers) async {
-    final data = await remoteDatasource.submitAnswers(answers);
+  Future<QuizResult> submitAnswers(Map<String, String> answers, {int? timeTakenSeconds}) async {
+    // Teruskan parameter waktu ke datasource
+    final data = await remoteDatasource.submitAnswers(answers, timeTakenSeconds: timeTakenSeconds);
     return QuizResultModel.fromMap(data);
   }
 
@@ -101,5 +104,10 @@ class HiCodeRepositoryImpl implements HiCodeRepository {
   Future<void> updateScrollPosition(String chapterId, double position, bool hasReachedBottom) async {
      // Teruskan ke datasource
      await remoteDatasource.updateScrollPosition(chapterId, position, hasReachedBottom);
+  }
+  @override
+  Future<List<LeaderboardEntry>> getLeaderboard(String filter) async { // <-- Tambahkan ini nanti
+    final data = await remoteDatasource.getLeaderboard(filter);
+    return data.map((map) => LeaderboardEntryModel.fromMap(map)).toList();
   }
 }
