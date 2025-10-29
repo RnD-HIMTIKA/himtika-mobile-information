@@ -1,5 +1,6 @@
 import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_question.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/question_option_input.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_question_detail.dart';
 
 abstract class QuestionBankRepository {
   Future<List<AdminQuestion>> getAdminQuestions({int limit = 50, int offset = 0});
@@ -22,6 +23,7 @@ abstract class QuestionBankRepository {
     required List<QuestionOptionInput> options,
   });
   Future<void> deleteQuestion({required String questionId});
+  Future<AdminQuestionDetail> getQuestionDetails({required String questionId});
   // Method map tetap ada
   Future<Map<String, String>> getChaptersMapForAdmin();
   Future<Map<String, String>> getMaterialsMapForAdmin();

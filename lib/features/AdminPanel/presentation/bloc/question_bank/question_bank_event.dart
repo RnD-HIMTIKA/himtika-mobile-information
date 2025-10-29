@@ -7,18 +7,16 @@ abstract class QuestionBankEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-// Event untuk memuat daftar soal
 class LoadAdminQuestions extends QuestionBankEvent {
   const LoadAdminQuestions();
 }
 
-// Event saat tombol simpan di dialog tambah soal ditekan
 class AddQuestionSubmitted extends QuestionBankEvent {
-  final String relatedId; // Bisa ID Chapter atau ID Materi
-  final String questionType; // QUIZ, FINAL_PRACTICE, OVERALL_EXAM
-  final String difficulty; // Mudah, Menengah, Sulit
+  final String relatedId;
+  final String questionType;
+  final String difficulty;
   final String questionText;
-  final String? imageUrl; // Opsional
+  final String? imageUrl;
   final List<QuestionOptionInput> options;
 
   const AddQuestionSubmitted({
@@ -45,4 +43,51 @@ class LoadDropdownData extends QuestionBankEvent {
   const LoadDropdownData();
 }
 
-// TODO: Tambahkan event EditQuestionSubmitted, DeleteQuestionPressed nanti
+// Event untuk memulai fetch detail soal sebelum edit
+class FetchQuestionDetailsForEdit extends QuestionBankEvent {
+  final String questionId;
+  const FetchQuestionDetailsForEdit({required this.questionId});
+
+  @override
+  List<Object?> get props => [questionId];
+}
+
+// --- Tambahkan Event Baru ---
+class EditQuestionSubmitted extends QuestionBankEvent {
+  final String questionId; // ID Soal yang diedit
+  final String relatedId;
+  final String questionType;
+  final String difficulty;
+  final String questionText;
+  final String? imageUrl;
+  final List<QuestionOptionInput> options;
+
+  const EditQuestionSubmitted({
+    required this.questionId,
+    required this.relatedId,
+    required this.questionType,
+    required this.difficulty,
+    required this.questionText,
+    this.imageUrl,
+    required this.options,
+  });
+
+   @override
+  List<Object?> get props => [
+        questionId, // Tambahkan questionId
+        relatedId,
+        questionType,
+        difficulty,
+        questionText,
+        imageUrl,
+        options,
+      ];
+}
+
+class DeleteQuestionPressed extends QuestionBankEvent {
+  final String questionId;
+  const DeleteQuestionPressed({required this.questionId});
+
+   @override
+  List<Object?> get props => [questionId];
+}

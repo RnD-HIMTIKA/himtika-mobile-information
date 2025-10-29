@@ -122,6 +122,9 @@ import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/h
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/question_bank/question_bank_bloc.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/get_all_admin_chapters_map.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/get_all_admin_materials_map.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/update_question_with_options.dart'; // <-- Import
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/delete_question.dart'; // <-- Import
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/get_question_details.dart';
 
 // --- Hicode Imports ---
 import 'package:himtika_mobile_information/features/hicode/domain/repositories/hicode_repository.dart';
@@ -347,10 +350,14 @@ Future<void> initDependencies() async {
   // --- TAMBAHKAN REGISTRASI USE CASES BANK SOAL ---
   sl.registerLazySingleton(() => GetAdminQuestions(sl()));
   sl.registerLazySingleton(() => CreateQuestionWithOptions(sl()));
+  sl.registerLazySingleton(() => UpdateQuestionWithOptions(sl()));
+  sl.registerLazySingleton(() => DeleteQuestion(sl()));
+  sl.registerLazySingleton(() => GetQuestionDetails(sl()));
 
   // --- TAMBAHKAN REGISTRASI USE CASES DROPDOWN ---
     sl.registerLazySingleton(() => GetAllAdminChaptersMap(sl()));
     sl.registerLazySingleton(() => GetAllAdminMaterialsMap(sl()));
+    
 
   // BLoCs
   sl.registerFactory(() => CategoryManagementBloc(
@@ -377,6 +384,9 @@ Future<void> initDependencies() async {
   sl.registerFactory(() => QuestionBankBloc(
        getAdminQuestions: sl(),
        createQuestionWithOptions: sl(),
+       updateQuestionWithOptions: sl(), // <-- Inject
+       deleteQuestion: sl(), // <-- Inject
+       getQuestionDetails: sl(),
        getAllAdminChaptersMap: sl(),
        getAllAdminMaterialsMap: sl(),
      ));

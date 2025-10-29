@@ -2,6 +2,8 @@ import 'package:himtika_mobile_information/features/AdminPanel/data/datasources/
 import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_question.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/question_option_input.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/repositories/question_bank_repository.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/data/models/admin_question_detail_model.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_question_detail.dart';
 
 class QuestionBankRepositoryImpl implements QuestionBankRepository {
   final QuestionBankRemoteDatasource remoteDatasource;
@@ -10,13 +12,12 @@ class QuestionBankRepositoryImpl implements QuestionBankRepository {
   @override
   Future<List<AdminQuestion>> getAdminQuestions({int limit = 50, int offset = 0}) async {
     final data = await remoteDatasource.getAdminQuestions(limit: limit, offset: offset);
-    // Mapping dari Map ke Entity AdminQuestion
     return data.map((map) => AdminQuestion(
       id: map['id'],
       questionText: map['question_text'],
       questionType: map['question_type'],
       difficulty: map['difficulty'],
-      relatedId: map['related_id'] as String?, // Ambil related_id (bisa null)
+      relatedId: map['related_id'] as String?,
       relatedTitle: map['related_title'],
       optionCount: map['option_count'] ?? 0,
       createdAt: DateTime.parse(map['created_at']),
@@ -32,7 +33,6 @@ class QuestionBankRepositoryImpl implements QuestionBankRepository {
     String? imageUrl,
     required List<QuestionOptionInput> options,
   }) {
-    // Langsung teruskan ke datasource
     return remoteDatasource.createQuestionWithOptions(
       relatedId: relatedId,
       questionType: questionType,
@@ -43,17 +43,50 @@ class QuestionBankRepositoryImpl implements QuestionBankRepository {
     );
   }
 
+  // Implementasi method baru
+  @override
+  Future<void> updateQuestionWithOptions({
+    required String questionId,
+    required String relatedId,
+    required String questionType,
+    required String difficulty,
+    required String questionText,
+    String? imageUrl,
+    required List<QuestionOptionInput> options,
+  }) {
+     return remoteDatasource.updateQuestionWithOptions(
+       questionId: questionId,
+       relatedId: relatedId,
+       questionType: questionType,
+       difficulty: difficulty,
+       questionText: questionText,
+       imageUrl: imageUrl,
+       options: options,
+     );
+  }
+
+  @override
+  Future<void> deleteQuestion({required String questionId}) {
+     return remoteDatasource.deleteQuestion(questionId: questionId);
+  }
+
+  @override
+  Future<AdminQuestionDetail> getQuestionDetails({required String questionId}) async {
+    final data = await remoteDatasource.getQuestionDetails(questionId: questionId);
+    // Map hasil Map<String, dynamic> ke Entity menggunakan Model
+    return AdminQuestionDetailModel.fromMap(data);
+  }
+  
+  // Method map tetap ada
   @override
   Future<Map<String, String>> getChaptersMapForAdmin() async {
     final data = await remoteDatasource.getChaptersForAdmin();
-    // Konversi List<Map> ke Map<String, String>
     return { for (var item in data) item['id'].toString() : item['title'].toString() };
   }
 
   @override
   Future<Map<String, String>> getMaterialsMapForAdmin() async {
     final data = await remoteDatasource.getMaterialsForAdmin();
-    // Konversi List<Map> ke Map<String, String>
     return { for (var item in data) item['id'].toString() : item['title'].toString() };
   }
 }
