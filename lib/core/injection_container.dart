@@ -101,6 +101,10 @@ import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/h
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/update_hicode_category.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/delete_hicode_category.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/category_management/category_management_bloc.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/repositories/image_upload_repository.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/data/repositories/image_upload_repository_impl.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/data/datasources/image_upload_remote_datasource.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/upload_hicode_image.dart';
 // Import untuk HiCode Management Materi
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/get_admin_hicode_materials.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/create_hicode_material.dart';
@@ -321,12 +325,16 @@ Future<void> initDependencies() async {
       () => HiCodeManagementRemoteDatasourceImpl(client: sl()));
   sl.registerLazySingleton<QuestionBankRemoteDatasource>(
       () => QuestionBankRemoteDatasourceImpl(client: sl()));
+  sl.registerLazySingleton<ImageUploadRemoteDatasource>(
+      () => ImageUploadRemoteDatasourceImpl(client: sl()));
 
   // Repository
   sl.registerLazySingleton<HiCodeManagementRepository>(
       () => HiCodeManagementRepositoryImpl(remoteDatasource: sl()));
   sl.registerLazySingleton<QuestionBankRepository>(
       () => QuestionBankRepositoryImpl(remoteDatasource: sl()));
+  sl.registerLazySingleton<ImageUploadRepository>(
+      () => ImageUploadRepositoryImpl(remoteDatasource: sl()));
 
   // Usecases (Category)
   sl.registerLazySingleton(() => GetHiCodeCategories(sl()));
@@ -337,9 +345,9 @@ Future<void> initDependencies() async {
   // Usecases (Material)
   sl.registerLazySingleton(() => GetAdminHiCodeMaterials(sl()));
   sl.registerLazySingleton(() => CreateHiCodeMaterial(sl()));
-  // TODO: Tambahkan Usecase UpdateHiCodeMaterial dan DeleteHiCodeMaterial nanti
+  
 
-  // --- TAMBAHKAN REGISTRASI USE CASES CHAPTER DI SINI ---
+  // Usecases (Chapter)
   sl.registerLazySingleton(() => GetChaptersByMaterial(sl()));
   sl.registerLazySingleton(() => CreateHiCodeChapter(sl()));
   sl.registerLazySingleton(() => UpdateHiCodeChapter(sl()));
@@ -347,12 +355,13 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => ReorderHiCodeChapters(sl()));
   // --- END TAMBAHAN USE CASES CHAPTER ---
 
-  // --- TAMBAHKAN REGISTRASI USE CASES BANK SOAL ---
+  // Usecases (Bank Soal)
   sl.registerLazySingleton(() => GetAdminQuestions(sl()));
   sl.registerLazySingleton(() => CreateQuestionWithOptions(sl()));
   sl.registerLazySingleton(() => UpdateQuestionWithOptions(sl()));
   sl.registerLazySingleton(() => DeleteQuestion(sl()));
   sl.registerLazySingleton(() => GetQuestionDetails(sl()));
+  sl.registerLazySingleton(() => UploadHicodeImage(sl()));
 
   // --- TAMBAHKAN REGISTRASI USE CASES DROPDOWN ---
     sl.registerLazySingleton(() => GetAllAdminChaptersMap(sl()));

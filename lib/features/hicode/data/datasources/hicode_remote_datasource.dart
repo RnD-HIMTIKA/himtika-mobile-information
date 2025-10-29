@@ -66,10 +66,12 @@ class HiCodeRemoteDatasourceImpl implements HiCodeRemoteDatasource {
 
   @override
   Future<List<Map<String, dynamic>>> getQuestions(String relatedId, String questionType) async {
+    // Panggil RPC yang mengembalikan SETOF hicode_question_with_options_type
     final data = await client.rpc('get_hicode_questions', params: {
       'p_related_id': relatedId,
       'p_question_type': questionType,
     });
+    // Hasilnya sudah List<Map<String, dynamic>>, langsung return
     return List<Map<String, dynamic>>.from(data ?? []);
   }
 
