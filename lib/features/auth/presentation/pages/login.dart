@@ -199,7 +199,10 @@ class _LoginPageState extends State<LoginPage> {
                                                       });
                                                     },
                                                   ),
-                                                  const Text('Remember me'),
+                                                  const Text('Remember me',
+                                                    style:
+                                                        TextStyle(fontSize: 12),
+                                                  ),
                                                 ],
                                               ),
                                               TextButton(
@@ -209,7 +212,10 @@ class _LoginPageState extends State<LoginPage> {
                                                     MaterialPageRoute(builder: (context) => const ForgotPasswordPage()),
                                                   );
                                                 },
-                                                child: const Text('Forgot Password?'),
+                                                child: const Text('Forgot Password?',
+                                                  style:
+                                                      TextStyle(fontSize: 12),
+                                                ),
                                               ),
                                             ],
                                           ),
