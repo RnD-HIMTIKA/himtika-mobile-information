@@ -23,14 +23,14 @@ abstract class HiCodeManagementRepository {
   Future<void> createChapter({
     required String materialId,
     required String title,
-    required Map<String, dynamic> content,
+    required List<dynamic> content,
     int? estimatedReadTime,
     required int order,
   });
   Future<void> updateChapter({
     required String id,
     String? title,
-    Map<String, dynamic>? content,
+    List<dynamic>? content,
     int? estimatedReadTime,
     int? order,
   });

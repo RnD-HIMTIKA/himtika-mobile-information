@@ -26,14 +26,14 @@ abstract class HiCodeManagementRemoteDatasource {
   Future<void> createChapter({
     required String materialId,
     required String title,
-    required Map<String, dynamic> content,
+    required List<dynamic> content,
     int? estimatedReadTime,
     required int order,
   });
   Future<void> updateChapter({
     required String id,
     String? title,
-    Map<String, dynamic>? content,
+    List<dynamic>? content,
     int? estimatedReadTime,
     int? order,
   });
@@ -134,7 +134,7 @@ class HiCodeManagementRemoteDatasourceImpl implements HiCodeManagementRemoteData
   Future<void> createChapter({
     required String materialId,
     required String title,
-    required Map<String, dynamic> content,
+    required List<dynamic> content,
     int? estimatedReadTime,
     required int order,
   }) async {
@@ -151,16 +151,17 @@ class HiCodeManagementRemoteDatasourceImpl implements HiCodeManagementRemoteData
   Future<void> updateChapter({
     required String id,
     String? title,
-    Map<String, dynamic>? content,
+    List<dynamic>? content,
     int? estimatedReadTime,
     int? order,
   }) async {
     final updates = <String, dynamic>{};
     if (title != null) updates['title'] = title;
-    if (content != null) updates['content'] = content;
+    // Kirim List<dynamic>? langsung sebagai nilai 'content' (jsonb)
+    if (content != null) updates['content'] = content; // <-- Kirim List<dynamic>?
     if (estimatedReadTime != null) updates['estimated_read_time'] = estimatedReadTime;
     if (order != null) updates['order'] = order;
-    
+
     if (updates.isNotEmpty) {
       await client.from('hicode_chapters').update(updates).eq('id', id);
     }

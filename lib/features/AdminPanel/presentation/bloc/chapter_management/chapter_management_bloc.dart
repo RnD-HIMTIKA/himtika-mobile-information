@@ -60,22 +60,33 @@ class ChapterManagementBloc extends Bloc<ChapterManagementEvent, ChapterManageme
     AddChapterSubmitted event,
     Emitter<ChapterManagementState> emit,
   ) async {
-    emit(state.copyWith(status: ChapterManagementStatus.loading));
+    // Cek null atau kosong sebelum kirim ke use case
+    if (event.content == null || event.content!.isEmpty) {
+       emit(state.copyWith(
+          status: ChapterManagementStatus.failure,
+          errorMessage: 'Konten chapter tidak boleh kosong.',
+       ));
+       // Revert ke success agar UI tidak stuck
+       emit(state.copyWith(status: ChapterManagementStatus.success));
+       return;
+    }
+
+    emit(state.copyWith(status: ChapterManagementStatus.loading)); // Gunakan loading atau submitting
     try {
       final nextOrder = state.chapters.length + 1;
       await _createChapter(
         materialId: event.materialId,
         title: event.title,
-        content: event.content,
+        content: event.content!, // <-- Kirim List<dynamic> (non-null)
         estimatedReadTime: event.estimatedReadTime,
         order: nextOrder,
       );
-      add(LoadChapters(event.materialId));
+      add(LoadChapters(event.materialId)); // Refresh list
     } catch (e) {
-      emit(state.copyWith(
-        status: ChapterManagementStatus.failure,
-        errorMessage: e.toString().replaceFirst('Exception: ', ''),
-      ));
+      final errorMessage = e.toString().replaceFirst('Exception: ', '');
+      emit(state.copyWith(status: ChapterManagementStatus.failure, errorMessage: errorMessage));
+       // Revert ke success agar UI tidak stuck
+       emit(state.copyWith(status: ChapterManagementStatus.success));
     }
   }
 
@@ -83,21 +94,38 @@ class ChapterManagementBloc extends Bloc<ChapterManagementEvent, ChapterManageme
     UpdateChapterSubmitted event,
     Emitter<ChapterManagementState> emit,
   ) async {
-    emit(state.copyWith(status: ChapterManagementStatus.loading));
+     // Cek null atau kosong JIKA content dikirim
+    if (event.content != null && event.content!.isEmpty) {
+       emit(state.copyWith(
+          status: ChapterManagementStatus.failure,
+          errorMessage: 'Konten chapter tidak boleh kosong jika diubah.',
+       ));
+       // Revert ke success agar UI tidak stuck
+       emit(state.copyWith(status: ChapterManagementStatus.success));
+       return;
+    }
+
+    emit(state.copyWith(status: ChapterManagementStatus.loading)); // Gunakan loading atau submitting
     try {
       await _updateChapter(
         id: event.id,
         title: event.title,
-        content: event.content,
+        content: event.content, // <-- Kirim List<dynamic>?
         estimatedReadTime: event.estimatedReadTime,
         order: event.order,
       );
-      add(LoadChapters(state.currentMaterialId!));
+       // Refresh list jika ada material ID tersimpan
+       if (state.currentMaterialId != null) {
+          add(LoadChapters(state.currentMaterialId!));
+       } else {
+         // Jika tidak ada material ID, setidaknya kembali ke success
+         emit(state.copyWith(status: ChapterManagementStatus.success));
+       }
     } catch (e) {
-      emit(state.copyWith(
-        status: ChapterManagementStatus.failure,
-        errorMessage: e.toString().replaceFirst('Exception: ', ''),
-      ));
+      final errorMessage = e.toString().replaceFirst('Exception: ', '');
+      emit(state.copyWith(status: ChapterManagementStatus.failure, errorMessage: errorMessage));
+      // Revert ke success agar UI tidak stuck
+      emit(state.copyWith(status: ChapterManagementStatus.success));
     }
   }
 

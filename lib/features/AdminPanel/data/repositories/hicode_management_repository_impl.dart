@@ -65,10 +65,10 @@ class HiCodeManagementRepositoryImpl implements HiCodeManagementRepository {
     );
   }
 
-  // --- Chapter Methods (BARU) ---
   @override
   Future<List<HiCodeChapter>> getChaptersByMaterial(String materialId) async {
     final data = await remoteDatasource.getChaptersByMaterial(materialId);
+    // Pastikan HiCodeChapterModel.fromMap sudah diupdate
     return data.map((map) => HiCodeChapterModel.fromMap(map)).toList();
   }
 
@@ -76,7 +76,7 @@ class HiCodeManagementRepositoryImpl implements HiCodeManagementRepository {
   Future<void> createChapter({
     required String materialId,
     required String title,
-    required Map<String, dynamic> content,
+    required List<dynamic> content,
     int? estimatedReadTime,
     required int order,
   }) {
@@ -93,7 +93,7 @@ class HiCodeManagementRepositoryImpl implements HiCodeManagementRepository {
   Future<void> updateChapter({
     required String id,
     String? title,
-    Map<String, dynamic>? content,
+    List<dynamic>? content,
     int? estimatedReadTime,
     int? order,
   }) {

@@ -4,7 +4,7 @@ class HiCodeChapter extends Equatable {
   final String id;
   final String materialId;
   final String title;
-  final Map<String, dynamic>? content;
+  final List<dynamic>? content;
   final int? estimatedReadTime;
   final int order;
   final DateTime createdAt;
