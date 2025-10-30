@@ -9,7 +9,6 @@ class HimtikaState extends Equatable {
   });
 
   final HimtikaStatus status;
-  // Untuk daftar "Bagian Penting dalam HIMTIKA"
   final List<Map<String, String>> importantParts;
 
   HimtikaState copyWith({

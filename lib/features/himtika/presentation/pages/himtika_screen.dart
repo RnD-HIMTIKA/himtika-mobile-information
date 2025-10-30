@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:himtika_mobile_information/features/himtika/presentation/bloc/himtika_screen/himtika_bloc.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/pages/notification_page.dart';
+import 'package:himtika_mobile_information/features/himtika/presentation/pages/about_himtika_screen.dart';
+import 'package:himtika_mobile_information/features/himtika/presentation/pages/divisi_detail_screen.dart';
+import 'package:himtika_mobile_information/features/himtika/presentation/pages/sejarah_screen.dart'; 
+import 'package:himtika_mobile_information/features/himtika/presentation/pages/kabinet_screen.dart'; 
 
-import 'package:himtika_mobile_information/features/himtika/presentation/bloc/himtika_bloc.dart';
 
 class HimtikaScreen extends StatelessWidget {
   const HimtikaScreen({super.key});
@@ -14,7 +18,7 @@ class HimtikaScreen extends StatelessWidget {
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F5F5),
         body: SafeArea(
-          top: false, // Kita atur padding manual
+          top: false, 
           child: BlocBuilder<HimtikaBloc, HimtikaState>(
             builder: (context, state) {
               if (state.status == HimtikaStatus.loading) {
@@ -23,9 +27,8 @@ class HimtikaScreen extends StatelessWidget {
 
               return Column(
                 children: [
-                  // Lapisan 1: Top Bar yang Sticky (tetap di atas)
+                  // Lapisan 1: Top Bar 
                   _buildTopBar(context),
-
                   // Lapisan 2: Sisa konten yang bisa di-scroll
                   Expanded(
                     child: SingleChildScrollView(
@@ -68,7 +71,8 @@ class HimtikaScreen extends StatelessWidget {
                   MaterialPageRoute(builder: (_) => const NotificationPage()),
                 );
               },
-              icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 28),
+              icon: const Icon(Icons.notifications_outlined,
+                  color: Colors.white, size: 28),
             ),
           ],
         ),
@@ -79,54 +83,84 @@ class HimtikaScreen extends StatelessWidget {
   Widget _buildBlueHeader(BuildContext context) {
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
-        color: Colors.blue,
-      ),
-      child: Stack(
-        clipBehavior: Clip.none,
-        alignment: Alignment.center,
+      color: Colors.blue,
+      child: Column(
         children: [
-          // Gambar yang berada di perpotongan
-          Positioned(
-            top: 20,
+          Transform.translate(
+            offset: const Offset(
+                0, 40), 
             child: Container(
               width: MediaQuery.of(context).size.width * 0.9,
               padding: const EdgeInsets.all(20.0),
               decoration: BoxDecoration(
-                color: Colors.transparent, 
-                borderRadius: BorderRadius.circular(20),
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(30),
                 image: const DecorationImage(
-                  image: AssetImage('src/features/himtika/images/card_hero.png'), 
+                  image:
+                      AssetImage('src/features/himtika/images/card_hero.png'),
                   fit: BoxFit.cover,
-                  opacity: 1.0, // Buat gambar lebih transparan
                 ),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withOpacity(0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 5),
-                  )
+                  ),
                 ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Yuk! Kenali HIMTIKA\nlebih dekat',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
+                  RichText(
+                    text: TextSpan(
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                        height: 1.4,
+                      ),
+                      children: <InlineSpan>[
+                        const TextSpan(text: 'Yuk! Kenali '),
+                        WidgetSpan(
+                          alignment: PlaceholderAlignment.middle,
+                          child: ShaderMask(
+                            blendMode: BlendMode.srcIn,
+                            shaderCallback: (bounds) => const LinearGradient(
+                              colors: [Color(0xFF006EBD), Color(0xFF0095FF)],
+                            ).createShader(
+                              Rect.fromLTWH(0, 0, bounds.width, bounds.height),
+                            ),
+                            child: const Text(
+                              'HIMTIKA',
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.bold,
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const TextSpan(text: '\nlebih dekat'),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 8),
                   const Text(
                     'Mau tahu lebih banyak\ntentang HIMTIKA?',
-                    style: TextStyle(color: Colors.grey),
+                    style: TextStyle(color: Colors.black54),
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () {
-                      // TODO: Navigasi
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AboutHimtikaScreen(),
+                        ),
+                      );
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.cyan.shade100,
+                      backgroundColor: const Color(0xFF81EAFF),
                       foregroundColor: Colors.cyan.shade800,
                       elevation: 0,
                       shape: RoundedRectangleBorder(
@@ -134,17 +168,16 @@ class HimtikaScreen extends StatelessWidget {
                       ),
                     ),
                     child: const Text('Baca Selengkapnya'),
-                  )
+                  ),
                 ],
               ),
             ),
           ),
-          // SizedBox untuk memberi ruang pada kartu yang menonjol
-          const SizedBox(height: 120),
         ],
       ),
     );
   }
+
 
   Widget _buildContent(BuildContext context, HimtikaState state) {
     return Padding(
@@ -152,12 +185,19 @@ class HimtikaScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 110),
-          const Text('Kabinet Saat Ini', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 30),
+          const Text('Kabinet Saat Ini',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          _buildKabinetCard(),
+          _buildKabinetCard(context),
+          const SizedBox(height: 20),
+          const Text('Sejarah HIMTIKA',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          _buildSejarahCard(context),
           const SizedBox(height: 28),
-          const Text('Bagian Penting dalam HIMTIKA', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const Text('Bagian Penting dalam HIMTIKA',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           ListView.separated(
             padding: EdgeInsets.zero,
@@ -166,8 +206,20 @@ class HimtikaScreen extends StatelessWidget {
             physics: const NeverScrollableScrollPhysics(),
             itemBuilder: (context, index) {
               final part = state.importantParts[index];
-              return _buildDivisiCard(
-                imagePath: part['imagePath']!,
+              return InkWell(
+                onTap: () {
+                  // 2. Navigasi ke halaman detail dengan ID
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) =>
+                            DivisiDetailScreen(divisiId: part['title']!)),
+                  );
+                },
+                borderRadius: BorderRadius.circular(20),
+                child: _buildDivisiCard(
+                  imagePath: part['imagePath']!,
+                ),
               );
             },
             separatorBuilder: (context, index) => const SizedBox(height: 16),
@@ -177,73 +229,192 @@ class HimtikaScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildKabinetCard() {
-    return Card(
+  Widget _buildKabinetCard(BuildContext context) { // 1. Tambahkan context
+  return InkWell( 
+    onTap: () { 
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const KabinetScreen()),
+      );
+    },
+    borderRadius: BorderRadius.circular(15), // Samakan radius
+    child: Card(
       elevation: 2,
       color: const Color(0xFFF5F9FF),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center, 
-          children: [
-            Image.asset(
-              'src/features/himtika/images/kabinet.png',
-              width: 100,
-              height: 100,
-            ),
-            const SizedBox(width: 16),
-
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ShaderMask(
-                        blendMode: BlendMode.srcIn,
-                        shaderCallback: (bounds) => const LinearGradient(
-                          colors: [
-                            Color(0xFF4D2A7C),
-                            Color(0xFF9C4895),
-                          ],
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                        ).createShader(
-                          Rect.fromLTWH(0, 0, bounds.width, bounds.height),
-                        ),
-                        child: const Text(
-                          'SINERGIS',
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
+          padding: const EdgeInsets.all(16.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Image.asset(
+                'src/features/himtika/images/kabinet.png',
+                width: 100,
+                height: 100,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ShaderMask(
+                          blendMode: BlendMode.srcIn,
+                          shaderCallback: (bounds) => const LinearGradient(
+                            colors: [
+                              Color(0xFF4D2A7C),
+                              Color(0xFF9C4895),
+                            ],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ).createShader(
+                            Rect.fromLTWH(0, 0, bounds.width, bounds.height),
                           ),
-                        ),
-                      ),
-                      SizedBox(height: 8),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.only(top: 2.0, right: 4.0),
-                            child: Icon(Icons.star, color: Colors.amber, size: 14),
-                          ),
-                          Expanded(
-                            child: Text(
-                              'Sinergi, Inovatif, Eksplorasi, Responsif\nGeneralis, Sistematis',
-                              style: TextStyle(color: Colors.grey, fontSize: 12),
+                          child: const Text(
+                            'SINERGIS',
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ],
+                        ),
+                        SizedBox(height: 8),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.only(top: 2.0, right: 4.0),
+                              child:
+                                  Icon(Icons.star, color: Colors.amber, size: 14),
+                            ),
+                            Expanded(
+                              child: Text(
+                                'Sinergi, Inovatif, Eksplorasi, Responsif, Generalis, Sistematis',
+                                style: TextStyle(
+                                    color: Colors.black54, fontSize: 10),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const Align(
+                      alignment: Alignment.bottomRight,
+                      child: Icon(Icons.arrow_forward_ios,
+                          color: Colors.blue, size: 20),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSejarahCard(BuildContext context) {
+    return InkWell( // 2. Bungkus dengan InkWell
+    onTap: () { // 3. Tambahkan aksi onTap
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const SejarahScreen()),
+      );
+    },
+    borderRadius: BorderRadius.circular(15), // Samakan radius
+    child: Container(
+      // (Container Anda yang sebelumnya utuh di sini)
+      width: double.infinity,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: const Color(0xFFFDBF7FF), // Warna fallback
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          )
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'src/features/himtika/images/card_sejarah.png', // Sesuaikan path
+              fit: BoxFit.cover,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0), // Transparan
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize
+                    .min, // Penting agar Column tidak setinggi Stack
+                children: [
+                  RichText(
+                    text: TextSpan(
+                      style: const TextStyle(
+                        fontSize: 22,
+                        color: Colors.black,
+                        height: 1.4,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ],
+                      children: <InlineSpan>[
+                        const TextSpan(text: 'Sejarah '),
+                        WidgetSpan(
+                          alignment: PlaceholderAlignment.middle,
+                          child: ShaderMask(
+                            blendMode: BlendMode.srcIn,
+                            shaderCallback: (bounds) => const LinearGradient(
+                              colors: [
+                                Color(0xFF006EBD), // Biru gelap
+                                Color(0xFF0095FF), // Biru terang
+                              ],
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                            ).createShader(
+                              Rect.fromLTWH(0, 0, bounds.width, bounds.height),
+                            ),
+                            child: const Text(
+                              'HIMTIKA',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const TextSpan(text: '\nDari Masa ke Masa'),
+                      ],
+                    ),
                   ),
-                  const Align(
-                    alignment: Alignment.bottomRight,
-                    child: Icon(Icons.arrow_forward_ios, color: Colors.blue, size: 20),
-                  ),
-                ],
+                  const SizedBox(height: 14),
+                  Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF81EAFF),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        'Baca Selengkapnya',
+                        style: TextStyle(
+                            color: Colors.cyan.shade800,
+                            fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -251,13 +422,14 @@ class HimtikaScreen extends StatelessWidget {
       ),
     );
   }
+
   Widget _buildDivisiCard({required String imagePath}) {
     return Card(
-      elevation: 2, 
+      elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
       ),
-      clipBehavior: Clip.antiAlias, 
+      clipBehavior: Clip.antiAlias,
       child: Container(
         height: 150,
         decoration: BoxDecoration(
