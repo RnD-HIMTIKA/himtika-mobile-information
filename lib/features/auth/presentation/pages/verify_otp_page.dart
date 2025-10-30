@@ -32,8 +32,12 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
 
   @override
   void dispose() {
-    for (var controller in _controllers) controller.dispose();
-    for (var node in _focusNodes) node.dispose();
+    for (var controller in _controllers) {
+      controller.dispose();
+    }
+    for (var node in _focusNodes) {
+      node.dispose();
+    }
     _timer?.cancel();
     super.dispose();
   }
@@ -69,7 +73,9 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
   void _onResendPressed(BuildContext context) {
     if (_secondsRemaining == 0) {
       // Clear OTP fields saat resend untuk menghindari input lama
-      for (var controller in _controllers) controller.clear();
+      for (var controller in _controllers) {
+        controller.clear();
+      }
       _focusNodes[0].requestFocus();
       context.read<ForgotPasswordBloc>().add(ForgotPasswordSubmitted(widget.email));
       _startTimer();
@@ -97,7 +103,9 @@ class _VerifyOtpPageState extends State<VerifyOtpPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message), backgroundColor: Colors.red),
             );
-            for (var controller in _controllers) controller.clear();
+            for (var controller in _controllers) {
+              controller.clear();
+            }
             _focusNodes[0].requestFocus();
           }
         },

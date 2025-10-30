@@ -1193,7 +1193,7 @@ class _ShareByRoleDialogState extends State<_ShareByRoleDialog> {
 
   // State untuk menyimpan daftar role dan yang dipilih
   List<Role>? _myRoles;
-  Set<Role> _selectedRoles = {};
+  final Set<Role> _selectedRoles = {};
 
   @override
   void initState() {

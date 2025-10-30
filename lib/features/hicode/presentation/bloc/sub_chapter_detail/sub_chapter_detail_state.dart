@@ -7,7 +7,7 @@ class SubChapterDetailState extends Equatable {
   final String? title;
   final String? readTime;
   final String? quizCount;
-  final List<Map<String, dynamic>> contentBlocks; // Menggunakan List untuk blok konten
+  final List<dynamic> contentBlocks;
   final String? errorMessage;
   final bool isQuizUnlocked;
   final double lastScrollPosition;
@@ -28,7 +28,7 @@ class SubChapterDetailState extends Equatable {
     String? title,
     String? readTime,
     String? quizCount,
-    List<Map<String, dynamic>>? contentBlocks,
+    List<dynamic>? contentBlocks,
     String? errorMessage,
     bool? isQuizUnlocked,
     double? lastScrollPosition,

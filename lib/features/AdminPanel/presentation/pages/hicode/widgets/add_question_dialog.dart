@@ -30,7 +30,7 @@ class _AddQuestionDialogState extends State<AddQuestionDialog> {
   String? _selectedRelatedId; // ID Chapter atau Materi
 
   // State untuk opsi dinamis
-  List<TextEditingController> _optionControllers = [
+  final List<TextEditingController> _optionControllers = [
     TextEditingController(),
     TextEditingController()
   ];
@@ -112,10 +112,11 @@ class _AddQuestionDialogState extends State<AddQuestionDialog> {
           }
         });
       } else {
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
               content: Text('Gagal mengompres gambar.'),
               backgroundColor: Colors.orange));
+        }
       }
     }
   }
@@ -203,7 +204,7 @@ class _AddQuestionDialogState extends State<AddQuestionDialog> {
       final uploadUseCase = sl<UploadHicodeImage>(); // Dapatkan use case upload
 
       // 2. Upload/Persiapkan URL Gambar Soal
-      String? finalQuestionImageUrl = null; // Add dialog starts with null
+      String? finalQuestionImageUrl; // Add dialog starts with null
       if (_questionImageFile != null) {
         print("Uploading question image...");
         finalQuestionImageUrl = await uploadUseCase(_questionImageFile!, 'soal');
@@ -214,7 +215,7 @@ class _AddQuestionDialogState extends State<AddQuestionDialog> {
       // 3. Upload/Persiapkan URL Gambar Opsi & Buat List Opsi Final
       final List<QuestionOptionInput> finalOptions = [];
     for (int i = 0; i < _optionControllers.length; i++) {
-      String? finalOptionImageUrl = null; // Add dialog starts with null
+      String? finalOptionImageUrl; // Add dialog starts with null
       if (_optionImageFiles.containsKey(i) && _optionImageFiles[i] != null) {
         print("Uploading option image for index $i...");
         finalOptionImageUrl = await uploadUseCase(_optionImageFiles[i]!, 'opsi');
@@ -275,7 +276,7 @@ class _AddQuestionDialogState extends State<AddQuestionDialog> {
       contentPadding:
           const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0), // Atur padding
       // Bungkus content dengan Container yang diberi lebar
-      content: Container(
+      content: SizedBox(
         // Beri lebar agar tidak infinite, misal 90% lebar layar
         width: MediaQuery.of(context).size.width * 0.9,
         // HAPUS scrollable: true dari AlertDialog

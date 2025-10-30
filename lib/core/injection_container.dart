@@ -77,8 +77,6 @@ import 'package:himtika_mobile_information/features/home/domain/repositories/hom
 import 'package:himtika_mobile_information/features/home/domain/usecases/get_home_content.dart';
 
 // --- Admin Panel Imports ---
-import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_dashboard_info.dart';
-import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_user.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/repositories/admin_panel_repository.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/repositories/roles_management_repository.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/get_admin_dashboard_info.dart';
@@ -92,7 +90,6 @@ import 'package:himtika_mobile_information/features/AdminPanel/data/repositories
 import 'package:himtika_mobile_information/features/AdminPanel/data/repositories/roles_management_repository_impl.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/adminpanel_bloc.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/roles_management/roles_management_bloc.dart';
-import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/hicode_management/hicode_management_bloc.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/repositories/hicode_management_repository.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/data/repositories/hicode_management_repository_impl.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/data/datasources/hicode_management_remote_datasource.dart';

@@ -1,6 +1,8 @@
 import 'dart:async'; // Import Timer
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_quill/flutter_quill.dart';
+import 'package:flutter_quill_extensions/flutter_quill_extensions.dart';
 import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:himtika_mobile_information/features/auth/domain/usecases/get_current_user.dart'; // Import GetCurrentUser
 import 'package:himtika_mobile_information/features/hicode/presentation/bloc/sub_chapter_detail/sub_chapter_detail_bloc.dart';
@@ -28,6 +30,10 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
   double _lastSavedScrollPosition = 0.0;
   late SubChapterDetailBloc _bloc;
 
+  // --- Quill Controller untuk ReadOnly ---
+  QuillController? _contentController;
+  bool _isControllerReady = false;
+
   @override
   void initState() {
     super.initState();
@@ -47,6 +53,38 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
     });
      _scrollController.addListener(_scrollListener);
    }
+
+  // Fungsi untuk inisialisasi controller konten
+  void _initializeContentController(List<dynamic> contentJson) {
+     // Hindari inisialisasi ulang jika sudah ada
+     if (_contentController != null) return;
+
+     try {
+       Document doc;
+       if (contentJson.isNotEmpty) {
+          doc = Document.fromJson(contentJson);
+       } else {
+          // Buat dokumen kosong jika konten dari DB kosong
+          doc = Document.fromJson([{'insert': 'Konten belum tersedia.\n'}]);
+       }
+
+       _contentController = QuillController(
+         document: doc,
+         selection: const TextSelection.collapsed(offset: 0),
+       );
+       if (mounted) {
+         setState(() => _isControllerReady = true);
+       }
+       print("Konten berhasil dimuat ke QuillEditor read-only.");
+     } catch (e) {
+       print("Error decoding content for QuillEditor: $e");
+        _contentController = QuillController.basic(); // Fallback
+         if (mounted) {
+           setState(() => _isControllerReady = true); // Tetap set true agar error tampil
+            _contentController!.document.insert(0, 'Gagal memuat konten: $e');
+         }
+     }
+  }
 
   void _scrollListener() {
     _lastSavedScrollPosition = _scrollController.offset;
@@ -86,6 +124,8 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
        // Kirim status hasReachedBottom terakhir saat dispose
        _updateScrollPosition(widget.subChapterId, _lastSavedScrollPosition, finalHasReachedBottom);
     }
+
+    _contentController?.dispose();
     _scrollController.dispose();
     super.dispose();
   }
@@ -103,14 +143,20 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold( // Scaffold langsung menjadi root
+    return Scaffold(
     backgroundColor: const Color(0xFFF5F5F5),
     body: SafeArea(
       top: false,
-      child: BlocConsumer<SubChapterDetailBloc, SubChapterDetailState>( // Langsung consume BLoC
+      child: BlocConsumer<SubChapterDetailBloc, SubChapterDetailState>(
         listener: (context, state) {
-              // Listener untuk jump ke posisi scroll awal saat data loaded
               if (state.status == SubChapterDetailStatus.success) {
+                  // Panggil inisialisasi controller KONTEN di sini
+                  if (state.contentBlocks.isNotEmpty && _contentController == null) {
+                     _initializeContentController(state.contentBlocks);
+                  } else if (state.contentBlocks.isEmpty && _contentController == null) {
+                     // Handle jika konten benar-benar kosong
+                      _initializeContentController([]);
+                  }
                   _jumpToInitialPosition(state.lastScrollPosition);
               } else if (state.status == SubChapterDetailStatus.failure){
                  ScaffoldMessenger.of(context).showSnackBar(
@@ -150,20 +196,28 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
                 children: [
                   _buildBlueHeader(context, state),
                   Expanded(
-                    // Tambahkan NotificationListener di sini
-                    child: NotificationListener<ScrollNotification>(
-                      onNotification: (scrollNotification) {
-                        // Kita sudah handle logic di _scrollListener, jadi return false
-                        return false;
-                      },
-                      child: ListView.builder(
-                        controller: _scrollController, // Pasang controller ke ListView
-                        padding: const EdgeInsets.all(24.0),
-                        itemCount: state.contentBlocks.length,
-                        itemBuilder: (context, index) {
-                          return _buildContentBlock(state.contentBlocks[index]);
-                        },
-                      ),
+                    // Gunakan NotificationListener (atau tidak, karena controller sudah dipasang)
+                    child: Padding(
+                       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), // Padding untuk editor
+                       // Tampilkan loading jika controller belum siap
+                       child: !_isControllerReady || _contentController == null
+                           ? const Center(child: Text('Memuat konten...'))
+                           // --- GANTI ListView.builder DENGAN QuillEditor ---
+                           : QuillEditor(
+                               controller: _contentController!,
+                               scrollController: _scrollController, // <-- PASANG SCROLL CONTROLLER
+                               focusNode: FocusNode(), // Tambahkan focusNode jika diperlukan
+                               configurations: QuillEditorConfigurations(
+                                 padding: const EdgeInsets.all(8), // Padding di dalam area editor
+                                 // --- WAJIB: Tampilkan Embeds (Gambar, Video, dll) ---
+                                 embedBuilders: FlutterQuillEmbeds.editorBuilders(),
+                                 // ---------------------------------------------------
+                                 sharedConfigurations: const QuillSharedConfigurations(
+                                   locale: Locale('id'),
+                                 ),
+                               ),
+                             ),
+                       // --------------------------------------------------
                     ),
                   ),
                 ],
@@ -182,66 +236,6 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
           },
         ),
       );
-  }
-
- // --- WIDGET-WIDGET PEMBANTU --- (Tidak berubah, salin dari kode Anda sebelumnya)
- Widget _buildContentBlock(Map<String, dynamic> block) {
-    final type = block['type'];
-    final data = block['data'];
-
-    switch (type) {
-      case 'paragraph':
-        // Pastikan data adalah String
-        final text = (data is Map && data.containsKey('text')) ? data['text'] as String? ?? '' : data as String? ?? '';
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 16.0),
-          child: Text(text, style: const TextStyle(fontSize: 16, height: 1.6)),
-        );
-      case 'image':
-        // Pastikan data adalah Map dan punya 'url'
-        final imageUrl = (data is Map && data.containsKey('url')) ? data['url'] as String? : null;
-        if (imageUrl == null || imageUrl.isEmpty) return const SizedBox.shrink();
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16.0),
-          child: Image.network(
-            imageUrl,
-            // Tambahkan error builder
-            errorBuilder: (context, error, stackTrace) => Container(
-              height: 100, // Beri tinggi agar tidak collapse
-              color: Colors.grey[200],
-              child: Center(child: Icon(Icons.broken_image, color: Colors.grey[400]))
-            ),
-          ),
-        );
-      case 'code':
-        // Pastikan data adalah Map dan punya 'code'
-        final codeText = (data is Map && data.containsKey('code')) ? data['code'] as String? ?? '' : data as String? ?? '';
-        return Container(
-          width: double.infinity, // Pastikan mengambil lebar penuh
-          margin: const EdgeInsets.symmetric(vertical: 16.0),
-          padding: const EdgeInsets.all(12.0),
-          decoration: BoxDecoration(
-            color: Colors.grey[900],
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: SingleChildScrollView( // Agar bisa discroll horizontal jika kode panjang
-             scrollDirection: Axis.horizontal,
-            child: Text(
-              codeText,
-              style: const TextStyle(
-                fontFamily: 'monospace', // Font monospace
-                color: Colors.white,
-                fontSize: 14, // Sesuaikan ukuran font
-              )
-            ),
-          ),
-        );
-        // --- Tambahkan case lain jika ada tipe block baru (misal: header, list) ---
-      default:
-        // Tampilkan pesan jika tipe block tidak dikenal (untuk debugging)
-        // return Text('Tipe block tidak dikenal: $type');
-        return const SizedBox.shrink();
-    }
   }
 
   Widget _buildBlueHeader(BuildContext context, SubChapterDetailState state) {

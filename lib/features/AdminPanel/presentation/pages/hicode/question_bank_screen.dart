@@ -9,7 +9,6 @@ import 'package:intl/intl.dart'; // Untuk format tanggal
 import 'widgets/add_question_dialog.dart';
 import 'widgets/edit_question_dialog.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_question.dart';
-import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_question_detail.dart';
 
 class QuestionBankScreen extends StatelessWidget {
   const QuestionBankScreen({super.key});

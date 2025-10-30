@@ -1,4 +1,3 @@
-import '../entities/workspace.dart';
 import '../repositories/calendar_repository.dart';
 
 class CreateWorkspace {

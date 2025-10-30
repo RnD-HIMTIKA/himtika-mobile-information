@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:himtika_mobile_information/features/auth/domain/entities/user.dart';
 import 'package:himtika_mobile_information/features/calendar/domain/entities/workspace_member.dart'; // Import
 import 'workspace.dart';
 

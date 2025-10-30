@@ -418,7 +418,7 @@ class _WorkspaceCard extends StatelessWidget {
         Expanded(
           child: Text(
             remainingCount > 0
-                ? "dan ${remainingCount} lainnya"
+                ? "dan $remainingCount lainnya"
                 : "${members.length} kolaborator",
             style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
             overflow: TextOverflow.ellipsis,
