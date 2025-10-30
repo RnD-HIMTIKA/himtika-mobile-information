@@ -161,8 +161,94 @@ flutter:
 
     - src/features/himtika/images/card_hero.png
     - src/features/himtika/images/kabinet.png
-    - src/features/himtika/images/card_divisi.png
+    - src/features/himtika/images/card_sejarah.png
 
+    - src/features/himtika/divisi/sc/sc.png
+    - src/features/himtika/divisi/sc/kahim.png
+    - src/features/himtika/divisi/sc/wahim.png
+    - src/features/himtika/divisi/sc/sekum.png
+    - src/features/himtika/divisi/sc/wasekum.png
+    - src/features/himtika/divisi/sc/bendum.png
+    - src/features/himtika/divisi/sc/wabendum.png
+
+    - src/features/himtika/divisi/internal/internal.png
+    - src/features/himtika/divisi/internal/ketua.png
+    - src/features/himtika/divisi/internal/kadepHRD.png
+    - src/features/himtika/divisi/internal/indira.png
+    - src/features/himtika/divisi/internal/bagja.png
+    - src/features/himtika/divisi/internal/yasmin.png
+    - src/features/himtika/divisi/internal/kadepHC.png
+    - src/features/himtika/divisi/internal/sukma.png
+    - src/features/himtika/divisi/internal/hanna.png
+    - src/features/himtika/divisi/internal/sasa.png
+
+    - src/features/himtika/divisi/rnd/rnd.png
+    - src/features/himtika/divisi/rnd/ketua.png
+    - src/features/himtika/divisi/rnd/kadepProduct.png
+    - src/features/himtika/divisi/rnd/geral.png
+    - src/features/himtika/divisi/rnd/raika.png
+    - src/features/himtika/divisi/rnd/jibran.png
+    - src/features/himtika/divisi/rnd/kadepRiset.png
+    - src/features/himtika/divisi/rnd/menrey.png
+
+    - src/features/himtika/divisi/relasi/relasi.png
+    - src/features/himtika/divisi/relasi/ketua.png
+    - src/features/himtika/divisi/relasi/kadepPM.png
+    - src/features/himtika/divisi/relasi/martin.png
+    - src/features/himtika/divisi/relasi/rois.png
+    - src/features/himtika/divisi/relasi/kadepPR.png
+    - src/features/himtika/divisi/relasi/zain.png
+    - src/features/himtika/divisi/relasi/dewa.png
+    - src/features/himtika/divisi/relasi/refi.png
+
+
+    - src/features/himtika/divisi/edukasi/edukasi.png
+    - src/features/himtika/divisi/edukasi/ketua.png
+    - src/features/himtika/divisi/edukasi/kadepCollege.png
+    - src/features/himtika/divisi/edukasi/rifqy.png
+    - src/features/himtika/divisi/edukasi/shidqy.png
+    - src/features/himtika/divisi/edukasi/nadrina.png
+    - src/features/himtika/divisi/edukasi/kadepSkill.png
+    - src/features/himtika/divisi/edukasi/anggun.png
+    - src/features/himtika/divisi/edukasi/nugi.png
+    - src/features/himtika/divisi/edukasi/bahrul.png
+    - src/features/himtika/divisi/edukasi/ori.png
+
+
+    - src/features/himtika/divisi/infokom/infokom.png
+    - src/features/himtika/divisi/infokom/ketua.png
+    - src/features/himtika/divisi/infokom/kadepMC.png
+    - src/features/himtika/divisi/infokom/farel.png
+    - src/features/himtika/divisi/infokom/syahid.png
+    - src/features/himtika/divisi/infokom/zidane.png
+    - src/features/himtika/divisi/infokom/isma.png
+    - src/features/himtika/divisi/infokom/raysha.png
+    - src/features/himtika/divisi/infokom/kadepMI.png
+    - src/features/himtika/divisi/infokom/tika.png
+    - src/features/himtika/divisi/infokom/arsya.png
+
+    - src/features/himtika/logo/gear.png
+    - src/features/himtika/logo/parabola.png
+    - src/features/himtika/logo/abuabu.png
+    - src/features/himtika/logo/sinyal.png
+    - src/features/himtika/logo/if.png
+    - src/features/himtika/logo/garishitam.png
+    - src/features/himtika/logo/putih.png
+    - src/features/himtika/logo/sinyal3.png
+
+    - src/features/himtika/icon/himtika.png
+    - src/features/himtika/icon/pattern.png
+    - src/features/himtika/icon/flag.png
+    - src/features/himtika/icon/share.png
+    - src/features/himtika/icon/users.png
+    - src/features/himtika/icon/lineLeft.png
+    - src/features/himtika/icon/lineRight.png
+    - src/features/himtika/icon/lineEnd.png
+
+    - src/features/himtika/kabinet/angsa.png
+    - src/features/himtika/kabinet/teratai.png
+    - src/features/himtika/kabinet/daun.png
+    - src/features/himtika/kabinet/gear.png
 
   #   - images/a_dot_ham.jpeg
 
