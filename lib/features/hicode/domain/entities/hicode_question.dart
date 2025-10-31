@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'hicode_option.dart';
+import 'hicode_option.dart'; // Pastikan import benar
 
 class HiCodeQuestion extends Equatable {
   final String id;

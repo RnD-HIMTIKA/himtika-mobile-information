@@ -47,6 +47,7 @@ dependencies:
   go_router: ^16.0.0      # routing
   freezed_annotation: ^3.1.0  # code generation
   dio: ^5.0.0            # HTTP client
+  flutter_image_compress: ^2.1.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -190,7 +191,14 @@ flutter:
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
 
+# ...
+
 flutter_launcher_icons:
-  android: "launcher_icon"
+  android: true
   ios: true
-  image_path: "src/himfo_icon.jpg"
+  image_path: "src/icons/icon.png" # Ikon untuk iOS & Android versi lama
+
+  # --- Konfigurasi Adaptive Icon (Hanya untuk Android 8.0+) ---
+  adaptive_icon_background: "src/icons/icon_background.png" # Warna background (misal: putih)
+  
+  adaptive_icon_foreground: "src/icons/icon_foreground.png" # File PNG transparan logo Anda
