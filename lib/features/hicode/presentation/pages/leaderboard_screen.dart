@@ -336,11 +336,11 @@ class _PodiumPlace extends StatelessWidget {
                 backgroundImage: (hasUser && user!.profileUrl != null && user!.profileUrl!.isNotEmpty)
                   ? NetworkImage(user!.profileUrl!)
                   : null,
+                backgroundColor: Colors.white.withOpacity(0.2),
                 // Tampilkan ikon placeholder jika tidak ada user atau tidak ada gambar
                 child: (!hasUser || user!.profileUrl == null || user!.profileUrl!.isEmpty)
                   ? Icon(Icons.person, size: 30, color: Colors.white.withOpacity(0.5)) // Ikon placeholder abu-abu
-                  : null,
-                backgroundColor: Colors.white.withOpacity(0.2), // Background fallback
+                  : null, // Background fallback
               ),
                // Tampilkan mahkota hanya jika ada user
                if (hasUser)
@@ -426,10 +426,10 @@ class _UserListTile extends StatelessWidget {
              backgroundImage: (user.profileUrl != null && user.profileUrl!.isNotEmpty)
                ? NetworkImage(user.profileUrl!)
                : null,
+             backgroundColor: Colors.grey.shade400,
              child: (user.profileUrl == null || user.profileUrl!.isEmpty)
                ? Icon(Icons.person, size: 20, color: Colors.white.withOpacity(0.7)) // Ikon default
-               : null,
-             backgroundColor: Colors.grey.shade400, // Background default
+               : null, // Background default
           ),
           const SizedBox(width: 16),
           Expanded(

@@ -13,20 +13,35 @@ class HiCodeChapterContentModel extends HiCodeChapterContent {
   factory HiCodeChapterContentModel.fromMap(Map<String, dynamic> map) {
     
     List<dynamic> parsedContentBlocks = []; // Default list kosong
-    final dynamic rawContent = map['content_blocks']; // Ambil data dari RPC
+    final dynamic rawContent = map['content_blocks'];
 
     // --- LOGIKA PERBAIKAN ERROR ---
     if (rawContent is List) {
       // KASUS 1: Data sudah format baru (Delta JSON List)
-      // Ini adalah yang kita harapkan dari RPC baru dan data baru
+      // Ini adalah yang kita harapkan dari RPC baru
       parsedContentBlocks = rawContent;
     } else if (rawContent is Map && rawContent.containsKey('blocks') && rawContent['blocks'] is List) {
       // KASUS 2: Data masih format lama (Map {"blocks": [...]})
       // Ini terjadi jika RPC masih lama ATAU data di DB masih lama
-      parsedContentBlocks = rawContent['blocks'] as List<dynamic>;
+      
+      // KONVERSI DATA LAMA KE DELTA (SEDERHANA)
+      // Ini hanya akan mengonversi 'paragraph' menjadi teks biasa.
+      try {
+        List<Map<String, dynamic>> deltaList = [];
+        for (var block in (rawContent['blocks'] as List)) {
+          if (block is Map && block['type'] == 'paragraph' && block['data'] != null) {
+            deltaList.add({"insert": "${block['data']}\n"});
+          } else {
+             deltaList.add({"insert": "[Konten tidak didukung]\n"});
+          }
+        }
+        parsedContentBlocks = deltaList;
+      } catch (e) {
+         parsedContentBlocks = [{'insert':'Error parsing data lama: $e\n'}];
+      }
     }
-    // Jika rawContent adalah Map tapi tidak punya key 'blocks' (sesuai error Anda),
-    // atau null, atau format lain, maka parsedContentBlocks akan tetap list kosong.
+    // Jika rawContent adalah Map tapi tidak punya key 'blocks' (sesuai error _Map len:2),
+    // atau null, atau format lain, maka parsedContentBlocks akan tetap list kosong [].
     // --- AKHIR LOGIKA PERBAIKAN ---
 
     return HiCodeChapterContentModel(

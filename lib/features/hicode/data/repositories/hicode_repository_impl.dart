@@ -1,6 +1,4 @@
 import 'package:himtika_mobile_information/features/hicode/data/models/hicode_category_model.dart';
-import 'package:himtika_mobile_information/features/hicode/data/models/hicode_material_model.dart';
-import 'package:himtika_mobile_information/features/hicode/data/models/hicode_chapter_model.dart';
 import 'package:himtika_mobile_information/features/hicode/domain/entities/hicode_category.dart';
 import 'package:himtika_mobile_information/features/hicode/domain/entities/hicode_material.dart';
 import 'package:himtika_mobile_information/features/hicode/domain/entities/hicode_chapter.dart';
@@ -12,7 +10,7 @@ import '../models/hicode_question_model.dart';
 import '../../domain/entities/hicode_question.dart';
 import '../models/quiz_result_model.dart';
 import '../../domain/entities/quiz_result.dart';
-import '../../domain/entities/leaderboard_entry.dart'; // <-- Tambahkan ini nanti
+import '../../domain/entities/leaderboard_entry.dart';
 import '../models/leaderboard_entry_model.dart';
 
 class HiCodeRepositoryImpl implements HiCodeRepository {

@@ -1,17 +1,18 @@
 import 'dart:async'; // Import Timer
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+// --- Import Quill ---
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:flutter_quill_extensions/flutter_quill_extensions.dart';
+// --------------------
 import 'package:himtika_mobile_information/core/injection_container.dart';
-import 'package:himtika_mobile_information/features/auth/domain/usecases/get_current_user.dart'; // Import GetCurrentUser
+import 'package:himtika_mobile_information/features/auth/domain/usecases/get_current_user.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/bloc/sub_chapter_detail/sub_chapter_detail_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/information_screen.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/quiz_screen.dart';
 import 'package:himtika_mobile_information/features/hicode/domain/usecases/update_scroll_position.dart';
 import 'package:himtika_mobile_information/core/theme/app_colors.dart';
 
-// 1. Ubah menjadi StatefulWidget
 class SubChapterDetailScreen extends StatefulWidget {
   final String subChapterId;
 
@@ -30,80 +31,84 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
   double _lastSavedScrollPosition = 0.0;
   late SubChapterDetailBloc _bloc;
 
-  // --- Quill Controller untuk ReadOnly ---
   QuillController? _contentController;
   bool _isControllerReady = false;
+  // --- Definisikan FocusNode ---
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
     super.initState();
     _bloc = context.read<SubChapterDetailBloc>();
-    // Ambil User ID saat init
     _getCurrentUser().then((user) {
        if (mounted && user != null) {
-          setState(() {
-            _currentUserId = user.id; // Simpan user.id (UUID dari public.users)
-          });
-          // Panggil FetchSubChapterData setelah user ID didapat
+          setState(() { _currentUserId = user.id; });
           _bloc.add(FetchSubChapterData(subChapterId: widget.subChapterId, userId: _currentUserId!));
        } else if (mounted) {
-         // Handle jika user tidak ditemukan (meskipun seharusnya tidak terjadi di sini)
-         _bloc.add(const FetchSubChapterData(subChapterId: '', userId: '')); // Kirim event gagal
+         _bloc.add(const FetchSubChapterData(subChapterId: '', userId: ''));
        }
     });
      _scrollController.addListener(_scrollListener);
    }
 
-  // Fungsi untuk inisialisasi controller konten
   void _initializeContentController(List<dynamic> contentJson) {
-     // Hindari inisialisasi ulang jika sudah ada
      if (_contentController != null) return;
 
      try {
        Document doc;
-       if (contentJson.isNotEmpty) {
+       // Validasi tambahan untuk memastikan contentJson adalah List
+       if (contentJson.isNotEmpty && contentJson is List) {
           doc = Document.fromJson(contentJson);
        } else {
-          // Buat dokumen kosong jika konten dari DB kosong
-          doc = Document.fromJson([{'insert': 'Konten belum tersedia.\n'}]);
+          // Jika formatnya salah (misal Map lama yg tidak terkonversi),
+          // atau list kosong, tampilkan pesan default.
+          doc = Document.fromJson([{'insert': 'Konten belum tersedia atau format tidak didukung.\n'}]);
        }
 
        _contentController = QuillController(
          document: doc,
          selection: const TextSelection.collapsed(offset: 0),
        );
+
+       _contentController!.readOnly = true; 
+
        if (mounted) {
          setState(() => _isControllerReady = true);
        }
        print("Konten berhasil dimuat ke QuillEditor read-only.");
      } catch (e) {
        print("Error decoding content for QuillEditor: $e");
-        _contentController = QuillController.basic(); // Fallback
+       // Error _Map len:2 akan ditangkap di sini
+        _contentController = QuillController.basic();
+        _contentController!.readOnly = true; 
          if (mounted) {
-           setState(() => _isControllerReady = true); // Tetap set true agar error tampil
-            _contentController!.document.insert(0, 'Gagal memuat konten: $e');
+           setState(() => _isControllerReady = true);
+            _contentController!.document.insert(0, 'Gagal memuat konten: Format data tidak valid. \nError: $e');
          }
      }
   }
 
   void _scrollListener() {
     _lastSavedScrollPosition = _scrollController.offset;
-    final bool currentReachedBottom = _scrollController.position.pixels >= _scrollController.position.maxScrollExtent * 0.95;
+    if (!_scrollController.hasClients) return;
+    
+    final maxScroll = _scrollController.position.maxScrollExtent;
+    final tolerance = 0.95;
+    // Anggap tercapai jika konten tidak bisa di-scroll (maxScroll <= 0)
+    final bool currentReachedBottom = (maxScroll > 0)
+        ? (_scrollController.position.pixels >= maxScroll * tolerance)
+        : true; 
+
     final currentBlocState = _bloc.state;
     final bool newHasReachedBottom = currentBlocState.isQuizUnlocked || currentReachedBottom;
 
-    // --- PERBAIKAN UX DI SINI ---
-    // 1. Update UI (BLoC State) secara instan jika kondisi terpenuhi
     if (currentReachedBottom && !currentBlocState.isQuizUnlocked) {
-       _bloc.add(const QuizManuallyUnlocked()); // Panggil event BLoC instan
+       _bloc.add(const QuizManuallyUnlocked());
     }
-    // --- END PERBAIKAN ---
 
-    // 2. Update Database tetap menggunakan debounce
     if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
     _debounceTimer = Timer(const Duration(seconds: 2), () {
       if (mounted && _currentUserId != null) {
-        // Kirim status newHasReachedBottom ke backend
         _updateScrollPosition(widget.subChapterId, _lastSavedScrollPosition, newHasReachedBottom);
       }
     });
@@ -112,7 +117,7 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
   @override
   void dispose() {
     _scrollController.removeListener(_scrollListener);
-    _debounceTimer?.cancel(); // Batalkan timer sebelum panggil update terakhir
+    _debounceTimer?.cancel();
 
     // Dapatkan state BLoC sebelum dispose
     final currentBlocState = _bloc.state;
@@ -127,15 +132,19 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
 
     _contentController?.dispose();
     _scrollController.dispose();
+    _focusNode.dispose(); // --- Dispose FocusNode ---
     super.dispose();
   }
 
   // Helper untuk jump ke posisi awal
   void _jumpToInitialPosition(double position) {
-    // Gunakan addPostFrameCallback agar jump dilakukan setelah layout selesai
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
-        _scrollController.jumpTo(position);
+         final maxScroll = _scrollController.position.maxScrollExtent;
+         final targetPosition = (position > maxScroll && maxScroll > 0) ? maxScroll : position;
+         if (targetPosition >= 0) {
+            _scrollController.jumpTo(targetPosition);
+         }
       }
     });
   }
@@ -150,12 +159,14 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
       child: BlocConsumer<SubChapterDetailBloc, SubChapterDetailState>(
         listener: (context, state) {
               if (state.status == SubChapterDetailStatus.success) {
-                  // Panggil inisialisasi controller KONTEN di sini
-                  if (state.contentBlocks.isNotEmpty && _contentController == null) {
+                  // Pengecekan tipe data contentBlocks
+                  if (state.contentBlocks is List && _contentController == null) {
                      _initializeContentController(state.contentBlocks);
-                  } else if (state.contentBlocks.isEmpty && _contentController == null) {
-                     // Handle jika konten benar-benar kosong
-                      _initializeContentController([]);
+                  } else if (_contentController == null) {
+                     // Jika state.contentBlocks BUKAN List (karena error parsing di model)
+                     // Inisialisasi dengan pesan error
+                     print("Inisialisasi gagal: contentBlocks bukan List.");
+                     _initializeContentController([{'insert':'Error: Format data tidak valid (bukan List).\n'}]);
                   }
                   _jumpToInitialPosition(state.lastScrollPosition);
               } else if (state.status == SubChapterDetailStatus.failure){
@@ -196,28 +207,24 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
                 children: [
                   _buildBlueHeader(context, state),
                   Expanded(
-                    // Gunakan NotificationListener (atau tidak, karena controller sudah dipasang)
                     child: Padding(
-                       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), // Padding untuk editor
-                       // Tampilkan loading jika controller belum siap
+                       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                        child: !_isControllerReady || _contentController == null
                            ? const Center(child: Text('Memuat konten...'))
-                           // --- GANTI ListView.builder DENGAN QuillEditor ---
+                           // --- PERBAIKAN PADA QUILL EDITOR ---
                            : QuillEditor(
                                controller: _contentController!,
-                               scrollController: _scrollController, // <-- PASANG SCROLL CONTROLLER
-                               focusNode: FocusNode(), // Tambahkan focusNode jika diperlukan
+                               scrollController: _scrollController, // Pasang scroll controller
+                               focusNode: _focusNode, // Pasang focus node
                                configurations: QuillEditorConfigurations(
-                                 padding: const EdgeInsets.all(8), // Padding di dalam area editor
-                                 // --- WAJIB: Tampilkan Embeds (Gambar, Video, dll) ---
+                                 padding: const EdgeInsets.all(8),
                                  embedBuilders: FlutterQuillEmbeds.editorBuilders(),
-                                 // ---------------------------------------------------
                                  sharedConfigurations: const QuillSharedConfigurations(
                                    locale: Locale('id'),
                                  ),
                                ),
                              ),
-                       // --------------------------------------------------
+                       // ----------------------------------
                     ),
                   ),
                 ],
@@ -231,7 +238,6 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
             if (state.status != SubChapterDetailStatus.success) {
               return const SizedBox.shrink();
             }
-            // Kirim chapterId ke _buildBottomButton
             return _buildBottomButton(context, state, widget.subChapterId);
           },
         ),
