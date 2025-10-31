@@ -12,8 +12,42 @@ import '../bloc/home_bloc.dart';
 import '../bloc/home_event.dart';
 import '../bloc/home_state.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  int _selectedIndex = 0;
+
+  void _onBottomNavTapped(int index) {
+    setState(() => _selectedIndex = index);
+
+    switch (index) {
+      case 0:
+        break;
+      case 1:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
+        );
+        break;
+      case 2:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
+        );
+        break;
+      case 3:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
+        );
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,24 +118,27 @@ class HomePage extends StatelessWidget {
                               Row(
                                 children: [
                                   IconButton(
-                                    icon: const Icon(Icons.notifications_outlined, color: Colors.white),
+                                    icon: const Icon(
+                                        Icons.notifications_outlined,
+                                        color: Colors.white),
                                     onPressed: () {
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (context) => const NotificationPage()),
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                const NotificationPage()),
                                       );
                                     },
                                   ),
-                                  Builder(
-                                    builder: (context) {
-                                      return IconButton(
-                                        icon: const Icon(Icons.menu, color: Colors.white),
-                                        onPressed: () {
-                                          Scaffold.of(context).openEndDrawer();
-                                        },
-                                      );
-                                    }
-                                  ),
+                                  Builder(builder: (context) {
+                                    return IconButton(
+                                      icon: const Icon(Icons.menu,
+                                          color: Colors.white),
+                                      onPressed: () {
+                                        Scaffold.of(context).openEndDrawer();
+                                      },
+                                    );
+                                  }),
                                 ],
                               ),
                             ],
@@ -120,7 +157,8 @@ class HomePage extends StatelessWidget {
                                 child: Text(
                                   "Terbaru",
                                   style: TextStyle(
-                                      fontSize: 16, fontWeight: FontWeight.bold),
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold),
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -135,7 +173,10 @@ class HomePage extends StatelessWidget {
                                       width: 200,
                                       margin: EdgeInsets.only(
                                           left: index == 0 ? 16 : 8,
-                                          right: index == state.banners.length - 1 ? 16 : 0),
+                                          right:
+                                              index == state.banners.length - 1
+                                                  ? 16
+                                                  : 0),
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(12),
                                         image: DecorationImage(
@@ -173,11 +214,16 @@ class HomePage extends StatelessWidget {
                                   _menuItem(
                                     "src/features/home/icons/himtika.png",
                                     "HIMTIKA",
-                                    [const Color(0xFF32B7FF), const Color(0xFF32B7FF)],
+                                    [
+                                      const Color(0xFF32B7FF),
+                                      const Color(0xFF32B7FF)
+                                    ],
                                     () {
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (_) => const HimtikaScreen()),
+                                        MaterialPageRoute(
+                                            builder: (_) =>
+                                                const HimtikaScreen()),
                                       );
                                     },
                                   ),
@@ -188,41 +234,57 @@ class HomePage extends StatelessWidget {
                                     () {
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (_) => const HicodeScreen()),
+                                        MaterialPageRoute(
+                                            builder: (_) =>
+                                                const HicodeScreen()),
                                       );
                                     },
                                   ),
                                   _menuItem(
                                     "src/features/home/icons/hiconnect.svg",
                                     "HiConnect",
-                                    [const Color(0xFFFFC107), const Color(0xFFFFC107)],
+                                    [
+                                      const Color(0xFFFFC107),
+                                      const Color(0xFFFFC107)
+                                    ],
                                     () {
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
+                                        MaterialPageRoute(
+                                            builder: (_) =>
+                                                const UnderMaintenanceScreen()),
                                       );
                                     },
                                   ),
                                   _menuItem(
                                     "src/features/home/icons/hiagenda.svg",
                                     "HiAgenda",
-                                    [const Color(0xFFDBF6BF), const Color(0xFFDBF6BF)],
+                                    [
+                                      const Color(0xFFDBF6BF),
+                                      const Color(0xFFDBF6BF)
+                                    ],
                                     () {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                            builder: (_) => const CalendarScreen()),
+                                            builder: (_) =>
+                                                const CalendarScreen()),
                                       );
                                     },
                                   ),
                                   _menuItem(
                                     "src/features/home/icons/hispace.svg",
                                     "HiSpace",
-                                    [const Color(0xFF402DAE), const Color(0xFFBD63D1)],
+                                    [
+                                      const Color(0xFF402DAE),
+                                      const Color(0xFFBD63D1)
+                                    ],
                                     () {
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
+                                        MaterialPageRoute(
+                                            builder: (_) =>
+                                                const UnderMaintenanceScreen()),
                                       );
                                     },
                                   ),
@@ -233,29 +295,41 @@ class HomePage extends StatelessWidget {
                                     () {
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
+                                        MaterialPageRoute(
+                                            builder: (_) =>
+                                                const UnderMaintenanceScreen()),
                                       );
                                     },
                                   ),
                                   _menuItem(
                                     "src/features/home/icons/event.svg",
                                     "Event",
-                                    [const Color(0xFF4CAF50), const Color(0xFF4CAF50)],
+                                    [
+                                      const Color(0xFF4CAF50),
+                                      const Color(0xFF4CAF50)
+                                    ],
                                     () {
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
+                                        MaterialPageRoute(
+                                            builder: (_) =>
+                                                const UnderMaintenanceScreen()),
                                       );
                                     },
                                   ),
                                   _menuItem(
                                     "src/features/home/icons/more.svg",
                                     "More",
-                                    [const Color(0xFFF7F7F7), const Color(0xFFF7F7F7)],
+                                    [
+                                      const Color(0xFFF7F7F7),
+                                      const Color(0xFFF7F7F7)
+                                    ],
                                     () {
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
+                                        MaterialPageRoute(
+                                            builder: (_) =>
+                                                const UnderMaintenanceScreen()),
                                       );
                                     },
                                   ),
@@ -277,7 +351,8 @@ class HomePage extends StatelessWidget {
                                 child: Text(
                                   "Divisi",
                                   style: TextStyle(
-                                      fontSize: 16, fontWeight: FontWeight.bold),
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold),
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -292,14 +367,17 @@ class HomePage extends StatelessWidget {
                                       width: 200,
                                       margin: EdgeInsets.only(
                                           left: index == 0 ? 16 : 8,
-                                          right: index == state.divisions.length - 1 ? 16 : 0),
+                                          right: index ==
+                                                  state.divisions.length - 1
+                                              ? 16
+                                              : 0),
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(12),
                                         image: DecorationImage(
                                           image: NetworkImage(division.logoUrl),
-                                          fit: BoxFit.contain, // Contain agar logo tidak terpotong
+                                          fit: BoxFit
+                                              .contain, // Contain agar logo tidak terpotong
                                         ),
-                                        color: Colors.blue[100],
                                       ),
                                     );
                                   },
@@ -323,52 +401,36 @@ class HomePage extends StatelessWidget {
               topRight: Radius.circular(20),
             ),
             boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                spreadRadius: 0,
-                blurRadius: 8,
-              ),
+              BoxShadow(color: Colors.black12, spreadRadius: 0, blurRadius: 8),
             ],
           ),
           child: BottomNavigationBar(
+            currentIndex: _selectedIndex,
+            onTap: _onBottomNavTapped,
             type: BottomNavigationBarType.fixed,
-            selectedItemColor: Colors.black,
+            selectedItemColor: Colors.blue,
             unselectedItemColor: Colors.black,
             backgroundColor: Colors.transparent,
             elevation: 0,
             showSelectedLabels: false,
             showUnselectedLabels: false,
-            items: [
+            items: const [
               BottomNavigationBarItem(
-                icon: Image.asset(
-                  "src/features/home/icons/home.png",
-                  width: 24,
-                  height: 24,
-                ),
+                icon: ImageIcon(AssetImage("src/features/home/icons/home.png")),
                 label: "",
               ),
               BottomNavigationBarItem(
-                icon: Image.asset(
-                  "src/features/home/icons/chat.png",
-                  width: 24,
-                  height: 24,
-                ),
+                icon: ImageIcon(AssetImage("src/features/home/icons/chat.png")),
                 label: "",
               ),
               BottomNavigationBarItem(
-                icon: Image.asset(
-                  "src/features/home/icons/message.png",
-                  width: 24,
-                  height: 24,
-                ),
+                icon: ImageIcon(
+                    AssetImage("src/features/home/icons/message.png")),
                 label: "",
               ),
               BottomNavigationBarItem(
-                icon: Image.asset(
-                  "src/features/home/icons/profile.png",
-                  width: 24,
-                  height: 24,
-                ),
+                icon: ImageIcon(
+                    AssetImage("src/features/home/icons/profile.png")),
                 label: "",
               ),
             ],
@@ -378,7 +440,8 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _menuItem(String assetPath, String label, List<Color> gradientColors, VoidCallback onTap) {
+  Widget _menuItem(String assetPath, String label, List<Color> gradientColors,
+      VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -408,7 +471,6 @@ class HomePage extends StatelessWidget {
       ),
     );
   }
-
 
   Widget _buildImage(String assetPath) {
     if (assetPath.toLowerCase().endsWith('.svg')) {
