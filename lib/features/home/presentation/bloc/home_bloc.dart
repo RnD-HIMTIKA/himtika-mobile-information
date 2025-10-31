@@ -5,6 +5,7 @@ import 'home_state.dart';
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   HomeBloc() : super(const HomeState()) {
     on<LoadHomeData>(_onLoadHomeData);
+    on<ChangeTab>(_onChangeTab); // ✅ tambahkan event baru
   }
 
   void _onLoadHomeData(LoadHomeData event, Emitter<HomeState> emit) async {
@@ -17,5 +18,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       latestItems: ["item1", "item2"],
       isLoading: false,
     ));
+  }
+
+  void _onChangeTab(ChangeTab event, Emitter<HomeState> emit) {
+    emit(state.copyWith(selectedIndex: event.index)); // ubah tab aktif
   }
 }
