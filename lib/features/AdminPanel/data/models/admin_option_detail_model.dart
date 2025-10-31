@@ -5,7 +5,7 @@ class AdminOptionDetailModel extends AdminOptionDetail {
     required super.id,
     required super.optionText,
     required super.isCorrect,
-    // super.imageUrl,
+    super.imageUrl, // <-- Tambahkan di constructor super
   });
 
   factory AdminOptionDetailModel.fromMap(Map<String, dynamic> map) {
@@ -13,7 +13,7 @@ class AdminOptionDetailModel extends AdminOptionDetail {
       id: map['id'],
       optionText: map['option_text'],
       isCorrect: map['is_correct'] ?? false,
-      // imageUrl: map['image_url'],
+      imageUrl: map['image_url'], // <-- Ambil image_url dari map
     );
   }
 }

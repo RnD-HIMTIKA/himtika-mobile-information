@@ -6,6 +6,7 @@ import 'package:himtika_mobile_information/features/calendar/presentation/pages/
 import 'package:himtika_mobile_information/features/calendar/presentation/pages/notification_page.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/main_screen.dart';
 import 'package:himtika_mobile_information/features/home/presentation/pages/sidebar_home.dart';
+import 'package:himtika_mobile_information/utility/undermaintance_screen.dart';
 import '../bloc/home_bloc.dart';
 import '../bloc/home_event.dart';
 import '../bloc/home_state.dart';
@@ -189,7 +190,12 @@ class HomePage extends StatelessWidget {
                                     "src/features/home/icons/hiconnect.svg",
                                     "HiConnect",
                                     [const Color(0xFFFFC107), const Color(0xFFFFC107)],
-                                    () {},
+                                    () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
+                                      );
+                                    },
                                   ),
                                   _menuItem(
                                     "src/features/home/icons/hiagenda.svg",
@@ -207,25 +213,45 @@ class HomePage extends StatelessWidget {
                                     "src/features/home/icons/hispace.svg",
                                     "HiSpace",
                                     [const Color(0xFF402DAE), const Color(0xFFBD63D1)],
-                                    () {},
+                                    () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
+                                      );
+                                    },
                                   ),
                                   _menuItem(
                                     "src/features/home/icons/kontak.svg",
                                     "HiLecturer",
                                     [Color(0xFFF4BF75), Color(0xFFF4BF75)],
-                                    () {},
+                                    () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
+                                      );
+                                    },
                                   ),
                                   _menuItem(
                                     "src/features/home/icons/event.svg",
                                     "Event",
                                     [const Color(0xFF4CAF50), const Color(0xFF4CAF50)],
-                                    () {},
+                                    () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
+                                      );
+                                    },
                                   ),
                                   _menuItem(
                                     "src/features/home/icons/more.svg",
                                     "More",
                                     [const Color(0xFFF7F7F7), const Color(0xFFF7F7F7)],
-                                    () {},
+                                    () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
+                                      );
+                                    },
                                   ),
                                 ],
                               ),

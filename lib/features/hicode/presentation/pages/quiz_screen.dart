@@ -362,6 +362,7 @@ class _QuizView extends StatelessWidget {
                     return _OptionTile(
                       optionKey: '',
                       optionText: option.optionText,
+                      imageUrl: option.imageUrl,
                       isSelected: isSelected,
                       onTap: () {
                         context.read<QuizBloc>().add(AnswerSelected(
@@ -591,14 +592,17 @@ class _ProgressIndicator extends StatelessWidget {
 class _OptionTile extends StatelessWidget {
   final String optionKey;
   final String optionText;
+  final String? imageUrl;
   final bool isSelected;
   final VoidCallback onTap;
 
   const _OptionTile(
       {required this.optionKey,
       required this.optionText,
+      this.imageUrl,
       required this.isSelected,
-      required this.onTap});
+      required this.onTap
+    });
 
   @override
   Widget build(BuildContext context) {
@@ -617,15 +621,18 @@ class _OptionTile extends StatelessWidget {
             ),
           ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start, // Align top jika ada gambar
             children: [
+              // --- Lingkaran Pilihan ---
               Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: isSelected ? Colors.blue : Colors.grey.shade200,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
+                 margin: const EdgeInsets.only(top: 4), // Sedikit ke bawah agar sejajar teks
+                 width: 24,
+                 height: 24,
+                 decoration: BoxDecoration(
+                   color: isSelected ? Colors.blue : Colors.grey.shade200,
+                   shape: BoxShape.circle,
+                 ),
+                 child: Center(
                   child: Text(
                     optionKey,
                     style: TextStyle(
@@ -635,7 +642,37 @@ class _OptionTile extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 16),
-              Expanded(child: Text(optionText)),
+              // --- Konten Opsi (Teks + Gambar) ---
+              Expanded(
+                child: Column(
+                   crossAxisAlignment: CrossAxisAlignment.start,
+                   children: [
+                     // Tampilkan Gambar jika ada
+                     if (imageUrl != null && imageUrl!.isNotEmpty)
+                       Padding(
+                         padding: const EdgeInsets.only(bottom: 8.0),
+                         child: ClipRRect( // Clip gambar agar rounded
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              imageUrl!,
+                              height: 100, // Atur tinggi gambar opsi
+                              width: double.infinity,
+                              fit: BoxFit.contain,
+                              loadingBuilder: (context, child, progress) {
+                                 if (progress == null) return child;
+                                 return const SizedBox(height: 100, child: Center(child: CircularProgressIndicator()));
+                               },
+                               errorBuilder: (context, error, stackTrace) {
+                                 return Container(height: 100, color: Colors.grey[200], child: const Center(child: Icon(Icons.broken_image)));
+                               },
+                            ),
+                         ),
+                       ),
+                     // Tampilkan Teks Opsi
+                     Text(optionText),
+                   ],
+                ),
+              ),
             ],
           ),
         ),
@@ -886,6 +923,7 @@ class __FinalExamViewState extends State<_FinalExamView> {
                     return _OptionTile( // Menggunakan kembali widget _OptionTile
                       optionKey: '',
                       optionText: option.optionText,
+                      imageUrl: option.imageUrl,
                       isSelected: isSelected,
                       onTap: () {
                         context.read<QuizBloc>().add(AnswerSelected(
