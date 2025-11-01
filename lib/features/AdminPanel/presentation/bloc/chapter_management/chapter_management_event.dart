@@ -16,7 +16,7 @@ class LoadChapters extends ChapterManagementEvent {
 class AddChapterSubmitted extends ChapterManagementEvent {
   final String materialId;
   final String title;
-  final Map<String, dynamic> content;
+  final List<dynamic>? content;
   final int? estimatedReadTime;
   
   const AddChapterSubmitted({
@@ -32,7 +32,7 @@ class AddChapterSubmitted extends ChapterManagementEvent {
 class UpdateChapterSubmitted extends ChapterManagementEvent {
   final String id;
   final String? title;
-  final Map<String, dynamic>? content;
+  final List<dynamic>? content;
   final int? estimatedReadTime;
   final int? order;
   

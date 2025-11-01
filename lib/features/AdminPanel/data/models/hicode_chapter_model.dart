@@ -12,18 +12,27 @@ class HiCodeChapterModel extends HiCodeChapter {
   });
 
   factory HiCodeChapterModel.fromMap(Map<String, dynamic> map) {
+    // Parsing content sebagai List<dynamic>
+    List<dynamic>? contentList;
+    if (map['content'] is List) {
+       contentList = map['content'] as List<dynamic>?;
+    } else if (map['content'] is Map && (map['content'] as Map).containsKey('blocks')) {
+       // Fallback jika format lama {"blocks": [...]} masih ada di DB
+       contentList = (map['content'] as Map)['blocks'] as List<dynamic>?;
+    }
     return HiCodeChapterModel(
       id: map['id'] as String,
       materialId: map['material_id'] as String,
       title: map['title'] as String,
-      content: map['content'] as Map<String, dynamic>?,
+      content: contentList,
       estimatedReadTime: map['estimated_read_time'] as int?,
       order: map['order'] as int,
       createdAt: DateTime.parse(map['created_at'] as String),
     );
   }
 
-  Map<String, dynamic> toMap() {
+  @override
+  Map<String, dynamic> toMap() { // toMap tidak terlalu relevan karena kita kirim ke RPC
     return {
       'id': id,
       'material_id': materialId,

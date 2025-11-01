@@ -110,8 +110,8 @@ class QuestionBankBloc extends Bloc<QuestionBankEvent, QuestionBankState> {
         final materialsFuture = _getAllAdminMaterialsMap();
         final results = await Future.wait([chaptersFuture, materialsFuture]);
 
-        final chaptersMap = results[0] as Map<String, String>;
-        final materialsMap = results[1] as Map<String, String>;
+        final chaptersMap = results[0];
+        final materialsMap = results[1];
 
         emit(state.copyWith(chaptersMap: chaptersMap, materialsMap: materialsMap));
 

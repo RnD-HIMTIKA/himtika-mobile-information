@@ -245,7 +245,7 @@ class MaterialDetailScreen extends StatelessWidget {
                  ),
 
                 // Ikon Status Overlay (Hanya jika Selesai atau Terkunci)
-                if (statusIcon != null && (chapter.isCompleted || chapter.isLocked)) // Tampilkan hanya jika ada ikon & statusnya completed/locked
+                if ((chapter.isCompleted || chapter.isLocked)) // Tampilkan hanya jika ada ikon & statusnya completed/locked
                   Positioned(
                     bottom: -5, // Sesuaikan posisi
                     right: -5,  // Sesuaikan posisi

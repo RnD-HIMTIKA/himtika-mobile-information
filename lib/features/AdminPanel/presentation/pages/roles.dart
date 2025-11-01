@@ -372,8 +372,11 @@ class _EditRolesDialogState extends State<_EditRolesDialog> {
           title: Text(role.name),
           value: _selectedRoleIds.contains(role.id),
           onChanged: (value) => setState(() {
-            if (value) _selectedRoleIds.add(role.id);
-            else _selectedRoleIds.remove(role.id);
+            if (value) {
+              _selectedRoleIds.add(role.id);
+            } else {
+              _selectedRoleIds.remove(role.id);
+            }
           }),
         );
       },
@@ -400,8 +403,11 @@ class _EditRolesDialogState extends State<_EditRolesDialog> {
               title: Text(role.name),
               value: _selectedRoleIds.contains(role.id),
               onChanged: (value) => setState(() {
-                if (value) _selectedRoleIds.add(role.id);
-                else _selectedRoleIds.remove(role.id);
+                if (value) {
+                  _selectedRoleIds.add(role.id);
+                } else {
+                  _selectedRoleIds.remove(role.id);
+                }
               }),
             );
           }).toList(),

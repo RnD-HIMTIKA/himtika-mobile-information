@@ -112,10 +112,11 @@ class _EditQuestionDialogState extends State<EditQuestionDialog> {
           }
         });
       } else {
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
               content: Text('Gagal mengompres gambar.'),
               backgroundColor: Colors.orange));
+        }
       }
     }
   }
@@ -278,30 +279,18 @@ class _EditQuestionDialogState extends State<EditQuestionDialog> {
 
       // 5. Kirim Event BLoC (Add atau Edit)
       final bloc = context.read<QuestionBankBloc>();
-      if (widget is EditQuestionDialog) {
-        final questionId = (widget as EditQuestionDialog).questionDetail.id;
-        print("Dispatching EditQuestionSubmitted for ID: $questionId");
-        bloc.add(EditQuestionSubmitted(
-          questionId: questionId,
-          relatedId: finalRelatedId,
-          questionType: _selectedQuestionType!,
-          difficulty: _selectedDifficulty!,
-          questionText: _questionTextController.text.trim(),
-          imageUrl: finalQuestionImageUrl,
-          options: finalOptions,
-        ));
-      } else {
-        print("Dispatching AddQuestionSubmitted");
-        bloc.add(AddQuestionSubmitted(
-          relatedId: finalRelatedId,
-          questionType: _selectedQuestionType!,
-          difficulty: _selectedDifficulty!,
-          questionText: _questionTextController.text.trim(),
-          imageUrl: finalQuestionImageUrl,
-          options: finalOptions,
-        ));
-      }
-
+      final questionId = (widget as EditQuestionDialog).questionDetail.id;
+      print("Dispatching EditQuestionSubmitted for ID: $questionId");
+      bloc.add(EditQuestionSubmitted(
+        questionId: questionId,
+        relatedId: finalRelatedId,
+        questionType: _selectedQuestionType!,
+        difficulty: _selectedDifficulty!,
+        questionText: _questionTextController.text.trim(),
+        imageUrl: finalQuestionImageUrl,
+        options: finalOptions,
+      ));
+    
       if (mounted) Navigator.of(context).pop(); // Tutup dialog jika berhasil
     } catch (e) {
       // Tangani error upload/submit
@@ -330,7 +319,7 @@ class _EditQuestionDialogState extends State<EditQuestionDialog> {
     return AlertDialog(
       title: const Text('Edit Soal'), // Judul dialog Edit
       contentPadding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
-      content: Container(
+      content: SizedBox(
         // Beri lebar agar dialog tidak terlalu sempit
         width: MediaQuery.of(context).size.width * 0.9,
         child: Form(
