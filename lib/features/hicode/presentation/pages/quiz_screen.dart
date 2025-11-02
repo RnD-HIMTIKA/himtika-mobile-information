@@ -2,11 +2,64 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:himtika_mobile_information/core/helpers/image_optimizer.dart';
 import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/bloc/quiz/quiz_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/score_screen.dart';
 import 'package:himtika_mobile_information/core/theme/app_colors.dart';
+// 1. IMPORT HELPER YANG KITA BUAT SEBELUMNYA
+import 'package:himtika_mobile_information/core/helpers/image_optimizer.dart';
+
+// 2. LETAKKAN FUNGSI HELPER DI SINI (DI LUAR CLASS MANAPUN)
+//    Ini akan memperbaiki error '_showZoomableImage isn't defined'
+//    Parameter 'barrierDismissColor' juga sudah diganti menjadi 'barrierColor'
+void _showZoomableImage(BuildContext context, String imageUrl) {
+  // Ambil URL versi resolusi tinggi untuk zooming
+  final zoomableUrl = ImageOptimizer.getOptimizedUrl(imageUrl, width: 1200, quality: 90);
+
+  showDialog(
+    context: context,
+    barrierColor: Colors.black.withOpacity(0.8), // <-- PERBAIKAN ERROR 1
+    builder: (ctx) {
+      return Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        insetPadding: const EdgeInsets.all(16),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            InteractiveViewer(
+              panEnabled: true,
+              minScale: 1.0,
+              maxScale: 4.0,
+              child: Image.network(
+                zoomableUrl,
+                loadingBuilder: (context, child, progress) {
+                  if (progress == null) return child;
+                  return const Center(child: CircularProgressIndicator(color: Colors.white));
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return const Center(child: Icon(Icons.broken_image, color: Colors.grey, size: 50));
+                },
+              ),
+            ),
+            Positioned(
+              top: 0,
+              right: 0,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                onPressed: () => Navigator.of(ctx).pop(),
+                style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all(Colors.black.withOpacity(0.5))
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
 
 class QuizScreen extends StatelessWidget {
   final String quizId;
@@ -333,18 +386,23 @@ class _QuizView extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.only(bottom: 16.0),
                       child: Center( // Pusatkan gambar
-                        child: Image.network(
-                          ImageOptimizer.getOptimizedUrl(currentQuestion.imageUrl),
-                          // Atur tinggi maksimum agar tidak terlalu besar
-                          height: MediaQuery.of(context).size.height * 0.25,
-                          fit: BoxFit.contain,
-                          loadingBuilder: (context, child, progress) {
-                            if (progress == null) return child;
-                            return const SizedBox(height: 100, child: Center(child: CircularProgressIndicator()));
-                          },
-                          errorBuilder: (context, error, stackTrace) {
-                            return const SizedBox(height: 100, child: Center(child: Icon(Icons.broken_image, color: Colors.grey)));
-                          },
+                        // 3. BUNGKUS DENGAN GESTUREDETECTOR (GAMBAR SOAL)
+                        child: GestureDetector(
+                          onTap: () => _showZoomableImage(context, currentQuestion.imageUrl!),
+                          child: Image.network(
+                            // Gunakan URL optimasi yang sudah kita buat
+                            ImageOptimizer.getOptimizedUrl(currentQuestion.imageUrl),
+                            // Atur tinggi maksimum agar tidak terlalu besar
+                            height: MediaQuery.of(context).size.height * 0.25,
+                            fit: BoxFit.contain,
+                            loadingBuilder: (context, child, progress) {
+                              if (progress == null) return child;
+                              return const SizedBox(height: 100, child: Center(child: CircularProgressIndicator()));
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return const SizedBox(height: 100, child: Center(child: Icon(Icons.broken_image, color: Colors.grey)));
+                            },
+                          ),
                         ),
                       ),
                     ),
@@ -444,7 +502,7 @@ class _QuizView extends StatelessWidget {
       // Kondisi untuk Latihan Final per materi
       subtitle = 'Anda sedang mengerjakan Latihan Soal Final. Keluar sekarang akan mengulang seluruh soal. Yakin ingin keluar?';
       primaryButtonText = 'Keluar Latihan';
-    } else if (quizId == 'OVERALL_EXAM') {
+    } else if (quizId == '00000000-0000-0000-0000-000000000000') { // <-- Perbaiki ID Ujian Akhir
       // Kondisi untuk Ujian Akhir keseluruhan
       subtitle = 'Anda sedang mengerjakan Ujian Akhir. Keluar sekarang akan mengulang seluruh soal-soal. Yakin ingin keluar?';
       primaryButtonText = 'Keluar Ujian';
@@ -654,18 +712,23 @@ class _OptionTile extends StatelessWidget {
                          padding: const EdgeInsets.only(bottom: 8.0),
                          child: ClipRRect( // Clip gambar agar rounded
                             borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              ImageOptimizer.getOptimizedUrl(imageUrl, width: 600, quality: 75),
-                              height: 100, // Atur tinggi gambar opsi
-                              width: double.infinity,
-                              fit: BoxFit.contain,
-                              loadingBuilder: (context, child, progress) {
-                                 if (progress == null) return child;
-                                 return const SizedBox(height: 100, child: Center(child: CircularProgressIndicator()));
-                               },
-                               errorBuilder: (context, error, stackTrace) {
-                                 return Container(height: 100, color: Colors.grey[200], child: const Center(child: Icon(Icons.broken_image)));
-                               },
+                            // 4. BUNGKUS DENGAN GESTUREDETECTOR (GAMBAR OPSI)
+                            child: GestureDetector(
+                              onTap: () => _showZoomableImage(context, imageUrl!),
+                              child: Image.network(
+                                // Gunakan URL optimasi yang sudah kita buat
+                                ImageOptimizer.getOptimizedUrl(imageUrl, width: 600, quality: 75),
+                                height: 100, // Atur tinggi gambar opsi
+                                width: double.infinity,
+                                fit: BoxFit.contain,
+                                loadingBuilder: (context, child, progress) {
+                                   if (progress == null) return child;
+                                   return const SizedBox(height: 100, child: Center(child: CircularProgressIndicator()));
+                                 },
+                                 errorBuilder: (context, error, stackTrace) {
+                                   return Container(height: 100, color: Colors.grey[200], child: const Center(child: Icon(Icons.broken_image)));
+                                 },
+                              ),
                             ),
                          ),
                        ),
@@ -865,7 +928,9 @@ class __FinalExamViewState extends State<_FinalExamView> {
       } else {
         _timer?.cancel();
         // Auto-submit jika waktu habis
-        context.read<QuizBloc>().add(SubmitQuiz());
+        if (context.mounted) { // Tambah cek mounted
+          context.read<QuizBloc>().add(SubmitQuiz());
+        }
       }
     });
   }
@@ -900,17 +965,21 @@ class __FinalExamViewState extends State<_FinalExamView> {
                     Padding(
                       padding: const EdgeInsets.only(bottom: 16.0),
                       child: Center(
-                        child: Image.network(
-                          currentQuestion.imageUrl!,
-                          height: MediaQuery.of(context).size.height * 0.25,
-                          fit: BoxFit.contain,
-                          loadingBuilder: (context, child, progress) {
-                            if (progress == null) return child;
-                            return const SizedBox(height: 100, child: Center(child: CircularProgressIndicator()));
-                          },
-                          errorBuilder: (context, error, stackTrace) {
-                            return const SizedBox(height: 100, child: Center(child: Icon(Icons.broken_image, color: Colors.grey)));
-                          },
+                        // 5. BUNGKUS DENGAN GESTUREDETECTOR (UJIAN AKHIR - SOAL)
+                        child: GestureDetector(
+                          onTap: () => _showZoomableImage(context, currentQuestion.imageUrl!),
+                          child: Image.network(
+                            ImageOptimizer.getOptimizedUrl(currentQuestion.imageUrl),
+                            height: MediaQuery.of(context).size.height * 0.25,
+                            fit: BoxFit.contain,
+                            loadingBuilder: (context, child, progress) {
+                              if (progress == null) return child;
+                              return const SizedBox(height: 100, child: Center(child: CircularProgressIndicator()));
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return const SizedBox(height: 100, child: Center(child: Icon(Icons.broken_image, color: Colors.grey)));
+                            },
+                          ),
                         ),
                       ),
                     ),
@@ -924,7 +993,7 @@ class __FinalExamViewState extends State<_FinalExamView> {
                     return _OptionTile( // Menggunakan kembali widget _OptionTile
                       optionKey: '',
                       optionText: option.optionText,
-                      imageUrl: option.imageUrl,
+                      imageUrl: option.imageUrl, // _OptionTile sudah di-update
                       isSelected: isSelected,
                       onTap: () {
                         context.read<QuizBloc>().add(AnswerSelected(
@@ -1026,63 +1095,6 @@ class __FinalExamViewState extends State<_FinalExamView> {
             style: const TextStyle(color: Colors.black54),
           ),
         ],
-      ),
-    );
-  }
-}
-
-// Widget untuk setiap pilihan jawaban Ujian Akhir
-class _FinalExamOptionTile extends StatelessWidget {
-  final String optionKey;
-  final String optionText;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _FinalExamOptionTile(
-      {required this.optionKey,
-      required this.optionText,
-      required this.isSelected,
-      required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isSelected ? Colors.blue.withOpacity(0.1) : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isSelected ? Colors.blue : Colors.grey.shade300,
-            ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: isSelected ? Colors.blue : Colors.grey.shade200,
-                  shape: BoxShape.circle,
-                ),
-                child: Center(
-                  child: Text(
-                    optionKey,
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: isSelected ? Colors.white : Colors.grey.shade700),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(child: Text(optionText)),
-            ],
-          ),
-        ),
       ),
     );
   }
