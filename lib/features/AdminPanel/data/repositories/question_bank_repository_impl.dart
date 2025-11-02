@@ -10,18 +10,24 @@ class QuestionBankRepositoryImpl implements QuestionBankRepository {
   QuestionBankRepositoryImpl({required this.remoteDatasource});
 
   @override
-  Future<List<AdminQuestion>> getAdminQuestions({int limit = 50, int offset = 0}) async {
-    final data = await remoteDatasource.getAdminQuestions(limit: limit, offset: offset);
-    return data.map((map) => AdminQuestion(
-      id: map['id'],
-      questionText: map['question_text'],
-      questionType: map['question_type'],
-      difficulty: map['difficulty'],
-      relatedId: map['related_id'] as String?,
-      relatedTitle: map['related_title'],
-      optionCount: map['option_count'] ?? 0,
-      createdAt: DateTime.parse(map['created_at']),
-    )).toList();
+  // --- MODIFIKASI DI SINI ---
+  Future<List<AdminQuestion>> getAdminQuestions(
+      {int limit = 50, int offset = 0, String? questionType}) async {
+    final data = await remoteDatasource.getAdminQuestions(
+        limit: limit, offset: offset, questionType: questionType);
+    // --- AKHIR MODIFIKASI ---
+    return data
+        .map((map) => AdminQuestion(
+              id: map['id'],
+              questionText: map['question_text'],
+              questionType: map['question_type'],
+              difficulty: map['difficulty'],
+              relatedId: map['related_id'] as String?,
+              relatedTitle: map['related_title'],
+              optionCount: map['option_count'] ?? 0,
+              createdAt: DateTime.parse(map['created_at']),
+            ))
+        .toList();
   }
 
   @override

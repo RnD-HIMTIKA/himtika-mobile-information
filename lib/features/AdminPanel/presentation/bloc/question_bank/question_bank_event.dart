@@ -1,5 +1,6 @@
-import 'package:equatable/equatable.dart';
-import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/question_option_input.dart';
+part of 'question_bank_bloc.dart'; // <-- GANTI IMPORT DENGAN INI
+
+// (Semua import lain dihapus dari sini)
 
 abstract class QuestionBankEvent extends Equatable {
   const QuestionBankEvent();
@@ -8,7 +9,19 @@ abstract class QuestionBankEvent extends Equatable {
 }
 
 class LoadAdminQuestions extends QuestionBankEvent {
-  const LoadAdminQuestions();
+  final QuestionBankFilter? filter;
+  const LoadAdminQuestions({this.filter});
+
+  @override
+  List<Object?> get props => [filter];
+}
+
+class FilterChanged extends QuestionBankEvent {
+  final QuestionBankFilter filter;
+  const FilterChanged(this.filter);
+
+  @override
+  List<Object?> get props => [filter];
 }
 
 class AddQuestionSubmitted extends QuestionBankEvent {
@@ -43,7 +56,6 @@ class LoadDropdownData extends QuestionBankEvent {
   const LoadDropdownData();
 }
 
-// Event untuk memulai fetch detail soal sebelum edit
 class FetchQuestionDetailsForEdit extends QuestionBankEvent {
   final String questionId;
   const FetchQuestionDetailsForEdit({required this.questionId});
@@ -52,9 +64,8 @@ class FetchQuestionDetailsForEdit extends QuestionBankEvent {
   List<Object?> get props => [questionId];
 }
 
-// --- Tambahkan Event Baru ---
 class EditQuestionSubmitted extends QuestionBankEvent {
-  final String questionId; // ID Soal yang diedit
+  final String questionId;
   final String relatedId;
   final String questionType;
   final String difficulty;
@@ -72,9 +83,9 @@ class EditQuestionSubmitted extends QuestionBankEvent {
     required this.options,
   });
 
-   @override
+  @override
   List<Object?> get props => [
-        questionId, // Tambahkan questionId
+        questionId,
         relatedId,
         questionType,
         difficulty,
@@ -88,6 +99,6 @@ class DeleteQuestionPressed extends QuestionBankEvent {
   final String questionId;
   const DeleteQuestionPressed({required this.questionId});
 
-   @override
+  @override
   List<Object?> get props => [questionId];
 }

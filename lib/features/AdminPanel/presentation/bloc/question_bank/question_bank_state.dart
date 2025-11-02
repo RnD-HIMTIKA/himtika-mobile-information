@@ -1,9 +1,18 @@
-import 'package:equatable/equatable.dart';
-import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_question.dart';
-import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_question_detail.dart'; // <-- Import
+part of 'question_bank_bloc.dart';
 
 // Tambah status baru
-enum QuestionBankStatus { initial, loading, success, failure, submitting, fetchingDetails }
+enum QuestionBankStatus {
+  initial,
+  loading,
+  success,
+  failure,
+  submitting,
+  fetchingDetails
+}
+
+// --- TAMBAHKAN ENUM INI ---
+enum QuestionBankFilter { all, quiz, finalPractice, overallExam }
+// --- AKHIR TAMBAHAN ---
 
 class QuestionBankState extends Equatable {
   final QuestionBankStatus status;
@@ -11,8 +20,8 @@ class QuestionBankState extends Equatable {
   final String? errorMessage;
   final Map<String, String> chaptersMap;
   final Map<String, String> materialsMap;
-  // Tambah state baru
-  final AdminQuestionDetail? questionDetail; // Untuk menyimpan detail saat fetch
+  final AdminQuestionDetail? questionDetail;
+  final QuestionBankFilter filter; // <-- TAMBAHKAN PROPERTI INI
 
   const QuestionBankState({
     this.status = QuestionBankStatus.initial,
@@ -20,7 +29,8 @@ class QuestionBankState extends Equatable {
     this.errorMessage,
     this.chaptersMap = const {},
     this.materialsMap = const {},
-    this.questionDetail, // Init null
+    this.questionDetail,
+    this.filter = QuestionBankFilter.all, // <-- TAMBAHKAN DEFAULT VALUE
   });
 
   QuestionBankState copyWith({
@@ -30,8 +40,9 @@ class QuestionBankState extends Equatable {
     bool clearError = false,
     Map<String, String>? chaptersMap,
     Map<String, String>? materialsMap,
-    AdminQuestionDetail? questionDetail, // Tambah param
-    bool clearDetail = false, // Helper untuk clear detail
+    AdminQuestionDetail? questionDetail,
+    bool clearDetail = false,
+    QuestionBankFilter? filter, // <-- TAMBAHKAN DI COPYWITH
   }) {
     return QuestionBankState(
       status: status ?? this.status,
@@ -39,11 +50,20 @@ class QuestionBankState extends Equatable {
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       chaptersMap: chaptersMap ?? this.chaptersMap,
       materialsMap: materialsMap ?? this.materialsMap,
-      // Update state detail
-      questionDetail: clearDetail ? null : (questionDetail ?? this.questionDetail),
+      questionDetail:
+          clearDetail ? null : (questionDetail ?? this.questionDetail),
+      filter: filter ?? this.filter, // <-- TAMBAHKAN DI COPYWITH
     );
   }
 
   @override
-  List<Object?> get props => [status, questions, errorMessage, chaptersMap, materialsMap, questionDetail]; // Tambah ke props
+  List<Object?> get props => [
+        status,
+        questions,
+        errorMessage,
+        chaptersMap,
+        materialsMap,
+        questionDetail,
+        filter // <-- TAMBAHKAN KE PROPS
+      ];
 }

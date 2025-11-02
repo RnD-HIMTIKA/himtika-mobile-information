@@ -1,9 +1,12 @@
-// Untuk jsonEncode
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/question_option_input.dart';
 
 abstract class QuestionBankRemoteDatasource {
-  Future<List<Map<String, dynamic>>> getAdminQuestions({int limit = 50, int offset = 0});
+  Future<List<Map<String, dynamic>>> getAdminQuestions(
+      // Tambahkan parameter opsional
+      {int limit = 50,
+      int offset = 0,
+      String? questionType});
   Future<String> createQuestionWithOptions({
     required String relatedId,
     required String questionType,
@@ -12,7 +15,7 @@ abstract class QuestionBankRemoteDatasource {
     String? imageUrl,
     required List<QuestionOptionInput> options,
   });
-  // Tambahkan method baru
+  // ... (method lain tetap sama) ...
   Future<void> updateQuestionWithOptions({
     required String questionId,
     required String relatedId,
@@ -24,7 +27,6 @@ abstract class QuestionBankRemoteDatasource {
   });
   Future<void> deleteQuestion({required String questionId});
   Future<Map<String, dynamic>> getQuestionDetails({required String questionId});
-  // Method map tetap ada
   Future<List<Map<String, dynamic>>> getChaptersForAdmin();
   Future<List<Map<String, dynamic>>> getMaterialsForAdmin();
 }
@@ -34,14 +36,19 @@ class QuestionBankRemoteDatasourceImpl implements QuestionBankRemoteDatasource {
   QuestionBankRemoteDatasourceImpl({required this.client});
 
   @override
-  Future<List<Map<String, dynamic>>> getAdminQuestions({int limit = 50, int offset = 0}) async {
+  Future<List<Map<String, dynamic>>> getAdminQuestions(
+      {int limit = 50, int offset = 0, String? questionType}) async {
     final data = await client.rpc('get_hicode_questions_admin', params: {
       'p_limit': limit,
       'p_offset': offset,
+      'p_question_type': questionType, // <-- Teruskan parameter
     });
+    // --- PERBAIKAN: Tambahkan return di sini ---
     return List<Map<String, dynamic>>.from(data ?? []);
   }
 
+  // ... (sisa implementasi method create, update, delete, dll tetap sama) ...
+  
   @override
   Future<String> createQuestionWithOptions({
     required String relatedId,
@@ -63,7 +70,6 @@ class QuestionBankRemoteDatasourceImpl implements QuestionBankRemoteDatasource {
     return newQuestionId as String;
   }
 
-  // Implementasi method baru
   @override
   Future<void> updateQuestionWithOptions({
     required String questionId,
@@ -95,11 +101,9 @@ class QuestionBankRemoteDatasourceImpl implements QuestionBankRemoteDatasource {
 
   @override
   Future<Map<String, dynamic>> getQuestionDetails({required String questionId}) async {
-     // Panggil RPC get_question_details
      final data = await client.rpc('get_question_details', params: {
         'p_question_id': questionId,
      });
-     // Hasil RPC adalah satu objek JSON
      if (data == null) {
        throw Exception('Detail soal tidak ditemukan.');
      }
