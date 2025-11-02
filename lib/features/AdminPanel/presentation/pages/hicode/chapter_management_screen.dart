@@ -73,7 +73,8 @@ class ChapterManagementScreen extends StatelessWidget {
                           IconButton(
                            icon: Icon(Icons.delete_outline, color: Colors.red.shade700),
                            onPressed: () {
-                             // TODO: Implementasi delete confirmation
+                             // Panggil fungsi konfirmasi hapus
+                             _showDeleteConfirmationDialog(context, chapter);
                            },
                          ),
                        ],
@@ -118,5 +119,32 @@ class ChapterManagementScreen extends StatelessWidget {
          );
        },
      );
+  }
+
+  void _showDeleteConfirmationDialog(BuildContext context, HiCodeChapter chapter) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Hapus Chapter'),
+          content: Text('Anda yakin ingin menghapus chapter "${chapter.title}"? Aksi ini tidak dapat dibatalkan.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () {
+                // Kirim event DeleteChapterPressed ke BLoC
+                context.read<ChapterManagementBloc>().add(DeleteChapterPressed(chapter.id));
+                Navigator.of(dialogContext).pop(); // Tutup dialog konfirmasi
+              },
+              child: const Text('Hapus', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
   }
 }

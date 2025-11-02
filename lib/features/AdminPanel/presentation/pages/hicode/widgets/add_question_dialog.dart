@@ -10,6 +10,7 @@ import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/q
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/question_bank/question_bank_bloc.dart';
 import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/upload_hicode_image.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_chapter_map_entry.dart';
 
 class AddQuestionDialog extends StatefulWidget {
   const AddQuestionDialog({super.key});
@@ -265,7 +266,7 @@ class _AddQuestionDialogState extends State<AddQuestionDialog> {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<QuestionBankBloc>().state;
-    final chaptersMap = state.chaptersMap;
+    final Map<String, AdminChapterMapEntry> chaptersMap = state.chaptersMap;
     final materialsMap = state.materialsMap;
 
     return AlertDialog(
@@ -320,8 +321,8 @@ class _AddQuestionDialogState extends State<AddQuestionDialog> {
                         ]
                       : chaptersMap.entries
                           .map((entry) => DropdownMenuItem(
-                              value: entry.key,
-                              child: Text(entry.value,
+                              value: entry.key, // <-- key adalah ID Chapter
+                              child: Text(entry.value.title, // <-- value.title adalah Teks
                                   overflow: TextOverflow.ellipsis)))
                           .toList(),
                   onChanged: chaptersMap.isEmpty

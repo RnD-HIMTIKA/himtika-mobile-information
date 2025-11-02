@@ -66,6 +66,34 @@ class HiCodeManagementRepositoryImpl implements HiCodeManagementRepository {
   }
 
   @override
+  Future<void> updateMaterial({
+    required String id,
+    required String categoryId,
+    required String title,
+    required String description,
+    File? imageFile,
+    required String borderColor,
+  }) async {
+    String? newImageUrl;
+    if (imageFile != null) {
+      newImageUrl = await remoteDatasource.uploadMaterialImage(imageFile: imageFile);
+    }
+    await remoteDatasource.updateMaterial(
+      id: id,
+      categoryId: categoryId,
+      title: title,
+      description: description,
+      imageUrl: newImageUrl,
+      borderColor: borderColor,
+    );
+  }
+
+  @override
+  Future<void> deleteMaterial({required String id}) {
+    return remoteDatasource.deleteMaterial(id: id);
+  }
+
+  @override
   Future<List<HiCodeChapter>> getChaptersByMaterial(String materialId) async {
     final data = await remoteDatasource.getChaptersByMaterial(materialId);
     // Pastikan HiCodeChapterModel.fromMap sudah diupdate

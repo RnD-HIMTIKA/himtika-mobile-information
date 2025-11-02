@@ -19,8 +19,16 @@ abstract class HiCodeManagementRemoteDatasource {
     required String imageUrl,
     required String borderColor,
   });
+  Future<void> updateMaterial({
+    required String id,
+    required String categoryId,
+    required String title,
+    required String description,
+    String? imageUrl, // Opsional
+    required String borderColor,
+  });
+  Future<void> deleteMaterial({required String id});
   Future<String> uploadMaterialImage({required File imageFile});
-
   // Operasi CRUD Chapter (BARU)
   Future<List<Map<String, dynamic>>> getChaptersByMaterial(String materialId);
   Future<void> createChapter({
@@ -117,6 +125,31 @@ class HiCodeManagementRemoteDatasourceImpl implements HiCodeManagementRemoteData
     } catch (e) {
       throw Exception('Gagal mengunggah gambar materi: $e');
     }
+  }
+
+  @override
+  Future<void> updateMaterial({
+    required String id,
+    required String categoryId,
+    required String title,
+    required String description,
+    String? imageUrl, // Opsional
+    required String borderColor,
+  }) async {
+    await client.rpc('update_hicode_material', params: {
+      'p_id': id,
+      'p_category_id': categoryId,
+      'p_title': title,
+      'p_description': description,
+      'p_image_url': imageUrl, // RPC-55
+      'p_border_color': borderColor,
+    });
+  }
+  
+  @override
+  Future<void> deleteMaterial({required String id}) async {
+    // Memanggil RPC yang sudah ada
+    await client.rpc('delete_hicode_material', params: {'p_id': id});
   }
 
   // --- Chapter Implementations (BARU) ---

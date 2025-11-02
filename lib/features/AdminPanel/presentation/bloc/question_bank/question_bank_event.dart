@@ -1,6 +1,4 @@
-part of 'question_bank_bloc.dart'; // <-- GANTI IMPORT DENGAN INI
-
-// (Semua import lain dihapus dari sini)
+part of 'question_bank_bloc.dart';
 
 abstract class QuestionBankEvent extends Equatable {
   const QuestionBankEvent();
@@ -8,13 +6,13 @@ abstract class QuestionBankEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+// --- MODIFIKASI EVENT INI ---
+// LoadAdminQuestions sekarang tidak perlu parameter,
+// karena BLoC akan mengambil filter dari state-nya sendiri
 class LoadAdminQuestions extends QuestionBankEvent {
-  final QuestionBankFilter? filter;
-  const LoadAdminQuestions({this.filter});
-
-  @override
-  List<Object?> get props => [filter];
+  const LoadAdminQuestions();
 }
+// --- AKHIR MODIFIKASI ---
 
 class FilterChanged extends QuestionBankEvent {
   final QuestionBankFilter filter;
@@ -23,6 +21,30 @@ class FilterChanged extends QuestionBankEvent {
   @override
   List<Object?> get props => [filter];
 }
+
+// --- GANTI RelatedIdFilterChanged DENGAN DUA EVENT INI ---
+
+// Dipanggil saat dropdown "Filter Materi" (Dropdown 1) berubah
+class MaterialFilterChanged extends QuestionBankEvent {
+  final String? materialId; // null jika memilih "Semua Materi"
+  const MaterialFilterChanged(this.materialId);
+
+  @override
+  List<Object?> get props => [materialId];
+}
+
+// Dipanggil saat dropdown "Filter Chapter" (Dropdown 2) berubah
+class ChapterFilterChanged extends QuestionBankEvent {
+  final String? chapterId; // null jika memilih "Semua Chapter"
+  const ChapterFilterChanged(this.chapterId);
+
+  @override
+  List<Object?> get props => [chapterId];
+}
+// --- AKHIR PENGGANTIAN ---
+
+
+// (Sisa event: Add, LoadDropdown, FetchDetails, Edit, Delete tetap sama)
 
 class AddQuestionSubmitted extends QuestionBankEvent {
   final String relatedId;

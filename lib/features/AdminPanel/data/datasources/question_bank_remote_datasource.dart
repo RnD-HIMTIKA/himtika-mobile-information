@@ -3,10 +3,7 @@ import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/q
 
 abstract class QuestionBankRemoteDatasource {
   Future<List<Map<String, dynamic>>> getAdminQuestions(
-      // Tambahkan parameter opsional
-      {int limit = 50,
-      int offset = 0,
-      String? questionType});
+      {int limit = 50, int offset = 0, String? questionType, String? relatedId}); // <-- TAMBAHKAN
   Future<String> createQuestionWithOptions({
     required String relatedId,
     required String questionType,
@@ -15,7 +12,6 @@ abstract class QuestionBankRemoteDatasource {
     String? imageUrl,
     required List<QuestionOptionInput> options,
   });
-  // ... (method lain tetap sama) ...
   Future<void> updateQuestionWithOptions({
     required String questionId,
     required String relatedId,
@@ -37,17 +33,15 @@ class QuestionBankRemoteDatasourceImpl implements QuestionBankRemoteDatasource {
 
   @override
   Future<List<Map<String, dynamic>>> getAdminQuestions(
-      {int limit = 50, int offset = 0, String? questionType}) async {
+      {int limit = 50, int offset = 0, String? questionType, String? relatedId}) async { // <-- TAMBAHKAN
     final data = await client.rpc('get_hicode_questions_admin', params: {
       'p_limit': limit,
       'p_offset': offset,
-      'p_question_type': questionType, // <-- Teruskan parameter
+      'p_question_type': questionType,
+      'p_related_id': relatedId, // <-- TAMBAHKAN
     });
-    // --- PERBAIKAN: Tambahkan return di sini ---
     return List<Map<String, dynamic>>.from(data ?? []);
   }
-
-  // ... (sisa implementasi method create, update, delete, dll tetap sama) ...
   
   @override
   Future<String> createQuestionWithOptions({
@@ -82,7 +76,7 @@ class QuestionBankRemoteDatasourceImpl implements QuestionBankRemoteDatasource {
   }) async {
      final optionsPayload = options.map((opt) => opt.toJson()).toList();
      await client.rpc('update_hicode_question_with_options', params: {
-        'p_question_id': questionId, // <-- ID Soal
+        'p_question_id': questionId,
         'p_related_id': relatedId,
         'p_question_type': questionType,
         'p_difficulty': difficulty,
@@ -95,7 +89,7 @@ class QuestionBankRemoteDatasourceImpl implements QuestionBankRemoteDatasource {
   @override
   Future<void> deleteQuestion({required String questionId}) async {
      await client.rpc('delete_hicode_question', params: {
-        'p_question_id': questionId, // <-- ID Soal
+        'p_question_id': questionId,
      });
   }
 

@@ -9,7 +9,7 @@ abstract class HiCodeManagementRepository {
   Future<void> updateCategory({required String id, required String name, File? iconFile});
   Future<void> deleteCategory({required String id});
 
-  // --- Materi (TAMBAHAN BARU) ---
+  // --- Materi ---
   Future<List<AdminHiCodeMaterial>> getAdminMaterials();
   Future<void> createMaterial({
     required String categoryId,
@@ -18,7 +18,20 @@ abstract class HiCodeManagementRepository {
     required File imageFile,
     required String borderColor,
   });
+  Future<void> updateMaterial({
+    required String id,
+    required String categoryId,
+    required String title,
+    required String description,
+    File? imageFile,
+    required String borderColor,
+  });
+  
+  // --- PERBAIKAN DI SINI ---
+  Future<void> deleteMaterial({required String id}); // Ubah dari (String id)
+  // --- AKHIR PERBAIKAN ---
 
+  // --- Chapter ---
   Future<List<HiCodeChapter>> getChaptersByMaterial(String materialId);
   Future<void> createChapter({
     required String materialId,

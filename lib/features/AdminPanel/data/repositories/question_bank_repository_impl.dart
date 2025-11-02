@@ -4,18 +4,18 @@ import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/q
 import 'package:himtika_mobile_information/features/AdminPanel/domain/repositories/question_bank_repository.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/data/models/admin_question_detail_model.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_question_detail.dart';
+// --- TAMBAHKAN IMPORT INI ---
+import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_chapter_map_entry.dart';
 
 class QuestionBankRepositoryImpl implements QuestionBankRepository {
   final QuestionBankRemoteDatasource remoteDatasource;
   QuestionBankRepositoryImpl({required this.remoteDatasource});
 
   @override
-  // --- MODIFIKASI DI SINI ---
   Future<List<AdminQuestion>> getAdminQuestions(
-      {int limit = 50, int offset = 0, String? questionType}) async {
+      {int limit = 50, int offset = 0, String? questionType, String? relatedId}) async {
     final data = await remoteDatasource.getAdminQuestions(
-        limit: limit, offset: offset, questionType: questionType);
-    // --- AKHIR MODIFIKASI ---
+        limit: limit, offset: offset, questionType: questionType, relatedId: relatedId);
     return data
         .map((map) => AdminQuestion(
               id: map['id'],
@@ -30,6 +30,8 @@ class QuestionBankRepositoryImpl implements QuestionBankRepository {
         .toList();
   }
 
+  // ... (create, update, delete, getDetails tetap sama) ...
+  
   @override
   Future<String> createQuestionWithOptions({
     required String relatedId,
@@ -49,7 +51,6 @@ class QuestionBankRepositoryImpl implements QuestionBankRepository {
     );
   }
 
-  // Implementasi method baru
   @override
   Future<void> updateQuestionWithOptions({
     required String questionId,
@@ -79,20 +80,29 @@ class QuestionBankRepositoryImpl implements QuestionBankRepository {
   @override
   Future<AdminQuestionDetail> getQuestionDetails({required String questionId}) async {
     final data = await remoteDatasource.getQuestionDetails(questionId: questionId);
-    // Map hasil Map<String, dynamic> ke Entity menggunakan Model
     return AdminQuestionDetailModel.fromMap(data);
   }
-  
-  // Method map tetap ada
+
+  // --- UBAH FUNGSI INI ---
   @override
-  Future<Map<String, String>> getChaptersMapForAdmin() async {
+  Future<Map<String, AdminChapterMapEntry>> getChaptersMapForAdmin() async {
     final data = await remoteDatasource.getChaptersForAdmin();
-    return { for (var item in data) item['id'].toString() : item['title'].toString() };
+    // Buat map baru dengan format: { 'chapterId': (title: 'Materi - Chapter', materialId: 'uuid-materi') }
+    return {
+      for (var item in data)
+        item['id'].toString(): (
+          title: item['title'].toString(),
+          materialId: item['material_id'].toString() // <-- Ambil material_id baru
+        )
+    };
   }
+  // --- AKHIR PERUBAHAN ---
 
   @override
   Future<Map<String, String>> getMaterialsMapForAdmin() async {
     final data = await remoteDatasource.getMaterialsForAdmin();
-    return { for (var item in data) item['id'].toString() : item['title'].toString() };
+    return {
+      for (var item in data) item['id'].toString(): item['title'].toString()
+    };
   }
 }

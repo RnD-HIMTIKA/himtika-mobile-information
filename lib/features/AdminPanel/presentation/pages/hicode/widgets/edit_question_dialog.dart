@@ -13,6 +13,7 @@ import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc
 import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_question_detail.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_option_detail.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/upload_hicode_image.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_chapter_map_entry.dart'; // Pastikan ini diimpor
 
 class EditQuestionDialog extends StatefulWidget {
   final AdminQuestionDetail questionDetail;
@@ -311,7 +312,7 @@ class _EditQuestionDialogState extends State<EditQuestionDialog> {
   Widget build(BuildContext context) {
     // Ambil state BLoC untuk mendapatkan map chapter & materi
     final state = context.watch<QuestionBankBloc>().state;
-    final chaptersMap = state.chaptersMap;
+    final Map<String, AdminChapterMapEntry> chaptersMap = state.chaptersMap;
     final materialsMap = state.materialsMap;
 
     return AlertDialog(
@@ -363,8 +364,8 @@ class _EditQuestionDialogState extends State<EditQuestionDialog> {
                         ]
                       : chaptersMap.entries
                           .map((entry) => DropdownMenuItem(
-                              value: entry.key,
-                              child: Text(entry.value,
+                              value: entry.key, // <-- key adalah ID Chapter
+                              child: Text(entry.value.title, // <-- value.title adalah Teks
                                   overflow: TextOverflow.ellipsis)))
                           .toList(),
                   onChanged: chaptersMap.isEmpty
