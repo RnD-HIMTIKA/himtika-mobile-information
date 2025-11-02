@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:himtika_mobile_information/core/injection_container.dart';
+import 'package:himtika_mobile_information/core/helpers/image_optimizer.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/bloc/main_screen/main_screen_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/chapter_detail.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/information_screen.dart';
@@ -336,7 +337,7 @@ class _MaterialCard extends StatelessWidget {
                  ClipRRect( // Clip gambar agar sesuai border radius card (opsional)
                    borderRadius: BorderRadius.circular(8),
                    child: Image.network(
-                     material.imageUrl!,
+                     ImageOptimizer.getOptimizedUrl(material.imageUrl, width: 200, quality: 75),
                      width: 82,
                      height: 82,
                      fit: BoxFit.cover, // Gunakan cover agar gambar mengisi area

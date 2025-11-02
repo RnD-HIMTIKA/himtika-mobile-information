@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:himtika_mobile_information/core/helpers/image_optimizer.dart';
 import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/bloc/quiz/quiz_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/score_screen.dart';
@@ -333,7 +334,7 @@ class _QuizView extends StatelessWidget {
                       padding: const EdgeInsets.only(bottom: 16.0),
                       child: Center( // Pusatkan gambar
                         child: Image.network(
-                          currentQuestion.imageUrl!,
+                          ImageOptimizer.getOptimizedUrl(currentQuestion.imageUrl),
                           // Atur tinggi maksimum agar tidak terlalu besar
                           height: MediaQuery.of(context).size.height * 0.25,
                           fit: BoxFit.contain,
@@ -654,7 +655,7 @@ class _OptionTile extends StatelessWidget {
                          child: ClipRRect( // Clip gambar agar rounded
                             borderRadius: BorderRadius.circular(8),
                             child: Image.network(
-                              imageUrl!,
+                              ImageOptimizer.getOptimizedUrl(imageUrl, width: 600, quality: 75),
                               height: 100, // Atur tinggi gambar opsi
                               width: double.infinity,
                               fit: BoxFit.contain,

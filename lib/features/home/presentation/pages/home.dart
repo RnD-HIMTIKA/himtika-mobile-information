@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:himtika_mobile_information/core/helpers/image_optimizer.dart';
 import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/pages/calendar_screen.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/pages/notification_page.dart';
@@ -138,7 +139,7 @@ class HomePage extends StatelessWidget {
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(12),
                                         image: DecorationImage(
-                                          image: NetworkImage(banner.imageUrl),
+                                          image: NetworkImage(ImageOptimizer.getOptimizedUrl(banner.imageUrl, width: 600, quality: 80)),
                                           fit: BoxFit.cover,
                                         ),
                                       ),
@@ -290,7 +291,7 @@ class HomePage extends StatelessWidget {
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(12),
                                         image: DecorationImage(
-                                          image: NetworkImage(division.logoUrl),
+                                          image: NetworkImage(ImageOptimizer.getOptimizedUrl(division.logoUrl, width: 400, quality: 80)),
                                           fit: BoxFit.contain, // Contain agar logo tidak terpotong
                                         ),
                                         color: Colors.blue[100],
