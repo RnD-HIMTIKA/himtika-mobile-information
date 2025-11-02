@@ -97,6 +97,16 @@ class _EditQuestionDialogState extends State<EditQuestionDialog> {
     final XFile? pickedFile =
         await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
+      final fileSize = await pickedFile.length();
+      const maxSizeInBytes = 5 * 1024 * 1024; // 5 MB
+      if (fileSize > maxSizeInBytes) {
+        if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Gagal: Ukuran gambar melebihi 5 MB.'), backgroundColor: Colors.red),
+            );
+        }
+        return; // Hentikan fungsi jika file terlalu besar
+      }
       File? compressedFile = await compressImage(pickedFile);
       if (compressedFile != null) {
         setState(() {

@@ -48,7 +48,12 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
         _bloc.add(FetchSubChapterData(
             subChapterId: widget.subChapterId, userId: _currentUserId!));
       } else if (mounted) {
-        _bloc.add(const FetchSubChapterData(subChapterId: '', userId: ''));
+        // Handle jika user tidak ditemukan (meskipun seharusnya tidak terjadi di halaman ini)
+         ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Error: User tidak ditemukan.'), backgroundColor: Colors.red),
+          );
+         // Set state ke failure agar UI menampilkan error
+         _bloc.add(const FetchSubChapterData(subChapterId: '', userId: ''));
       }
     });
     _scrollController.addListener(_scrollListener);
@@ -56,34 +61,27 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
 
   void _initializeContentController(List<dynamic> contentJson) {
     if (_contentController != null) return;
-
     try {
       Document doc;
-      // Validasi tambahan untuk memastikan contentJson adalah List
       if (contentJson.isNotEmpty && contentJson is List) {
         doc = Document.fromJson(contentJson);
       } else {
-        // Jika formatnya salah (misal Map lama yg tidak terkonversi),
-        // atau list kosong, tampilkan pesan default.
         doc = Document.fromJson([
           {'insert': 'Konten belum tersedia atau format tidak didukung.\n'}
         ]);
       }
-
       _contentController = QuillController(
         document: doc,
         selection: const TextSelection.collapsed(offset: 0),
-        readOnly: true, // Set mode baca-saja di constructor controller
+        readOnly: true, // Set mode baca di constructor controller
       );
-
       if (mounted) {
         setState(() => _isControllerReady = true);
       }
-      print("Konten berhasil dimuat ke QuillEditor read-only.");
     } catch (e) {
       print("Error decoding content for QuillEditor: $e");
-      _contentController = QuillController.basic(); // Tanpa readOnly di config
-      _contentController!.readOnly = true; // Set via setter setelah dibuat
+      _contentController = QuillController.basic();
+      _contentController!.readOnly = true;
       if (mounted) {
         setState(() => _isControllerReady = true);
         _contentController!.document.insert(
@@ -95,27 +93,25 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
   void _scrollListener() {
     _lastSavedScrollPosition = _scrollController.offset;
     if (!_scrollController.hasClients) return;
-
     final maxScroll = _scrollController.position.maxScrollExtent;
     final tolerance = 0.95;
-    // Anggap tercapai jika konten tidak bisa di-scroll (maxScroll <= 0)
     final bool currentReachedBottom = (maxScroll > 0)
         ? (_scrollController.position.pixels >= maxScroll * tolerance)
         : true;
-
     final currentBlocState = _bloc.state;
-    final bool newHasReachedBottom =
-        currentBlocState.isQuizUnlocked || currentReachedBottom;
-
+    // Cek jika Kuis BELUM terbuka
     if (currentReachedBottom && !currentBlocState.isQuizUnlocked) {
       _bloc.add(const QuizManuallyUnlocked());
     }
-
     if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
     _debounceTimer = Timer(const Duration(seconds: 2), () {
       if (mounted && _currentUserId != null) {
+        // Kirim status 'hasReachedBottom' yang terbaru (true jika sudah di-unlock)
         _updateScrollPosition(
-            widget.subChapterId, _lastSavedScrollPosition, newHasReachedBottom);
+            widget.subChapterId,
+            _lastSavedScrollPosition,
+            currentBlocState.isQuizUnlocked || currentReachedBottom // Kirim true jika salah satu true
+        );
       }
     });
   }
@@ -124,28 +120,25 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
   void dispose() {
     _scrollController.removeListener(_scrollListener);
     _debounceTimer?.cancel();
-
-    // Dapatkan state BLoC sebelum dispose
     final currentBlocState = _bloc.state;
-    final bool finalHasReachedBottom = currentBlocState
-            .isQuizUnlocked || // Jika sudah unlocked
-        (_scrollController.hasClients && // Atau jika mencapai bawah saat ini
-            _scrollController.position.pixels >=
-                _scrollController.position.maxScrollExtent * 0.95);
-
+    bool finalHasReachedBottom = currentBlocState.isQuizUnlocked;
+    if (_scrollController.hasClients) {
+       final maxScroll = _scrollController.position.maxScrollExtent;
+       final currentReachedBottom = (maxScroll > 0)
+        ? (_scrollController.position.pixels >= maxScroll * 0.95)
+        : true;
+       finalHasReachedBottom = finalHasReachedBottom || currentReachedBottom;
+    }
     if (_currentUserId != null && _lastSavedScrollPosition >= 0) {
-      // Kirim status hasReachedBottom terakhir saat dispose
       _updateScrollPosition(
           widget.subChapterId, _lastSavedScrollPosition, finalHasReachedBottom);
     }
-
     _contentController?.dispose();
     _scrollController.dispose();
-    _focusNode.dispose(); // --- Dispose FocusNode ---
+    _focusNode.dispose();
     super.dispose();
   }
 
-  // Helper untuk jump ke posisi awal
   void _jumpToInitialPosition(double position) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
@@ -168,18 +161,18 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
         child: BlocConsumer<SubChapterDetailBloc, SubChapterDetailState>(
           listener: (context, state) {
             if (state.status == SubChapterDetailStatus.success) {
-              // Pengecekan tipe data contentBlocks
               if (state.contentBlocks is List && _contentController == null) {
                 _initializeContentController(state.contentBlocks);
               } else if (_contentController == null) {
-                // Jika state.contentBlocks BUKAN List (karena error parsing di model)
-                // Inisialisasi dengan pesan error
                 print("Inisialisasi gagal: contentBlocks bukan List.");
                 _initializeContentController([
                   {'insert': 'Error: Format data tidak valid (bukan List).\n'}
                 ]);
               }
-              _jumpToInitialPosition(state.lastScrollPosition);
+              // Hanya lompat jika ini BUKAN load pertama (posisi 0)
+              if (state.lastScrollPosition > 0.0) {
+                _jumpToInitialPosition(state.lastScrollPosition);
+              }
             } else if (state.status == SubChapterDetailStatus.failure) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -189,15 +182,12 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
             }
           },
           builder: (context, state) {
-            // Jika loading atau initial TAPI BELUM ADA USER ID, tampilkan loading juga
             if ((state.status == SubChapterDetailStatus.loading ||
                     state.status == SubChapterDetailStatus.initial) ||
                 _currentUserId == null) {
               return const Center(child: CircularProgressIndicator());
             }
-            // Jika state failure (setelah mencoba load)
             if (state.status == SubChapterDetailStatus.failure) {
-              // Tampilkan pesan error dan tombol retry
               return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -207,8 +197,7 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
                     ElevatedButton(
                       onPressed: () {
                         if (_currentUserId != null) {
-                          context.read<SubChapterDetailBloc>().add(
-                              FetchSubChapterData(
+                          _bloc.add(FetchSubChapterData(
                                   subChapterId: widget.subChapterId,
                                   userId: _currentUserId!));
                         }
@@ -219,7 +208,6 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
                 ),
               );
             }
-
             // Jika success, tampilkan konten
             return Column(
               children: [
@@ -230,18 +218,15 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
                         horizontal: 16.0, vertical: 8.0),
                     child: !_isControllerReady || _contentController == null
                         ? const Center(child: Text('Memuat konten...'))
-                        // --- PERBAIKAN PADA QUILL EDITOR ---
                         : QuillEditor(
                             controller: _contentController!,
                             scrollController: _scrollController,
                             focusNode: _focusNode,
                             config: QuillEditorConfig(
                               padding: const EdgeInsets.all(8),
-                              embedBuilders:
-                                  FlutterQuillEmbeds.defaultEditorBuilders(),
+                              embedBuilders: FlutterQuillEmbeds.defaultEditorBuilders(), // Updated for explicit video support
                             ),
                           ),
-                    // ----------------------------------
                   ),
                 ),
               ],
@@ -262,11 +247,10 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
   }
 
   Widget _buildBlueHeader(BuildContext context, SubChapterDetailState state) {
-    // ... (kode ini sama seperti sebelumnya)
     return Container(
       padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
       decoration: BoxDecoration(
-        color: AppColors.himfoBlue, // Gunakan warna global
+        color: AppColors.himfoBlue,
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(30),
           bottomRight: Radius.circular(30),
@@ -293,7 +277,6 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
   }
 
   Widget _buildTopIconBar(BuildContext context) {
-    // ... (kode ini sama seperti sebelumnya)
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -319,7 +302,6 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
       {required String title,
       required String readTime,
       required String quizCount}) {
-    // ... (kode ini sama seperti sebelumnya)
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
       child: Column(
@@ -356,18 +338,14 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
     );
   }
 
-  // Modifikasi _buildBottomButton
   Widget _buildBottomButton(
       BuildContext context, SubChapterDetailState state, String chapterId) {
     final String chapterTitle = state.title ?? 'Chapter Quiz';
-
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: ElevatedButton(
-        // Enable tombol berdasarkan state.isQuizUnlocked
         onPressed: state.isQuizUnlocked
             ? () {
-                // Navigasi ke QuizScreen dengan quizId yang benar
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (_) => QuizScreen(
@@ -375,12 +353,12 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
                   ),
                 );
               }
-            : null, // null akan membuat tombol disable
+            : null,
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 16),
-          backgroundColor: AppColors.himfoBlue, // Warna global
+          backgroundColor: AppColors.himfoBlue,
           foregroundColor: Colors.white,
-          disabledBackgroundColor: Colors.grey.shade400, // Warna saat disable
+          disabledBackgroundColor: Colors.grey.shade400,
           disabledForegroundColor: Colors.grey.shade700,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
@@ -389,14 +367,12 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              // Ubah teks tombol berdasarkan state.isQuizUnlocked
               state.isQuizUnlocked
                   ? 'Kerjakan Kuis'
                   : 'Scroll ke Bawah untuk Membuka Kuis',
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(width: 8),
-            // Tampilkan ikon panah hanya jika kuis unlocked
             if (state.isQuizUnlocked)
               const Icon(Icons.arrow_forward, color: Colors.white),
           ],

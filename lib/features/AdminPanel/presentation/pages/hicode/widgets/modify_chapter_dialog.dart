@@ -54,8 +54,6 @@ class _ModifyChapterDialogState extends State<ModifyChapterDialog> {
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       dynamic initialContentData;
       if (isEditing && widget.chapterToEdit?.content != null) {
-        // Asumsi: Anda menyimpan 'content' sebagai List<dynamic> (Delta JSON)
-        // dari file AdminPanel/domain/entities/hicode_chapter.dart
         initialContentData = widget.chapterToEdit!.content;
         _titleController.text = widget.chapterToEdit!.title;
         _readTimeController.text =
@@ -142,6 +140,19 @@ class _ModifyChapterDialogState extends State<ModifyChapterDialog> {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile == null) return;
 
+    // --- VALIDASI UKURAN FILE (POIN 5) ---
+    final fileSize = await pickedFile.length();
+    const maxSizeInBytes = 5 * 1024 * 1024; // 5 MB
+    if (fileSize > maxSizeInBytes) {
+       if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Gagal: Ukuran gambar melebihi 5 MB.'), backgroundColor: Colors.red),
+          );
+       }
+       return;
+    }
+    // --- AKHIR VALIDASI ---
+
     setState(() => _isUploadingImage = true);
 
     try {
@@ -179,6 +190,59 @@ class _ModifyChapterDialogState extends State<ModifyChapterDialog> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Gagal upload: $e'), backgroundColor: Colors.red),
+      );
+    } finally {
+      if (mounted) setState(() => _isUploadingImage = false);
+    }
+  }
+
+  // --- Fungsi Baru: Insert Video (Mirip Gambar, dengan Validasi Ukuran) ---
+  Future<void> _insertVideo() async {
+    final pickedVideo = await _picker.pickVideo(source: ImageSource.gallery);
+    if (pickedVideo == null) return;
+
+    // --- VALIDASI UKURAN FILE (Contoh Max 50 MB untuk Video) ---
+    final fileSize = await pickedVideo.length();
+    const maxSizeInBytes = 50 * 1024 * 1024; // 50 MB
+    if (fileSize > maxSizeInBytes) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Gagal: Ukuran video melebihi 50 MB.'), backgroundColor: Colors.red),
+        );
+      }
+      return;
+    }
+    // --- AKHIR VALIDASI ---
+
+    setState(() => _isUploadingImage = true); // Reuse indicator untuk video
+
+    try {
+      final fileToUpload = File(pickedVideo.path);
+      final uploadUseCase = sl<UploadHicodeImage>(); // Asumsi usecase dukung video; jika tidak, buat usecase baru untuk media
+      final videoUrl = await uploadUseCase(fileToUpload, 'materi_konten');
+
+      final index = _quillController!.selection.baseOffset;
+      final length = _quillController!.selection.extentOffset - index;
+
+      _quillController!.document.replace(
+        index,
+        length,
+        BlockEmbed.video(videoUrl),
+      );
+
+      _quillController!.updateSelection(
+        TextSelection.collapsed(offset: index + 1),
+        ChangeSource.local,
+      );
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Video berhasil ditambahkan!'),
+            backgroundColor: Colors.green),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal upload video: $e'), backgroundColor: Colors.red),
       );
     } finally {
       if (mounted) setState(() => _isUploadingImage = false);
@@ -283,28 +347,35 @@ class _ModifyChapterDialogState extends State<ModifyChapterDialog> {
               const SizedBox(height: 16),
 
               // --- PERBAIKAN TOTAL TOOLBAR v11 ---
+              // Inside the build method, under the Form Column
               QuillSimpleToolbar(
-                controller: quillController,
-                config: QuillSimpleToolbarConfig(
-                  multiRowsDisplay: false,
-                  customButtons: [
-                    QuillToolbarCustomButtonOptions(
-                      icon: const Icon(Icons.image, size: 20),
-                      onPressed: _insertImage,
-                    ),
-                  ],
-                  showAlignmentButtons: true,
-                  showColorButton: true,
-                  showBackgroundColorButton: true,
-                  showCodeBlock: true,
-                  showQuote: true,
-                  showInlineCode: true,
-                  showHeaderStyle: true,
-                  showListBullets: true,
-                  showListNumbers: true,
-                  showListCheck: true,
-                ),
+              controller: quillController,
+              config: QuillSimpleToolbarConfig(
+                multiRowsDisplay: false,
+                customButtons: [
+                  // Custom button for image insertion with your logic
+                  QuillToolbarCustomButtonOptions(
+                    icon: const Icon(Icons.image, size: 20),
+                    onPressed: _insertImage,
+                  ),
+                  // Custom button for video insertion with your logic
+                  QuillToolbarCustomButtonOptions(
+                    icon: const Icon(Icons.videocam, size: 20),
+                    onPressed: _insertVideo,
+                  ),
+                ],
+                showAlignmentButtons: true,
+                showColorButton: true,
+                showBackgroundColorButton: true,
+                showCodeBlock: true,
+                showQuote: true,
+                showInlineCode: true,
+                showHeaderStyle: true,
+                showListBullets: true,
+                showListNumbers: true,
+                showListCheck: true,
               ),
+            ),
               const SizedBox(height: 8),
 
               // --- PERBAIKAN TOTAL EDITOR v11 ---
@@ -318,7 +389,7 @@ class _ModifyChapterDialogState extends State<ModifyChapterDialog> {
                     controller: quillController,
                     config: QuillEditorConfig(
                       padding: const EdgeInsets.all(8),
-                      embedBuilders: FlutterQuillEmbeds.defaultEditorBuilders(),
+                      embedBuilders: FlutterQuillEmbeds.defaultEditorBuilders(), // Sudah dukung video render dari contoh
                     ),
                     focusNode: _focusNode,
                     scrollController: _scrollController,
