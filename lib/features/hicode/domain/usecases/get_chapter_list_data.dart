@@ -5,7 +5,7 @@ class GetChapterListData {
   final HiCodeRepository repository;
   GetChapterListData(this.repository);
 
-  Future<(String title, String description, String iconPath, List<HiCodeChapter> chapters, String finalPracticeStatus)> call(String materialId) {
-    return repository.getChapterListData(materialId);
-  }
+  Future<(String title, String description, String iconPath, List<HiCodeChapter> chapters, String finalPracticeStatus, int finalPracticeQuestionCount)> call(String materialId) {
+  return repository.getChapterListData(materialId);
+}
 }

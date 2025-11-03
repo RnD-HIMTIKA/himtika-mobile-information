@@ -21,7 +21,7 @@ class MaterialDetailBloc
     emit(state.copyWith(status: MaterialDetailStatus.loading));
     try {
       // PERBAIKAN: Tangkap semua 5 elemen dari tuple
-      final (title, description, iconPath, chapters, finalPracticeStatus) =
+      final (title, description, iconPath, chapters, finalPracticeStatus, questionCount) =
           await _getChapterListData(event.materialId);
       emit(state.copyWith(
         status: MaterialDetailStatus.success,
@@ -29,8 +29,8 @@ class MaterialDetailBloc
         description: description,
         materialIconPath: iconPath,
         chapters: chapters,
-        // TAMBAHKAN INI:
         finalPracticeStatus: finalPracticeStatus,
+        finalPracticeQuestionCount: questionCount,
       ));
     } catch (e) {
       emit(state.copyWith(

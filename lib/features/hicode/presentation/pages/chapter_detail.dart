@@ -55,11 +55,11 @@ class MaterialDetailScreen extends StatelessWidget {
                                   final materialName = state.title ?? 'Materi';
                                   return _buildFinalPracticeItem(
                                     context,
-                                    materialName, // Kirim nama materi
+                                    materialName,
                                     state.finalPracticeStatus,
-                                    // Anda bisa ambil jumlah soal dari RPC nanti,
-                                    // untuk sekarang kita hardcode atau ambil dari details chapter terakhir jika perlu
-                                    "10 Soal", // Placeholder
+                                    // Gunakan data dari state, bukan hardcoded "10 Soal"
+                                    "${state.finalPracticeQuestionCount} Soal Pilihan Ganda", 
+                                    state.finalPracticeQuestionCount, // <-- Kirim count mentah
                                   );
                                 }
                               },
@@ -312,7 +312,7 @@ class MaterialDetailScreen extends StatelessWidget {
   }
 
   Widget _buildFinalPracticeItem(BuildContext context, String materialName,
-      String status, String details) {
+    String status, String details, int questionCount) {
     // Tentukan style berdasarkan status ('locked' atau 'unlocked')
     bool isLocked = status == 'locked';
     IconData statusIcon = isLocked
@@ -337,7 +337,8 @@ class MaterialDetailScreen extends StatelessWidget {
               MaterialPageRoute(
                 builder: (_) => FinalExamDetailScreen(
                   materialName: materialName,
-                  materialId: materialId, // <-- Tambahkan materialId (UUID)
+                  materialId: materialId,
+                  questionCount: questionCount,
                 ),
               ),
             );

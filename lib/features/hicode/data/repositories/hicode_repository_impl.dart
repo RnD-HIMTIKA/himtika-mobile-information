@@ -49,17 +49,15 @@ class HiCodeRepositoryImpl implements HiCodeRepository {
   }
 
   @override
-  // Perbarui tipe kembalian untuk menyertakan final_practice_status
-  Future<(String title, String description, String iconPath, List<HiCodeChapter> chapters, String finalPracticeStatus)> getChapterListData(String materialId) async {
-    // Panggil datasource yang sudah diupdate
+  Future<(String title, String description, String iconPath, List<HiCodeChapter> chapters, String finalPracticeStatus, int finalPracticeQuestionCount)> getChapterListData(String materialId) async {
     final data = await remoteDatasource.getChapterListData(materialId);
 
     final title = data['title'] as String? ?? 'Tanpa Judul';
     final description = data['description'] as String? ?? '';
-    final iconPath = data['icon_path'] as String? ?? ''; // Atau path default
+    final iconPath = data['icon_path'] as String? ?? '';
     final finalPracticeStatus = data['final_practice_status'] as String? ?? 'locked';
+    final finalPracticeQuestionCount = (data['final_practice_question_count'] as int?) ?? 0;
 
-    // Parsing chapters dengan status baru
     final chapters = (data['chapters'] as List? ?? [])
         .map((chapter) {
           // Buat instance HiCodeChapter langsung dari map JSON
@@ -73,7 +71,7 @@ class HiCodeRepositoryImpl implements HiCodeRepository {
         })
         .toList();
 
-    return (title, description, iconPath, chapters, finalPracticeStatus);
+    return (title, description, iconPath, chapters, finalPracticeStatus, finalPracticeQuestionCount);
   }
 
 
