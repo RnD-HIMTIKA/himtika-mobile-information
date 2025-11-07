@@ -1,4 +1,7 @@
+import 'dart:async';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:himtika_mobile_information/core/blocs/connectivity_bloc.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import '../../../domain/entities/leaderboard_entry.dart'; // <-- Import entity baru
@@ -13,13 +16,44 @@ class LeaderboardBloc extends Bloc<LeaderboardEvent, LeaderboardState> {
   // Tambahkan dependency GetLeaderboard
   final GetLeaderboard _getLeaderboard;
 
+  final ConnectivityBloc _connectivityBloc;
+  StreamSubscription? _connectivitySubscription;
+  bool _wasOffline = false;
+
   // Modifikasi constructor
-  LeaderboardBloc({required GetLeaderboard getLeaderboard})
-      : _getLeaderboard = getLeaderboard,
-        super(const LeaderboardState()) { // State awal tetap
+  LeaderboardBloc({
+    required GetLeaderboard getLeaderboard,
+    required ConnectivityBloc connectivityBloc,
+  })  : _getLeaderboard = getLeaderboard,
+        _connectivityBloc = connectivityBloc,
+        super(const LeaderboardState()) {
     on<FetchLeaderboard>(_onFetchLeaderboard);
     on<FilterChanged>(_onFilterChanged);
     on<RefreshLeaderboard>(_onRefreshLeaderboard);
+
+    _listenToConnectivity();
+  }
+
+  void _listenToConnectivity() {
+    if (_connectivityBloc.state.result == ConnectivityResult.none) {
+      _wasOffline = true;
+    }
+    _connectivitySubscription = _connectivityBloc.stream.listen((connectivityState) {
+      final isOnline = connectivityState.result != ConnectivityResult.none;
+      if (isOnline && _wasOffline) {
+        print("--- [LeaderboardBloc] Kembali Online, memuat ulang data... ---");
+        // Panggil event refresh yang sesuai dengan filter saat ini
+        add(RefreshLeaderboard()); 
+      }
+      _wasOffline = !isOnline;
+    });
+  }
+
+  // --- 8. Tambahkan dispose ---
+  @override
+  Future<void> close() {
+    _connectivitySubscription?.cancel();
+    return super.close();
   }
 
   // Modifikasi handler FetchLeaderboard

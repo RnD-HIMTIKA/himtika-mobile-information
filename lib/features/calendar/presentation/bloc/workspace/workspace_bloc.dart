@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:himtika_mobile_information/core/blocs/connectivity_bloc.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import '../../../domain/entities/workspace_with_members.dart';
 import '../../../domain/usecases/create_workspace.dart';
 import '../../../domain/repositories/calendar_repository.dart';
@@ -18,23 +21,54 @@ class WorkspaceBloc extends Bloc<WorkspaceEvent, WorkspaceState> {
   final DeleteWorkspace _deleteWorkspace;
   final UpdateMemberRole _updateMemberRole;
 
+  final ConnectivityBloc _connectivityBloc;
+  StreamSubscription? _connectivitySubscription;
+  bool _wasOffline = false;
+
   WorkspaceBloc({
     required CalendarRepository calendarRepository,
     required CreateWorkspace createWorkspace,
     required UpdateWorkspace updateWorkspace,
     required DeleteWorkspace deleteWorkspace,
     required UpdateMemberRole updateMemberRole,
+    required ConnectivityBloc connectivityBloc,
   })  : _calendarRepository = calendarRepository,
         _createWorkspace = createWorkspace,
         _updateWorkspace = updateWorkspace,
         _deleteWorkspace = deleteWorkspace,
         _updateMemberRole = updateMemberRole,
+        _connectivityBloc = connectivityBloc,
         super(const WorkspaceState()) {
     on<LoadMyWorkspaces>(_onLoadMyWorkspaces);
     on<CreateWorkspaceSubmitted>(_onCreateWorkspaceSubmitted);
     on<UpdateWorkspaceSubmitted>(_onUpdateWorkspaceSubmitted);
     on<DeleteWorkspacePressed>(_onDeleteWorkspacePressed);
     on<UpdateMemberRolePressed>(_onUpdateMemberRolePressed);
+
+    _listenToConnectivity();
+  }
+
+  void _listenToConnectivity() {
+    // Cek status awal
+    if (_connectivityBloc.state.result == ConnectivityResult.none) {
+      _wasOffline = true;
+    }
+
+    _connectivitySubscription = _connectivityBloc.stream.listen((connectivityState) {
+      final isOnline = connectivityState.result != ConnectivityResult.none;
+      if (isOnline && _wasOffline) {
+        print("--- [WorkspaceBloc] Kembali Online, memuat ulang workspaces... ---");
+        add(LoadMyWorkspaces()); // Panggil event refresh
+      }
+      _wasOffline = !isOnline;
+    });
+  }
+
+  // --- 8. Tambahkan dispose ---
+  @override
+  Future<void> close() {
+    _connectivitySubscription?.cancel();
+    return super.close();
   }
 
   Future<void> _onLoadMyWorkspaces(
