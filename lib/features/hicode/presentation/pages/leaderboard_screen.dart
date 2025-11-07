@@ -78,21 +78,35 @@ class LeaderboardScreen extends StatelessWidget {
 
                   return Column(
                     children: [
-                      // 1. Bagian Statis (Tidak Berubah)
+                      // 1. Bagian Statis (HANYA TopBar)
                       const _TopBar(),
-                      _FilterButtons(selectedFilter: state.selectedFilter),
-                      const SizedBox(height: 24),
-                      _Podium(topThree: topThree),
 
-                      // 2. Bagian Scrollable (Sekarang menggunakan Expanded)
+                      // 2. Bagian Scrollable (Semua sisa konten)
                       Expanded(
-                        child: _UserListSection(
-                          users: others.cast<LeaderboardEntry>(),
+                        child: RefreshIndicator(
                           onRefresh: () async {
                             context
                                 .read<LeaderboardBloc>()
                                 .add(RefreshLeaderboard());
                           },
+                          edgeOffset: 10.0, // Posisi indikator
+                          child: SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            child: Column(
+                              children: [
+                                // Pindahkan FilterButtons ke sini
+                                _FilterButtons(
+                                    selectedFilter: state.selectedFilter),
+                                const SizedBox(height: 24),
+                                // Pindahkan Podium ke sini
+                                _Podium(topThree: topThree),
+                                // Pindahkan UserListSection ke sini
+                                _UserListSection(
+                                  users: others.cast<LeaderboardEntry>(),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -207,9 +221,18 @@ class _Podium extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         // Gunakan _PodiumPlace dengan data atau null (untuk placeholder)
-        _PodiumPlace(user: rank2, rank: 2), // Kirim null jika rank2 tidak ada
-        _PodiumPlace(user: rank1, rank: 1), // Kirim null jika rank1 tidak ada
-        _PodiumPlace(user: rank3, rank: 3), // Kirim null jika rank3 tidak ada
+        Expanded(
+          flex: 3, // Peringkat 2 mendapat 3 bagian
+          child: _PodiumPlace(user: rank2, rank: 2),
+        ),
+        Expanded(
+          flex: 4, // Peringkat 1 lebih besar (4 bagian)
+          child: _PodiumPlace(user: rank1, rank: 1),
+        ),
+        Expanded(
+          flex: 3, // Peringkat 3 mendapat 3 bagian
+          child: _PodiumPlace(user: rank3, rank: 3),
+        ),
       ],
     );
   }
@@ -217,36 +240,36 @@ class _Podium extends StatelessWidget {
 
 class _UserListSection extends StatelessWidget {
   final List<LeaderboardEntry> users;
-  final Future<void> Function() onRefresh;
 
-  const _UserListSection(
-      {required this.users, required this.onRefresh});
+  const _UserListSection({required this.users});
 
   @override
   Widget build(BuildContext context) {
-    // HAPUS 'screenHeight' dan 'availableHeight'
-    // HAPUS 'Positioned'
     return Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16.0),
-        decoration: BoxDecoration(
-          color: Colors.blue.shade800,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
-          ),
+      margin: const EdgeInsets.symmetric(horizontal: 16.0),
+      padding: const EdgeInsets.only(top: 24.0),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade800,
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(30),
+          topRight: Radius.circular(30),
         ),
-        child: _UserList(users: users, onRefresh: onRefresh),
-      );
-    // );
+      ),
+      child: Container(
+        constraints: BoxConstraints(
+          // Set tinggi minimal, misal 40% dari tinggi layar
+          minHeight: MediaQuery.of(context).size.height * 0.4,
+        ),
+        child: _UserList(users: users),
+      ),
+    );
   }
 }
 
 class _UserList extends StatelessWidget {
   final List<LeaderboardEntry> users;
-  final Future<void> Function() onRefresh; // <-- Tambahkan ini
 
-  const _UserList(
-      {required this.users, required this.onRefresh}); // <-- Tambahkan ini
+  const _UserList({required this.users});
 
   @override
   Widget build(BuildContext context) {
@@ -261,30 +284,22 @@ class _UserList extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
           ),
         ),
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: onRefresh, // <-- Gunakan callback
-            edgeOffset: 10.0, // Agar indikator muncul di atas
-            child: ListView.separated(
-              physics: const AlwaysScrollableScrollPhysics(), // Wajib
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              itemCount: users.length,
-              itemBuilder: (context, index) {
-                final user = users[index];
-                // Kirim LeaderboardEntry ke _UserListTile
-                // Rank dihitung dari index + 4 (karena top 3 di podium)
-                return _UserListTile(user: user, rank: index + 4);
-              },
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-            ),
-          ),
-          // --- AKHIR PERUBAHAN ---
+        // Hapus Expanded dan RefreshIndicator dari sini
+        ListView.separated(
+          physics: const NeverScrollableScrollPhysics(), // Wajib
+          shrinkWrap: true, // Wajib
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+          itemCount: users.length,
+          itemBuilder: (context, index) {
+            final user = users[index];
+            return _UserListTile(user: user, rank: index + 4);
+          },
+          separatorBuilder: (context, index) => const SizedBox(height: 12),
         ),
       ],
     );
   }
 }
-
 //==================================================================
 // WIDGET-WIDGET PEMBANTU KECIL
 //==================================================================
@@ -326,7 +341,6 @@ class _PodiumPlace extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final double height = rank == 1 ? 180 : (rank == 2 ? 140 : 120);
-    final double width = rank == 1 ? 110 : 100;
     final bool hasUser = user != null;
 
     return Padding(
@@ -365,7 +379,7 @@ class _PodiumPlace extends StatelessWidget {
                   bottom: rank != 1 ? -5 : null,
                   right: rank != 1 ? -5 : null,
                   child: Image.asset(_getCrownAsset(),
-                      width: rank == 1 ? 30 : 20, height: rank == 1 ? 30 : 20),
+                      width: rank == 1 ? 40 : 30, height: rank == 1 ? 40 : 30),
                 ),
             ],
           ),
@@ -401,7 +415,6 @@ class _PodiumPlace extends StatelessWidget {
           const SizedBox(height: 8),
           Container(
             height: height,
-            width: width,
             decoration: BoxDecoration(
               // Buat warna lebih transparan jika tidak ada user
               color: const Color.fromARGB(255, 139, 197, 245)
