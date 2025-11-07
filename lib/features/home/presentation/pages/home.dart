@@ -53,7 +53,7 @@ class _HomePageState extends State<HomePage> {
             MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
           ).then((_) => setState(() => _selectedIndex = 0));
           break;
-     }
+      }
     });
   }
 
@@ -162,7 +162,7 @@ class _HomePageState extends State<HomePage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // 3. Pindahkan semua sisa konten ke sini
-                            const SizedBox(height: 48),
+                            const SizedBox(height: 24),
 
                             // Terbaru
                             if (state.banners.isNotEmpty)
@@ -199,12 +199,11 @@ class _HomePageState extends State<HomePage> {
                                             borderRadius:
                                                 BorderRadius.circular(12),
                                             image: DecorationImage(
-                                              image: NetworkImage(
-                                                  ImageOptimizer
-                                                      .getOptimizedUrl(
-                                                          banner.imageUrl,
-                                                          width: 600,
-                                                          quality: 80)),
+                                              image: NetworkImage(ImageOptimizer
+                                                  .getOptimizedUrl(
+                                                      banner.imageUrl,
+                                                      width: 600,
+                                                      quality: 80)),
                                               fit: BoxFit.cover,
                                             ),
                                           ),
@@ -226,7 +225,8 @@ class _HomePageState extends State<HomePage> {
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                                 child: Padding(
-                                  padding: const EdgeInsets.all(12.0),
+                                  padding:
+                                      const EdgeInsets.fromLTRB(12, 0, 12, 16),
                                   child: GridView.count(
                                     shrinkWrap: true,
                                     physics:
@@ -255,10 +255,7 @@ class _HomePageState extends State<HomePage> {
                                       _menuItem(
                                         "src/features/home/icons/hicode.svg",
                                         "HiCode",
-                                        [
-                                          Color(0xFF333C66),
-                                          Color(0xFF2D365E)
-                                        ],
+                                        [Color(0xFF333C66), Color(0xFF2D365E)],
                                         () {
                                           Navigator.push(
                                             context,
@@ -319,10 +316,7 @@ class _HomePageState extends State<HomePage> {
                                       _menuItem(
                                         "src/features/home/icons/kontak.svg",
                                         "HiLecturer",
-                                        [
-                                          Color(0xFFF4BF75),
-                                          Color(0xFFF4BF75)
-                                        ],
+                                        [Color(0xFFF4BF75), Color(0xFFF4BF75)],
                                         () {
                                           Navigator.push(
                                             context,
@@ -394,27 +388,24 @@ class _HomePageState extends State<HomePage> {
                                       scrollDirection: Axis.horizontal,
                                       itemCount: state.divisions.length,
                                       itemBuilder: (_, index) {
-                                        final division =
-                                            state.divisions[index];
+                                        final division = state.divisions[index];
                                         return Container(
                                           width: 200,
                                           margin: EdgeInsets.only(
                                               left: index == 0 ? 16 : 8,
                                               right: index ==
-                                                      state.divisions.length -
-                                                          1
+                                                      state.divisions.length - 1
                                                   ? 16
                                                   : 0),
                                           decoration: BoxDecoration(
                                             borderRadius:
                                                 BorderRadius.circular(12),
                                             image: DecorationImage(
-                                              image: NetworkImage(
-                                                  ImageOptimizer
-                                                      .getOptimizedUrl(
-                                                          division.logoUrl,
-                                                          width: 400,
-                                                          quality: 80)),
+                                              image: NetworkImage(ImageOptimizer
+                                                  .getOptimizedUrl(
+                                                      division.logoUrl,
+                                                      width: 400,
+                                                      quality: 80)),
                                               fit: BoxFit.contain,
                                             ),
                                           ),
@@ -530,8 +521,7 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () async {
-                      const phoneNumber =
-                          "62859121392342"; 
+                      const phoneNumber = "62859121392342";
                       const message =
                           "Halo, saya mengalami gangguan pada aplikasi HIMTIKA...";
 
@@ -584,13 +574,14 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-  
+
   Widget _menuItem(String assetPath, String label, List<Color> gradientColors,
       VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
             width: 48,
