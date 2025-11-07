@@ -6,14 +6,20 @@ class HicodeState extends Equatable {
   final HicodeStatus status;
   final List<HiCodeCategory> categories;
   final List<HiCodeMaterial> materials;
-  final bool isExamReady;
+  final bool allMaterialsComplete;
+  final bool canTakeExamToday;
+  final DateTime? nextExamAvailableAt;
+  
   final String? errorMessage;
 
   const HicodeState({
     this.status = HicodeStatus.initial,
     this.categories = const [],
     this.materials = const [],
-    this.isExamReady = false,
+    this.allMaterialsComplete = false,
+    this.canTakeExamToday = false,
+    this.nextExamAvailableAt,
+    
     this.errorMessage,
   });
 
@@ -21,18 +27,32 @@ class HicodeState extends Equatable {
     HicodeStatus? status,
     List<HiCodeCategory>? categories,
     List<HiCodeMaterial>? materials,
-    bool? isExamReady,
+    bool? allMaterialsComplete,
+    bool? canTakeExamToday,
+    DateTime? nextExamAvailableAt,
+    
     String? errorMessage,
   }) {
     return HicodeState(
       status: status ?? this.status,
       categories: categories ?? this.categories,
       materials: materials ?? this.materials,
-      isExamReady: isExamReady ?? this.isExamReady,
+      allMaterialsComplete: allMaterialsComplete ?? this.allMaterialsComplete,
+      canTakeExamToday: canTakeExamToday ?? this.canTakeExamToday,
+      nextExamAvailableAt: nextExamAvailableAt ?? this.nextExamAvailableAt,
+
       errorMessage: errorMessage ?? this.errorMessage,
     );
   }
 
   @override
-  List<Object?> get props => [status, categories, materials, isExamReady, errorMessage];
+  List<Object?> get props => [
+        status, 
+        categories, 
+        materials, 
+        allMaterialsComplete,
+        canTakeExamToday,
+        nextExamAvailableAt,
+        errorMessage
+      ];
 }

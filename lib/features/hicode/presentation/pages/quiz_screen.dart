@@ -81,14 +81,25 @@ class QuizScreen extends StatelessWidget {
             _showResultDialog(context, state, quizId, chapterTitle); // Kirim context QuizScreen
           }
           else if (state.status == QuizStatus.failure && state.error != null) {
-             // Penanganan error submit (jika perlu)
+             // --- LOGIKA UNTUK ME-RESET FLAG ---
+             
+             // 1. Tampilkan SnackBar
              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (context.mounted) { // Cek mounted sebelum panggil ScaffoldMessenger
+                if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Gagal submit: ${state.error}'), backgroundColor: Colors.red),
                   );
                 }
              });
+             
+             // 2. Cari State dari _FinalExamView (jika ada) dan reset flag-nya
+             final examViewState = context.findAncestorStateOfType<__FinalExamViewState>();
+             if (examViewState != null && examViewState.mounted) {
+                examViewState.setState(() {
+                  examViewState._isSubmitted = false;
+                });
+             }
+             // --- AKHIR LOGIKA RESET ---
           }
         },
         child: Scaffold(
@@ -1000,9 +1011,43 @@ class __FinalExamViewState extends State<_FinalExamView> with WidgetsBindingObse
 
   @override
   Widget build(BuildContext context) {
+
+    if (_isSubmitted) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text("Sedang men-submit jawaban..."),
+          ],
+        ),
+      );
+    }
+
     final currentQuestion = widget.state.questions[widget.state.currentQuestionIndex];
 
-    return Column(
+    // --- TAMBAHKAN WIDGET INI ---
+    return PopScope(
+      // canPop: false berarti kita MENCEGAT tombol back
+      canPop: false, 
+      // onPopInvoked akan dipanggil saat user mencoba back
+      onPopInvoked: (didPop) async {
+        if (didPop) return; // Jika pop sudah terjadi (seharusnya tidak)
+
+        // Panggil dialog kita. Jika user pilih "Keluar & Submit" (true)
+        final bool? shouldExit = await _showExitFinalExamDialog(context);
+        
+        if (shouldExit == true && context.mounted && !_isSubmitted) {
+          print("User pressed System Back. Auto-submitting...");
+          setState(() {
+            _isSubmitted = true; // Tandai sudah di-submit
+          });
+          context.read<QuizBloc>().add(SubmitQuiz());
+        }
+      },
+
+      child: Column(
       children: [
         _buildFinalExamTopBar(context, widget.state),
         const SizedBox(height: 16),
@@ -1066,6 +1111,7 @@ class __FinalExamViewState extends State<_FinalExamView> with WidgetsBindingObse
         ),
         _BottomNavBar(state: widget.state, isFinalExam: true),
       ],
+    )
     );
   }
 

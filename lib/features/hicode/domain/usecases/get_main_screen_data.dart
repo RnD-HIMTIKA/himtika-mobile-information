@@ -6,7 +6,13 @@ class GetMainScreenData {
   final HiCodeRepository repository;
   GetMainScreenData(this.repository);
 
-  Future<(List<HiCodeCategory>, List<HiCodeMaterial>, bool)> call() {
+  Future<(
+    List<HiCodeCategory> categories,
+    List<HiCodeMaterial> materials,
+    bool allMaterialsComplete,
+    bool canTakeExamToday,
+    DateTime? nextExamAvailableAt
+  )> call() {
     return repository.getMainScreenData();
   }
 }

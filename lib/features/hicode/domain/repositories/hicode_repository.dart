@@ -7,7 +7,13 @@ import '../entities/quiz_result.dart';
 import '../entities/leaderboard_entry.dart';
 
 abstract class HiCodeRepository {
-  Future<(List<HiCodeCategory>, List<HiCodeMaterial>, bool isExamReady)> getMainScreenData();
+  Future<(
+    List<HiCodeCategory> categories,
+    List<HiCodeMaterial> materials,
+    bool allMaterialsComplete,
+    bool canTakeExamToday,
+    DateTime? nextExamAvailableAt
+  )> getMainScreenData();
   Future<(String title, String description, String iconPath, List<HiCodeChapter> chapters, String finalPracticeStatus, int finalPracticeQuestionCount)> getChapterListData(String materialId);
   Future<HiCodeChapterContent> getChapterContent(String chapterId, String userId);
   Future<List<HiCodeQuestion>> getQuestions(String relatedId, String questionType);
