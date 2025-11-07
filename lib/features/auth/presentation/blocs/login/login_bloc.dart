@@ -1,6 +1,7 @@
 // features/auth/presentation/blocs/login/login_bloc.dart
 import 'dart:async';
 import 'package:bloc/bloc.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'login_event.dart';
@@ -47,14 +48,31 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         // Ini tidak akan pernah tercapai jika signInWithEmail throw error, tapi sebagai fallback
         emit(const LoginFailure('Login gagal. Terjadi kesalahan tidak diketahui.'));
       }
-    } on AuthException catch (e) {
+    } on AuthException catch (e, stackTrace) { // Tambah stackTrace
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      
+      // 2. Pesan Profesional
+      String message;
       if (e.message.toLowerCase().contains('invalid login credentials')) {
-        emit(const LoginFailure('Email dan Password tidak cocok.'));
+        message = 'Email atau Password salah.';
+      } else if (e.message.toLowerCase().contains('socket')) {
+          message = "Koneksi gagal. Periksa internet Anda.";
       } else {
-        emit(LoginFailure(e.message));
+        message = "Terjadi kesalahan. Coba lagi nanti.";
       }
-    } catch (e) {
-      emit(LoginFailure(e.toString()));
+      emit(LoginFailure(message));
+
+    } catch (e, stackTrace) { // Tambah stackTrace
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      
+      // 2. Pesan Profesional
+      String message = "Terjadi kesalahan. Coba lagi nanti.";
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      }
+      emit(LoginFailure(message));
     }
   }
 
@@ -62,9 +80,16 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     emit(LoginLoading());
     try {
       await signInWithGoogle();
-      // Navigasi akan di-handle oleh listener di main.dart
-    } catch (e) {
-      emit(LoginFailure(e.toString()));
+    } catch (e, stackTrace) { // Tambah stackTrace
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      
+      // 2. Pesan Profesional
+      String message = "Gagal login dengan Google. Coba lagi nanti.";
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      }
+      emit(LoginFailure(message));
     }
   }
 

@@ -1,3 +1,4 @@
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/entities/workspace_with_members.dart';
@@ -56,10 +57,17 @@ class WorkspaceBloc extends Bloc<WorkspaceEvent, WorkspaceState> {
         status: WorkspaceStatus.loaded,
         workspaces: workspaces,
       ));
-    } catch (e) {
+    } catch (e, stackTrace) { // <-- UBAH
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      // 2. Pesan Profesional
+      String message = "Gagal memuat workspace.";
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      }
       emit(state.copyWith(
         status: WorkspaceStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: message, // <-- Pesan profesional
       ));
     }
   }
@@ -71,13 +79,21 @@ class WorkspaceBloc extends Bloc<WorkspaceEvent, WorkspaceState> {
   ) async {
     try {
       await _createWorkspace(title: event.title, description: event.description);
-      // Setelah berhasil, panggil event untuk memuat ulang daftar workspace
       add(LoadMyWorkspaces());
-    } catch (e) {
-      // Jika gagal, emit state failure dengan pesan error
+    } catch (e, stackTrace) { // <-- UBAH
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      // 2. Pesan Profesional
+      String message = e.toString().replaceFirst('Exception: ', '');
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      } else if (!message.contains('Judul workspace')) { 
+        // Hanya tampilkan error umum jika BUKAN validasi
+        message = "Gagal membuat workspace. Coba lagi nanti.";
+      }
       emit(state.copyWith(
         status: WorkspaceStatus.failure,
-        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+        errorMessage: message, // <-- Pesan profesional
       ));
     }
   }
@@ -94,15 +110,23 @@ class WorkspaceBloc extends Bloc<WorkspaceEvent, WorkspaceState> {
         description: event.description,
       );
       add(LoadMyWorkspaces()); // Muat ulang daftar setelah update
-    } catch (e) {
+    } catch (e, stackTrace) { // <-- UBAH
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      // 2. Pesan Profesional
+      String message = e.toString().replaceFirst('Exception: ', '');
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      } else if (!message.contains('Judul workspace')) {
+        message = "Gagal memperbarui workspace. Coba lagi nanti.";
+      }
       emit(state.copyWith(
         status: WorkspaceStatus.failure,
-        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+        errorMessage: message, // <-- Pesan profesional
       ));
     }
   }
 
-  // Handler untuk delete
   Future<void> _onDeleteWorkspacePressed(
     DeleteWorkspacePressed event,
     Emitter<WorkspaceState> emit,
@@ -110,10 +134,17 @@ class WorkspaceBloc extends Bloc<WorkspaceEvent, WorkspaceState> {
     try {
       await _deleteWorkspace(event.workspaceId);
       add(LoadMyWorkspaces()); // Muat ulang daftar setelah hapus
-    } catch (e) {
+    } catch (e, stackTrace) { // <-- UBAH
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      // 2. Pesan Profesional
+      String message = "Gagal menghapus workspace.";
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      }
       emit(state.copyWith(
         status: WorkspaceStatus.failure,
-        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+        errorMessage: message, // <-- Pesan profesional
       ));
     }
   }
@@ -130,10 +161,19 @@ class WorkspaceBloc extends Bloc<WorkspaceEvent, WorkspaceState> {
       );
       // Muat ulang daftar workspace agar UI ter-refresh
       add(LoadMyWorkspaces());
-    } catch (e) {
+    } catch (e, stackTrace) { // <-- UBAH
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      // 2. Pesan Profesional
+      String message = e.toString().replaceFirst('Exception: ', '');
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      } else if (!message.contains('Role tidak valid')) { // Sembunyikan error validasi internal
+        message = "Gagal mengubah role. Coba lagi nanti.";
+      }
       emit(state.copyWith(
         status: WorkspaceStatus.failure,
-        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+        errorMessage: message, // <-- Pesan profesional
       ));
     }
   }

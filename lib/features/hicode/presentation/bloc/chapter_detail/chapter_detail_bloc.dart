@@ -1,3 +1,4 @@
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/domain/entities/hicode_chapter.dart';
@@ -20,9 +21,8 @@ class MaterialDetailBloc
       FetchDetailData event, Emitter<MaterialDetailState> emit) async {
     emit(state.copyWith(status: MaterialDetailStatus.loading));
     try {
-      // PERBAIKAN: Tangkap semua 5 elemen dari tuple
-      final (title, description, iconPath, chapters, finalPracticeStatus, questionCount) =
-          await _getChapterListData(event.materialId);
+      final (title, description, iconPath, chapters, finalPracticeStatus,
+          questionCount) = await _getChapterListData(event.materialId);
       emit(state.copyWith(
         status: MaterialDetailStatus.success,
         title: title,
@@ -32,10 +32,17 @@ class MaterialDetailBloc
         finalPracticeStatus: finalPracticeStatus,
         finalPracticeQuestionCount: questionCount,
       ));
-    } catch (e) {
+    } catch (e, stackTrace) { // <-- UBAH
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      // 2. Pesan Profesional
+      String message = "Gagal memuat detail materi.";
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      }
       emit(state.copyWith(
         status: MaterialDetailStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: message, // <-- Pesan profesional
       ));
     }
   }

@@ -1,3 +1,4 @@
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/entities/hicode_question.dart';
@@ -76,14 +77,17 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
          ));
       }
 
-    } catch (e) {
-      // --- PERBAIKAN PESAN ERROR ---
+    } catch (e, stackTrace) { // <-- UBAH
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      // 2. Pesan Profesional
       String message = "Gagal memuat soal kuis.";
-      if (e.toString().toLowerCase().contains('socketexception')) {
-        message = "Gagal memuat. Periksa koneksi internet Anda.";
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      } else if (e.toString().contains('Exception:')) {
+         message = e.toString().replaceFirst('Exception: ', '');
       }
       emit(state.copyWith(status: QuizStatus.failure, error: message));
-      // --- AKHIR PERBAIKAN ---
     }
   }
 
@@ -106,17 +110,20 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
   }
 
   Future<void> _onSubmitQuiz(SubmitQuiz event, Emitter<QuizState> emit) async {
-    // Jangan proses jika sudah submitting
     if (state.status == QuizStatus.submitting) return;
 
-    emit(state.copyWith(status: QuizStatus.submitting, error: null)); // Hapus error lama saat mulai submit
+    emit(state.copyWith(status: QuizStatus.submitting, error: null));
     try {
-      // ... (logika hitung timeTakenSeconds dan panggil _submitQuizAnswers) ...
        final Map<String, String> answersToSubmit = {};
         state.selectedAnswers.forEach((questionIndex, optionId) {
           final questionId = state.questions[questionIndex].id;
           answersToSubmit[questionId] = optionId;
         });
+
+        // Validasi "Tidak ada jawaban" dari use case
+        if (answersToSubmit.isEmpty) {
+          throw Exception('Tidak ada jawaban yang dipilih.');
+        }
 
         final endTime = DateTime.now();
         final timeTakenDuration = state.quizStartTime != null ? endTime.difference(state.quizStartTime!) : Duration.zero;
@@ -140,20 +147,25 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
         result: result,
         timeTaken: timeTakenDuration,
       ));
-    } catch (e) {
-      // --- PERBAIKAN PESAN ERROR ---
-      String message = "Gagal mengirim jawaban.";
-      if (e.toString().toLowerCase().contains('socketexception')) {
-        message = "Gagal mengirim. Periksa koneksi internet Anda.";
-      } else if (e.toString().contains('Exception:')) {
-         message = e.toString().replaceFirst('Exception: ', '');
+    } catch (e, stackTrace) { // <-- UBAH
+      // 1. Log Licik
+      // JANGAN log error validasi yang disengaja (dari RPC atau use case)
+      final errorMessage = e.toString().replaceFirst('Exception: ', '').replaceFirst('PostgrestException', '');
+      if (!errorMessage.contains('Tidak ada jawaban') && !errorMessage.contains('Anda harus menjawab')) {
+         Sentry.captureException(e, stackTrace: stackTrace);
       }
       
-      final errorMessage = message.replaceFirst('PostgrestException', '');
-      print('Submit Error: $errorMessage');
-      emit(state.copyWith(status: QuizStatus.failure, error: errorMessage,));
+      // 2. Pesan Profesional
+      String message = "Gagal mengirim jawaban.";
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      } else if (errorMessage.contains('Tidak ada jawaban') || errorMessage.contains('Anda harus menjawab')) {
+         message = errorMessage; // Tampilkan error validasi ini ke user
+      }
+      
+      emit(state.copyWith(status: QuizStatus.failure, error: message,));
+      // Kembalikan ke success agar user tidak stuck di loading (sesuai kode Anda)
       emit(state.copyWith(status: QuizStatus.success));
-      // --- AKHIR PERBAIKAN ---
     }
   }
 }

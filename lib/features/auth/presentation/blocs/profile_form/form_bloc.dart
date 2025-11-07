@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import '../../../domain/usecases/get_profile_form_data.dart';
 import '../../../domain/usecases/submit_profile_form.dart';
 import '../../../domain/usecases/validate_profile_step1.dart';
@@ -40,10 +41,18 @@ class ProfileFormBloc extends Bloc<ProfileFormEvent, ProfileFormState> {
         prodi: result.prodi,
         currentStep: 0,
       ));
-    } catch (e) {
+    } catch (e, stackTrace) { // Tambah stackTrace
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      
+      // 2. Pesan Profesional
+      String message = "Gagal memuat data profil.";
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      }
       emit(state.copyWith(
         status: ProfileFormStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: message,
       ));
     }
   }
@@ -83,11 +92,18 @@ class ProfileFormBloc extends Bloc<ProfileFormEvent, ProfileFormState> {
       emit(state.copyWith(status: ProfileFormStatus.loaded));
       add(const ProfileFormNextStep());
 
-    } catch (e) {
-      // Jika validasi gagal, kembali ke 'loaded' dan kirim pesan error
+    } catch (e, stackTrace) { // Tambah stackTrace
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+
+      // 2. Pesan Profesional (Pesan dari use case sudah bagus)
+      String message = e.toString().replaceFirst('Exception: ', '');
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      }
       emit(state.copyWith(
         status: ProfileFormStatus.loaded,
-        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+        errorMessage: message,
       ));
     }
   }
@@ -113,22 +129,33 @@ class ProfileFormBloc extends Bloc<ProfileFormEvent, ProfileFormState> {
       
       await _submitProfileForm(params);
       emit(state.copyWith(status: ProfileFormStatus.success));
-    } on PostgrestException catch (e) {
+    } on PostgrestException catch (e, stackTrace) { // Tambah stackTrace
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+
+      // 2. Pesan Profesional
+      String message;
       if (e.code == '23505') {
-        emit(state.copyWith(
-          status: ProfileFormStatus.failure,
-          errorMessage: 'Username atau nomor telepon sudah digunakan.',
-        ));
+        message = 'Username atau nomor telepon sudah digunakan.';
       } else {
-        emit(state.copyWith(
-          status: ProfileFormStatus.failure,
-          errorMessage: 'Kesalahan Database: ${e.message}',
-        ));
+        message = "Terjadi kesalahan database. Coba lagi nanti.";
       }
-    } catch (e) {
       emit(state.copyWith(
         status: ProfileFormStatus.failure,
-        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+        errorMessage: message,
+      ));
+    } catch (e, stackTrace) { // Tambah stackTrace
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+
+      // 2. Pesan Profesional (Pesan dari use case sudah bagus)
+      String message = e.toString().replaceFirst('Exception: ', '');
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      }
+      emit(state.copyWith(
+        status: ProfileFormStatus.failure,
+        errorMessage: message,
       ));
     }
   }

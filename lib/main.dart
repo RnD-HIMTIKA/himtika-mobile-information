@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:himtika_mobile_information/features/home/presentation/pages/home.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -21,9 +22,8 @@ import 'package:flutter_localizations/flutter_localizations.dart'; // Tambahkan 
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // inisialisasi Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -32,7 +32,25 @@ void main() async {
   await SupabaseConfig.init();
   await initDependencies();
 
-  runApp(const MyApp());
+  final sentryDsn = dotenv.env['SENTRY_DSN'];
+  
+  if (sentryDsn == null) {
+     print("PERINGATAN: SENTRY_DSN tidak ditemukan di .env. Error tidak akan dilaporkan.");
+     runApp(const MyApp());
+  } else {
+    await SentryFlutter.init(
+      (options) {
+        options.dsn = sentryDsn;
+        options.tracesSampleRate = 1.0;
+      },
+      // --- PERBAIKAN DI SINI ---
+      // 'appRunner' hanya perlu menjalankan 'runApp'.
+      appRunner: () => runApp(
+        const MyApp(), // Hapus SentryAssetBundle dari sini
+      ),
+      // --- AKHIR PERBAIKAN ---
+    );
+  }
 }
 
 class MyApp extends StatefulWidget {

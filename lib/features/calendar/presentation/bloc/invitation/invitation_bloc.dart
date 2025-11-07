@@ -1,3 +1,4 @@
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/entities/invitation.dart';
@@ -42,17 +43,18 @@ class InvitationBloc extends Bloc<InvitationEvent, InvitationState> {
         status: InvitationStatus.loaded,
         invitations: invitations,
       ));
-    } catch (e) {
-      // --- PERBAIKAN PESAN ERROR ---
-      String message = "Terjadi kesalahan. Coba lagi nanti.";
-      if (e.toString().toLowerCase().contains('socketexception') || e.toString().toLowerCase().contains('network is unreachable')) {
-        message = "Gagal memuat. Periksa koneksi internet Anda.";
+    } catch (e, stackTrace) { // <-- UBAH
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      // 2. Pesan Profesional
+      String message = "Gagal memuat undangan.";
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
       }
       emit(state.copyWith(
         status: InvitationStatus.failure,
         errorMessage: message,
       ));
-      // --- AKHIR PERBAIKAN ---
     }
   }
 
@@ -64,17 +66,18 @@ class InvitationBloc extends Bloc<InvitationEvent, InvitationState> {
       await _acceptInvitationById(event.invitationId);
       add(LoadMyInvitations());
       emit(state.copyWith(status: InvitationStatus.actionSuccess));
-    } catch (e) {
-      // --- PERBAIKAN PESAN ERROR ---
-      String message = "Terjadi kesalahan. Coba lagi nanti.";
-      if (e.toString().toLowerCase().contains('socketexception') || e.toString().toLowerCase().contains('network is unreachable')) {
-        message = "Gagal memuat. Periksa koneksi internet Anda.";
+    } catch (e, stackTrace) { // <-- UBAH
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      // 2. Pesan Profesional
+      String message = "Gagal menerima undangan. Coba lagi nanti.";
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
       }
       emit(state.copyWith(
         status: InvitationStatus.failure,
         errorMessage: message,
       ));
-      // --- AKHIR PERBAIKAN ---
     }
   }
   
@@ -82,22 +85,22 @@ class InvitationBloc extends Bloc<InvitationEvent, InvitationState> {
     AcceptInvitationByTokenPressed event,
     Emitter<InvitationState> emit,
   ) async {
-    // Di halaman handler, kita bisa tampilkan loading
     emit(state.copyWith(status: InvitationStatus.loading));
     try {
       await _acceptInvitationByToken(event.token);
       emit(state.copyWith(status: InvitationStatus.actionSuccess));
-    } catch (e) {
-      // --- PERBAIKAN PESAN ERROR ---
-      String message = "Terjadi kesalahan. Coba lagi nanti.";
-      if (e.toString().toLowerCase().contains('socketexception') || e.toString().toLowerCase().contains('network is unreachable')) {
-        message = "Gagal memuat. Periksa koneksi internet Anda.";
+    } catch (e, stackTrace) { // <-- UBAH
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      // 2. Pesan Profesional
+      String message = "Gagal bergabung. Link mungkin tidak valid atau kedaluwarsa.";
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
       }
       emit(state.copyWith(
         status: InvitationStatus.failure,
         errorMessage: message,
       ));
-      // --- AKHIR PERBAIKAN ---
     }
   }
 
@@ -108,17 +111,18 @@ class InvitationBloc extends Bloc<InvitationEvent, InvitationState> {
     try {
       await _declineInvitation(event.invitationId);
       add(LoadMyInvitations());
-    } catch (e) {
-      // --- PERBAIKAN PESAN ERROR ---
-      String message = "Terjadi kesalahan. Coba lagi nanti.";
-      if (e.toString().toLowerCase().contains('socketexception') || e.toString().toLowerCase().contains('network is unreachable')) {
-        message = "Gagal memuat. Periksa koneksi internet Anda.";
+    } catch (e, stackTrace) { // <-- UBAH
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      // 2. Pesan Profesional
+      String message = "Gagal menolak undangan.";
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
       }
       emit(state.copyWith(
         status: InvitationStatus.failure,
         errorMessage: message,
       ));
-      // --- AKHIR PERBAIKAN ---
     }
   }
 }

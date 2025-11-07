@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:equatable/equatable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -36,23 +37,32 @@ class RegistrationBloc extends Bloc<RegistrationEvent, RegistrationState> {
       
       emit(RegistrationSuccess(email: event.email));
       
-    } on AuthException catch (e) { // <-- Tangkap AuthException
-      // --- PERBAIKAN PESAN ERROR (Alert 3, 4) ---
-      print("AuthException: ${e.message}");
+    } on AuthException catch (e, stackTrace) { // Tangkap stackTrace
+      // 1. Log Licik (ke Sentry)
+      Sentry.captureException(e, stackTrace: stackTrace);
+      
+      // 2. Pesan Profesional
+      String userMessage;
       if (e.message.toLowerCase().contains('email rate limit exceeded')) {
-        emit(const RegistrationFailure("Terlalu banyak percobaan. Silakan coba lagi nanti."));
+        userMessage = "Terlalu banyak percobaan. Silakan coba lagi nanti.";
       } else if (e.message.toLowerCase().contains('invalid email')) {
-         emit(const RegistrationFailure("Format email tidak valid."));
+         userMessage = "Format email tidak valid.";
       } else if (e.message.toLowerCase().contains('user already registered')) {
-         emit(const RegistrationFailure("Email ini sudah terdaftar. Silakan login."));
+         userMessage = "Email ini sudah terdaftar. Silakan login.";
       } else {
-        // Fallback untuk error auth lainnya
-        emit(RegistrationFailure("Gagal mendaftar: ${e.message}"));
+        userMessage = "Gagal mendaftar. Coba lagi nanti."; // Pesan umum
       }
-    } catch (e) {
-      // --- PERBAIKAN PESAN ERROR (Alert 2) ---
-      // Ini akan menangkap error "Exception: Email ini sudah terdaftar." dari use case kita
+      emit(RegistrationFailure(userMessage));
+
+    } catch (e, stackTrace) { // Tangkap semua error lain
+      // 1. Log Licik (ke Sentry)
+      Sentry.captureException(e, stackTrace: stackTrace);
+
+      // 2. Pesan Profesional
       String errorMessage = e.toString().replaceFirst('Exception: ', '');
+      if (e.toString().toLowerCase().contains('socket')) {
+        errorMessage = "Koneksi gagal. Periksa internet Anda.";
+      }
       emit(RegistrationFailure(errorMessage));
     }
   }

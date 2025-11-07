@@ -1,3 +1,4 @@
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/domain/entities/hicode_category.dart';
@@ -19,10 +20,15 @@ class HicodeBloc extends Bloc<HicodeEvent, HicodeState> {
 
   Future<void> _onHicodeDataFetched(
       HicodeDataFetched event, Emitter<HicodeState> emit) async {
-    emit(state.copyWith(status: HicodeStatus.loading));
+    // Gunakan state.categories.isEmpty untuk cek data lama
+    emit(state.copyWith(
+        status: state.categories.isEmpty
+            ? HicodeStatus.loading
+            : HicodeStatus.success)); // <-- Ubah di sini agar tidak full loading
     try {
-      final (categories, materials, allComplete, canTake, nextExamAt) = await _getMainScreenData();
-      
+      final (categories, materials, allComplete, canTake, nextExamAt) =
+          await _getMainScreenData();
+
       emit(state.copyWith(
         status: HicodeStatus.success,
         categories: categories,
@@ -31,8 +37,18 @@ class HicodeBloc extends Bloc<HicodeEvent, HicodeState> {
         canTakeExamToday: canTake,
         nextExamAvailableAt: nextExamAt,
       ));
-    } catch (e) {
-      // ... (catch error tetap sama)
+    } catch (e, stackTrace) { // <-- UBAH
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      // 2. Pesan Profesional
+      String message = "Gagal memuat data HiCode.";
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      }
+      emit(state.copyWith(
+        status: HicodeStatus.failure,
+        errorMessage: message, // <-- Pesan profesional
+      ));
     }
   }
 }
