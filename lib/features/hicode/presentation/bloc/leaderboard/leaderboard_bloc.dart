@@ -18,6 +18,7 @@ class LeaderboardBloc extends Bloc<LeaderboardEvent, LeaderboardState> {
         super(const LeaderboardState()) { // State awal tetap
     on<FetchLeaderboard>(_onFetchLeaderboard);
     on<FilterChanged>(_onFilterChanged);
+    on<RefreshLeaderboard>(_onRefreshLeaderboard);
   }
 
   // Modifikasi handler FetchLeaderboard
@@ -32,6 +33,33 @@ class LeaderboardBloc extends Bloc<LeaderboardEvent, LeaderboardState> {
           selectedFilter: LeaderboardFilter.allTime // Pastikan filter awal benar
       ));
     } catch (e) {
+      // --- PERBAIKAN PESAN ERROR ---
+      String message = "Gagal memuat leaderboard.";
+      if (e.toString().toLowerCase().contains('socketexception')) {
+        message = "Gagal memuat. Periksa koneksi internet Anda.";
+      }
+      emit(state.copyWith(status: LeaderboardStatus.failure, errorMessage: message));
+      // --- AKHIR PERBAIKAN ---
+    }
+  }
+
+  Future<void> _onRefreshLeaderboard(
+    RefreshLeaderboard event,
+    Emitter<LeaderboardState> emit,
+  ) async {
+    // Tentukan filter string berdasarkan state saat ini
+    final filterString = state.selectedFilter == LeaderboardFilter.allTime ? 'all' : 'weekly';
+    
+    // Emit loading, tapi JANGAN hapus data lama (users)
+    emit(state.copyWith(status: LeaderboardStatus.loading, clearError: true));
+    try {
+      final users = await _getLeaderboard(filterString);
+      emit(state.copyWith(
+        status: LeaderboardStatus.success,
+        users: users,
+      ));
+    } catch (e) {
+      // (Kita akan perbaiki pesan error ini di langkah berikutnya)
       emit(state.copyWith(status: LeaderboardStatus.failure, errorMessage: e.toString()));
     }
   }
@@ -50,7 +78,13 @@ class LeaderboardBloc extends Bloc<LeaderboardEvent, LeaderboardState> {
           users: users // Simpan data baru
       ));
     } catch (e) {
-      emit(state.copyWith(status: LeaderboardStatus.failure, errorMessage: e.toString()));
+      // --- PERBAIKAN PESAN ERROR ---
+      String message = "Gagal memuat leaderboard.";
+      if (e.toString().toLowerCase().contains('socketexception')) {
+        message = "Gagal memuat. Periksa koneksi internet Anda.";
+      }
+      emit(state.copyWith(status: LeaderboardStatus.failure, errorMessage: message));
+      // --- AKHIR PERBAIKAN ---
     }
   }
 }

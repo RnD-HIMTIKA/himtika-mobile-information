@@ -39,11 +39,16 @@ class MaterialDetailScreen extends StatelessWidget {
                     Expanded(
                       child: state.chapters.isEmpty
                           ? _buildNotFoundWidget()
-                          : ListView.separated(
-                              padding: const EdgeInsets.all(16),
-                              // itemCount sekarang adalah jumlah chapter + 1 (untuk Latihan Final)
-                              itemCount: state.chapters.length + 1,
-                              itemBuilder: (context, index) {
+                          // --- TAMBAHKAN REFRESH INDICATOR DI SINI ---
+                          : RefreshIndicator(
+                              onRefresh: () async {
+                                context.read<MaterialDetailBloc>().add(FetchDetailData(materialId: materialId));
+                              },
+                              child: ListView.separated(
+                                physics: const AlwaysScrollableScrollPhysics(), // Wajib ada
+                                padding: const EdgeInsets.all(16),
+                                itemCount: state.chapters.length + 1,
+                                itemBuilder: (context, index) {
                                 // Jika index < jumlah chapter, tampilkan chapter item
                                 if (index < state.chapters.length) {
                                   return _buildSubChapterItem(
@@ -66,6 +71,7 @@ class MaterialDetailScreen extends StatelessWidget {
                               separatorBuilder: (context, index) =>
                                   const SizedBox(height: 12),
                             ),
+                          ),
                     ),
                   ],
                 );
