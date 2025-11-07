@@ -36,7 +36,11 @@ class _RegisterPageState extends State<RegisterPage> {
             );
           } else if (state is RegistrationFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Registrasi Gagal: ${state.error}')),
+              SnackBar(
+                content: Text('Registrasi Gagal: ${state.error}'),
+                // --- KONSISTENSI WARNA (Alert 5) ---
+                backgroundColor: Colors.red, 
+              ),
             );
           }
         },

@@ -9,6 +9,8 @@ abstract class LeaderboardEvent extends Equatable {
 // Event untuk mengambil data awal
 class FetchLeaderboard extends LeaderboardEvent {}
 
+class RefreshLeaderboard extends LeaderboardEvent {}
+
 // Event saat filter diubah (All Time / Weekly)
 class FilterChanged extends LeaderboardEvent {
   final LeaderboardFilter filter;

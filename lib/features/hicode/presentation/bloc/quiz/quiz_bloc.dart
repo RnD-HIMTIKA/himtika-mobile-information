@@ -77,7 +77,13 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
       }
 
     } catch (e) {
-      emit(state.copyWith(status: QuizStatus.failure, error: e.toString().replaceFirst('Exception: ', '')));
+      // --- PERBAIKAN PESAN ERROR ---
+      String message = "Gagal memuat soal kuis.";
+      if (e.toString().toLowerCase().contains('socketexception')) {
+        message = "Gagal memuat. Periksa koneksi internet Anda.";
+      }
+      emit(state.copyWith(status: QuizStatus.failure, error: message));
+      // --- AKHIR PERBAIKAN ---
     }
   }
 
@@ -135,16 +141,19 @@ class QuizBloc extends Bloc<QuizEvent, QuizState> {
         timeTaken: timeTakenDuration,
       ));
     } catch (e) {
-      // 1. Emit failure dengan error message
-      final errorMessage = e.toString()
-          .replaceFirst('Exception: ', '')
-          .replaceFirst('PostgrestException', ''); // Bersihkan pesan error
-      print('Submit Error: $errorMessage'); // Log error
-      emit(state.copyWith(status: QuizStatus.failure, error: errorMessage));
-
-      // 2. Revert status ke success agar UI tidak stuck (error ditampilkan via listener)
-      //    Jangan hapus jawaban yang sudah dipilih user.
+      // --- PERBAIKAN PESAN ERROR ---
+      String message = "Gagal mengirim jawaban.";
+      if (e.toString().toLowerCase().contains('socketexception')) {
+        message = "Gagal mengirim. Periksa koneksi internet Anda.";
+      } else if (e.toString().contains('Exception:')) {
+         message = e.toString().replaceFirst('Exception: ', '');
+      }
+      
+      final errorMessage = message.replaceFirst('PostgrestException', '');
+      print('Submit Error: $errorMessage');
+      emit(state.copyWith(status: QuizStatus.failure, error: errorMessage,));
       emit(state.copyWith(status: QuizStatus.success));
+      // --- AKHIR PERBAIKAN ---
     }
   }
 }

@@ -52,6 +52,15 @@ class SubmitProfileForm {
     if (p.fullName.trim().length < 2) {
       throw Exception('Nama lengkap minimal 2 karakter.');
     }
+    
+    // --- TAMBAHAN VALIDASI (Alert 6) ---
+    // Aturan: Hanya boleh huruf, spasi, titik, dan apostrof.
+    final RegExp nameRegExp = RegExp(r'^[a-zA-Z0-9_]{3,20}$');
+    if (!nameRegExp.hasMatch(p.fullName.trim())) {
+      throw Exception('Nama lengkap hanya boleh berisi huruf, spasi, atau underscore');
+    }
+    // --- AKHIR TAMBAHAN ---
+
     if (p.username.trim().isEmpty) {
       throw Exception('Username wajib diisi.');
     }

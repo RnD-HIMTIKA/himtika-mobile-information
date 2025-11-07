@@ -43,10 +43,16 @@ class InvitationBloc extends Bloc<InvitationEvent, InvitationState> {
         invitations: invitations,
       ));
     } catch (e) {
+      // --- PERBAIKAN PESAN ERROR ---
+      String message = "Terjadi kesalahan. Coba lagi nanti.";
+      if (e.toString().toLowerCase().contains('socketexception') || e.toString().toLowerCase().contains('network is unreachable')) {
+        message = "Gagal memuat. Periksa koneksi internet Anda.";
+      }
       emit(state.copyWith(
         status: InvitationStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: message,
       ));
+      // --- AKHIR PERBAIKAN ---
     }
   }
 
@@ -59,10 +65,16 @@ class InvitationBloc extends Bloc<InvitationEvent, InvitationState> {
       add(LoadMyInvitations());
       emit(state.copyWith(status: InvitationStatus.actionSuccess));
     } catch (e) {
+      // --- PERBAIKAN PESAN ERROR ---
+      String message = "Terjadi kesalahan. Coba lagi nanti.";
+      if (e.toString().toLowerCase().contains('socketexception') || e.toString().toLowerCase().contains('network is unreachable')) {
+        message = "Gagal memuat. Periksa koneksi internet Anda.";
+      }
       emit(state.copyWith(
         status: InvitationStatus.failure,
-        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+        errorMessage: message,
       ));
+      // --- AKHIR PERBAIKAN ---
     }
   }
   
@@ -76,10 +88,16 @@ class InvitationBloc extends Bloc<InvitationEvent, InvitationState> {
       await _acceptInvitationByToken(event.token);
       emit(state.copyWith(status: InvitationStatus.actionSuccess));
     } catch (e) {
+      // --- PERBAIKAN PESAN ERROR ---
+      String message = "Terjadi kesalahan. Coba lagi nanti.";
+      if (e.toString().toLowerCase().contains('socketexception') || e.toString().toLowerCase().contains('network is unreachable')) {
+        message = "Gagal memuat. Periksa koneksi internet Anda.";
+      }
       emit(state.copyWith(
         status: InvitationStatus.failure,
-        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+        errorMessage: message,
       ));
+      // --- AKHIR PERBAIKAN ---
     }
   }
 
@@ -91,10 +109,16 @@ class InvitationBloc extends Bloc<InvitationEvent, InvitationState> {
       await _declineInvitation(event.invitationId);
       add(LoadMyInvitations());
     } catch (e) {
+      // --- PERBAIKAN PESAN ERROR ---
+      String message = "Terjadi kesalahan. Coba lagi nanti.";
+      if (e.toString().toLowerCase().contains('socketexception') || e.toString().toLowerCase().contains('network is unreachable')) {
+        message = "Gagal memuat. Periksa koneksi internet Anda.";
+      }
       emit(state.copyWith(
         status: InvitationStatus.failure,
-        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+        errorMessage: message,
       ));
+      // --- AKHIR PERBAIKAN ---
     }
   }
 }

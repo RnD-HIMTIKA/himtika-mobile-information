@@ -346,13 +346,22 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
       padding: const EdgeInsets.all(16.0),
       child: ElevatedButton(
         onPressed: state.isQuizUnlocked
-            ? () {
-                Navigator.of(context).push(
+            ? () async { // <-- JADIKAN ASYNC
+                // --- MODIFIKASI NAVIGASI INI ---
+                final quizResult = await Navigator.of(context).push<bool>( // <-- TAMBAHKAN AWAIT & TANGKAP HASIL
                   MaterialPageRoute(
                     builder: (_) => QuizScreen(
                         quizId: chapterId, chapterTitle: chapterTitle),
                   ),
                 );
+
+                // Jika hasil kuis adalah true (lulus)
+                if (quizResult == true && context.mounted) {
+                  // Pop halaman SubChapterDetail ini dan kirim 'true'
+                  // ke ChapterDetailScreen
+                  Navigator.of(context).pop(true);
+                }
+                // --- AKHIR MODIFIKASI ---
               }
             : null,
         style: ElevatedButton.styleFrom(

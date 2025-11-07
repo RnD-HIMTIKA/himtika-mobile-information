@@ -27,24 +27,49 @@ class NotificationPage extends StatelessWidget {
             if (state.status == InvitationStatus.failure) {
               return Center(child: Text('Gagal memuat notifikasi: ${state.errorMessage}'));
             }
-            if (state.status == InvitationStatus.loaded && state.invitations.isEmpty) {
-              return const Center(
-                child: Text(
-                  'Tidak ada notifikasi baru.',
-                  style: TextStyle(fontSize: 16, color: Colors.grey),
-                ),
-              );
-            }
+            // HAPUS logic 'if (state.invitations.isEmpty)' dari sini
 
-            return ListView.separated(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: state.invitations.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final invitation = state.invitations[index];
-                return _InvitationCard(invitation: invitation);
+            // --- PERBAIKAN DIMULAI DI SINI ---
+            // Langsung return RefreshIndicator
+            return RefreshIndicator(
+              onRefresh: () async {
+                context.read<InvitationBloc>().add(LoadMyInvitations());
               },
+              // Tentukan child berdasarkan state.invitations.isEmpty
+              child: state.invitations.isEmpty
+                  // JIKA KOSONG: Tampilkan pesan di dalam ListView agar tetap bisa di-refresh
+                  ? LayoutBuilder( // Gunakan LayoutBuilder untuk mendapatkan tinggi
+                      builder: (context, constraints) {
+                        return ListView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(16.0),
+                              height: constraints.maxHeight, // Set tinggi agar Center bekerja
+                              child: const Center(
+                                child: Text(
+                                  'Tidak ada notifikasi baru.',
+                                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                                ),
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    )
+                  // JIKA ADA DATA: Tampilkan ListView.separated seperti sebelumnya
+                  : ListView.separated(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(16.0),
+                      itemCount: state.invitations.length,
+                      separatorBuilder: (context, index) => const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final invitation = state.invitations[index];
+                        return _InvitationCard(invitation: invitation);
+                      },
+                    ),
             );
+            // --- AKHIR PERBAIKAN ---
           },
         ),
       ),
