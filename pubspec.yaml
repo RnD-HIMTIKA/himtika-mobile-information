@@ -61,6 +61,7 @@ dependencies:
   flutter_animate: ^4.5.0
   wakelock_plus: ^1.1.4
   no_screenshot: ^0.3.1
+  url_launcher: ^6.2.6
 
 dev_dependencies:
   flutter_test:
@@ -106,6 +107,7 @@ flutter:
     - src/features/home/icons/chat.png
     - src/features/home/icons/message.png
     - src/features/home/icons/profile.png
+    - src/features/home/icons/mailbox.png
 
     - src/features/AdminPanel/images/dashboard.png
     

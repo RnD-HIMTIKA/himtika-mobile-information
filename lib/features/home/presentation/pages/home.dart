@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:himtika_mobile_information/core/helpers/image_optimizer.dart';
 import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/pages/calendar_screen.dart';
@@ -26,30 +27,34 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
 
   void _onBottomNavTapped(int index) {
+    if (_selectedIndex == index) return;
+
     setState(() => _selectedIndex = index);
 
-    switch (index) {
-      case 0:
-        break;
-      case 1:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
-        );
-        break;
-      case 2:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
-        );
-        break;
-      case 3:
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
-        );
-        break;
-    }
+    Future.delayed(const Duration(milliseconds: 100), () {
+      switch (index) {
+        case 0:
+          break;
+        case 1:
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
+          ).then((_) => setState(() => _selectedIndex = 0));
+          break;
+        case 2:
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
+          ).then((_) => setState(() => _selectedIndex = 0));
+          break;
+        case 3:
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
+          ).then((_) => setState(() => _selectedIndex = 0));
+          break;
+     }
+    });
   }
 
   @override
@@ -63,315 +68,376 @@ class _HomePageState extends State<HomePage> {
       create: (_) => sl<HomeBloc>()..add(LoadHomeData()),
       child: Scaffold(
         endDrawer: const SidebarHome(),
-        body: SafeArea(
-          child: BlocBuilder<HomeBloc, HomeState>(
-            builder: (context, state) {
-              if (state.isLoading) {
-                return const Center(child: CircularProgressIndicator());
-              }
+        body: BlocBuilder<HomeBloc, HomeState>(
+          builder: (context, state) {
+            if (state.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-              return Stack(
-                children: [
-                  Opacity(
-                    opacity: 0.1,
-                    child: Image.asset(
-                      "src/features/home/images/pattern.png",
-                      fit: BoxFit.cover,
-                      width: double.infinity,
-                      height: double.infinity,
-                    ),
+            final double statusBarHeight = MediaQuery.of(context).padding.top;
+
+            return Stack(
+              children: [
+                Opacity(
+                  opacity: 0.1,
+                  child: Image.asset(
+                    "src/features/home/images/pattern.png",
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
                   ),
-                  SingleChildScrollView(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Header
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 20),
-                          decoration: const BoxDecoration(
-                            color: Colors.blue,
-                            borderRadius: BorderRadius.only(
-                              bottomLeft: Radius.circular(20),
-                              bottomRight: Radius.circular(20),
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: EdgeInsets.only(
+                        top: statusBarHeight + 20,
+                        bottom: 20,
+                        left: 16,
+                        right: 16,
+                      ),
+                      decoration: const BoxDecoration(
+                        color: Colors.blue,
+                        borderRadius: BorderRadius.only(
+                          bottomLeft: Radius.circular(20),
+                          bottomRight: Radius.circular(20),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              const Text(
+                                "Selamat Datang,",
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 14),
+                              ),
+                              Text(
+                                state.currentUser?.fullName ?? 'Pengguna',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.notifications_outlined,
+                                    color: Colors.white),
+                                onPressed: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                        builder: (context) =>
+                                            const NotificationPage()),
+                                  );
+                                },
+                              ),
+                              Builder(builder: (context) {
+                                return IconButton(
+                                  icon: const Icon(Icons.menu,
+                                      color: Colors.white),
+                                  onPressed: () {
+                                    Scaffold.of(context).openEndDrawer();
+                                  },
+                                );
+                              }),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    // 2. Konten (Dibungkus Expanded agar bisa di-scroll)
+                    Expanded(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // 3. Pindahkan semua sisa konten ke sini
+                            const SizedBox(height: 48),
+
+                            // Terbaru
+                            if (state.banners.isNotEmpty)
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Text(
-                                    "Selamat Datang,",
-                                    style: TextStyle(
-                                        color: Colors.white, fontSize: 14),
+                                  const Padding(
+                                    padding:
+                                        EdgeInsets.symmetric(horizontal: 16),
+                                    child: Text(
+                                      "Terbaru",
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                    ),
                                   ),
-                                  Text(
-                                    state.currentUser?.fullName ?? 'Pengguna',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
+                                  const SizedBox(height: 8),
+                                  SizedBox(
+                                    height: 100,
+                                    child: ListView.builder(
+                                      scrollDirection: Axis.horizontal,
+                                      itemCount: state.banners.length,
+                                      itemBuilder: (_, index) {
+                                        final banner = state.banners[index];
+                                        return Container(
+                                          width: 200,
+                                          margin: EdgeInsets.only(
+                                              left: index == 0 ? 16 : 8,
+                                              right: index ==
+                                                      state.banners.length - 1
+                                                  ? 16
+                                                  : 0),
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            image: DecorationImage(
+                                              image: NetworkImage(
+                                                  ImageOptimizer
+                                                      .getOptimizedUrl(
+                                                          banner.imageUrl,
+                                                          width: 600,
+                                                          quality: 80)),
+                                              fit: BoxFit.cover,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(height: 24),
+                                ],
+                              ),
+
+                            // Menu Grid
+                            Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Card(
+                                color: Colors.white,
+                                elevation: 2,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12.0),
+                                  child: GridView.count(
+                                    shrinkWrap: true,
+                                    physics:
+                                        const NeverScrollableScrollPhysics(),
+                                    crossAxisCount: 4,
+                                    crossAxisSpacing: 8,
+                                    mainAxisSpacing: 8,
+                                    childAspectRatio: childAspectRatio,
+                                    children: [
+                                      _menuItem(
+                                        "src/features/home/icons/himtika.png",
+                                        "HIMTIKA",
+                                        [
+                                          const Color(0xFF32B7FF),
+                                          const Color(0xFF32B7FF)
+                                        ],
+                                        () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (_) =>
+                                                    const HimtikaScreen()),
+                                          );
+                                        },
+                                      ),
+                                      _menuItem(
+                                        "src/features/home/icons/hicode.svg",
+                                        "HiCode",
+                                        [
+                                          Color(0xFF333C66),
+                                          Color(0xFF2D365E)
+                                        ],
+                                        () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (_) =>
+                                                    const HicodeScreen()),
+                                          );
+                                        },
+                                      ),
+                                      _menuItem(
+                                        "src/features/home/icons/hiconnect.svg",
+                                        "HiConnect",
+                                        [
+                                          const Color(0xFFFFC107),
+                                          const Color(0xFFFFC107)
+                                        ],
+                                        () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (_) =>
+                                                    const ComingsoonScreen()),
+                                          );
+                                        },
+                                      ),
+                                      _menuItem(
+                                        "src/features/home/icons/hiagenda.svg",
+                                        "HiAgenda",
+                                        [
+                                          const Color(0xFFDBF6BF),
+                                          const Color(0xFFDBF6BF)
+                                        ],
+                                        () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (_) =>
+                                                    const CalendarScreen()),
+                                          );
+                                        },
+                                      ),
+                                      _menuItem(
+                                        "src/features/home/icons/hispace.svg",
+                                        "HiSpace",
+                                        [
+                                          const Color(0xFF402DAE),
+                                          const Color(0xFFBD63D1)
+                                        ],
+                                        () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (_) =>
+                                                    const ComingsoonScreen()),
+                                          );
+                                        },
+                                      ),
+                                      _menuItem(
+                                        "src/features/home/icons/kontak.svg",
+                                        "HiLecturer",
+                                        [
+                                          Color(0xFFF4BF75),
+                                          Color(0xFFF4BF75)
+                                        ],
+                                        () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (_) =>
+                                                    const ComingsoonScreen()),
+                                          );
+                                        },
+                                      ),
+                                      _menuItem(
+                                        "src/features/home/icons/event.svg",
+                                        "Event",
+                                        [
+                                          const Color(0xFF4CAF50),
+                                          const Color(0xFF4CAF50)
+                                        ],
+                                        () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (_) =>
+                                                    const ComingsoonScreen()),
+                                          );
+                                        },
+                                      ),
+                                      _menuItem(
+                                        "src/features/home/icons/more.svg",
+                                        "More",
+                                        [
+                                          const Color(0xFFF7F7F7),
+                                          const Color(0xFFF7F7F7)
+                                        ],
+                                        () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (_) =>
+                                                    const ComingsoonScreen()),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 24),
+
+                            // Divisi
+                            if (state.divisions.isNotEmpty)
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Padding(
+                                    padding:
+                                        EdgeInsets.symmetric(horizontal: 16),
+                                    child: Text(
+                                      "Divisi",
+                                      style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  SizedBox(
+                                    height: 100,
+                                    child: ListView.builder(
+                                      scrollDirection: Axis.horizontal,
+                                      itemCount: state.divisions.length,
+                                      itemBuilder: (_, index) {
+                                        final division =
+                                            state.divisions[index];
+                                        return Container(
+                                          width: 200,
+                                          margin: EdgeInsets.only(
+                                              left: index == 0 ? 16 : 8,
+                                              right: index ==
+                                                      state.divisions.length -
+                                                          1
+                                                  ? 16
+                                                  : 0),
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            image: DecorationImage(
+                                              image: NetworkImage(
+                                                  ImageOptimizer
+                                                      .getOptimizedUrl(
+                                                          division.logoUrl,
+                                                          width: 400,
+                                                          quality: 80)),
+                                              fit: BoxFit.contain,
+                                            ),
+                                          ),
+                                        );
+                                      },
                                     ),
                                   ),
                                 ],
                               ),
-                              Row(
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(
-                                        Icons.notifications_outlined,
-                                        color: Colors.white),
-                                    onPressed: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (context) =>
-                                                const NotificationPage()),
-                                      );
-                                    },
-                                  ),
-                                  Builder(builder: (context) {
-                                    return IconButton(
-                                      icon: const Icon(Icons.menu,
-                                          color: Colors.white),
-                                      onPressed: () {
-                                        Scaffold.of(context).openEndDrawer();
-                                      },
-                                    );
-                                  }),
-                                ],
-                              ),
-                            ],
-                          ),
+
+                            const SizedBox(height: 24),
+                            // Tambahkan Kartu Bantuan
+                            _buildSupportCard(context),
+                            const SizedBox(height: 24),
+                          ],
                         ),
-
-                        const SizedBox(height: 48),
-
-                        // Terbaru
-                        if (state.banners.isNotEmpty)
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 16),
-                                child: Text(
-                                  "Terbaru",
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              SizedBox(
-                                height: 100,
-                                child: ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: state.banners.length,
-                                  itemBuilder: (_, index) {
-                                    final banner = state.banners[index];
-                                    return Container(
-                                      width: 200,
-                                      margin: EdgeInsets.only(
-                                          left: index == 0 ? 16 : 8,
-                                          right:
-                                              index == state.banners.length - 1
-                                                  ? 16
-                                                  : 0),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(12),
-                                        image: DecorationImage(
-                                          image: NetworkImage(ImageOptimizer.getOptimizedUrl(banner.imageUrl, width: 600, quality: 80)),
-                                          fit: BoxFit.cover,
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                              const SizedBox(height: 24),
-                            ],
-                          ),
-
-                        // Menu Grid
-                        Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Card(
-                            color: Colors.white,
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(12.0),
-                              child: GridView.count(
-                                shrinkWrap: true,
-                                physics: const NeverScrollableScrollPhysics(),
-                                crossAxisCount: 4,
-                                crossAxisSpacing: 8,
-                                mainAxisSpacing: 8,
-                                childAspectRatio: childAspectRatio,
-                                children: [
-                                  _menuItem(
-                                    "src/features/home/icons/himtika.png",
-                                    "HIMTIKA",
-                                    [
-                                      const Color(0xFF32B7FF),
-                                      const Color(0xFF32B7FF)
-                                    ],
-                                    () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) =>
-                                                const HimtikaScreen()),
-                                      );
-                                    },
-                                  ),
-                                  _menuItem(
-                                    "src/features/home/icons/hicode.svg",
-                                    "HiCode",
-                                    [Color(0xFF333C66), Color(0xFF2D365E)],
-                                    () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) =>
-                                                const HicodeScreen()),
-                                      );
-                                    },
-                                  ),
-                                  _menuItem(
-                                    "src/features/home/icons/hiconnect.svg",
-                                    "HiConnect",
-                                    [const Color(0xFFFFC107), const Color(0xFFFFC107)],
-                                    () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (_) => const ComingsoonScreen()),
-                                      );
-                                    },
-                                  ),
-                                  _menuItem(
-                                    "src/features/home/icons/hiagenda.svg",
-                                    "HiAgenda",
-                                    [
-                                      const Color(0xFFDBF6BF),
-                                      const Color(0xFFDBF6BF)
-                                    ],
-                                    () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                            builder: (_) =>
-                                                const CalendarScreen()),
-                                      );
-                                    },
-                                  ),
-                                  _menuItem(
-                                    "src/features/home/icons/hispace.svg",
-                                    "HiSpace",
-                                    [const Color(0xFF402DAE), const Color(0xFFBD63D1)],
-                                    () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (_) => const ComingsoonScreen()),
-                                      );
-                                    },
-                                  ),
-                                  _menuItem(
-                                    "src/features/home/icons/kontak.svg",
-                                    "HiLecturer",
-                                    [Color(0xFFF4BF75), Color(0xFFF4BF75)],
-                                    () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (_) => const ComingsoonScreen()),
-                                      );
-                                    },
-                                  ),
-                                  _menuItem(
-                                    "src/features/home/icons/event.svg",
-                                    "Event",
-                                    [const Color(0xFF4CAF50), const Color(0xFF4CAF50)],
-                                    () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (_) => const ComingsoonScreen()),
-                                      );
-                                    },
-                                  ),
-                                  _menuItem(
-                                    "src/features/home/icons/more.svg",
-                                    "More",
-                                    [const Color(0xFFF7F7F7), const Color(0xFFF7F7F7)],
-                                    () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(builder: (_) => const ComingsoonScreen()),
-                                      );
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // Divisi
-                        if (state.divisions.isNotEmpty)
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 16),
-                                child: Text(
-                                  "Divisi",
-                                  style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              SizedBox(
-                                height: 100,
-                                child: ListView.builder(
-                                  scrollDirection: Axis.horizontal,
-                                  itemCount: state.divisions.length,
-                                  itemBuilder: (_, index) {
-                                    final division = state.divisions[index];
-                                    return Container(
-                                      width: 200,
-                                      margin: EdgeInsets.only(
-                                          left: index == 0 ? 16 : 8,
-                                          right: index ==
-                                                  state.divisions.length - 1
-                                              ? 16
-                                              : 0),
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(12),
-                                        image: DecorationImage(
-                                          image: NetworkImage(ImageOptimizer.getOptimizedUrl(division.logoUrl, width: 400, quality: 80)),
-                                          fit: BoxFit.contain, // Contain agar logo tidak terpotong
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ],
-                          ),
-                      ],
+                      ),
                     ),
-                  ),
-                ],
-              );
-            },
-          ),
+                  ],
+                ),
+              ],
+            );
+          },
         ),
         bottomNavigationBar: Container(
           decoration: const BoxDecoration(
@@ -420,6 +486,105 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Widget _buildSupportCard(BuildContext context) {
+    return Padding(
+      // Padding horizontal agar sejajar dengan Card menu
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Container(
+        padding: const EdgeInsets.all(20.0),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE6F7E9), // Warna hijau muda
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Kolom Kiri: Teks dan Tombol
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Mengalami Gangguan?",
+                    style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                          fontSize: 22, // Sedikit sesuaikan ukuran
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Tim kami siap membantu anda kapan saja!",
+                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                          color: Colors.black54,
+                          height: 1.5,
+                        ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () async {
+                      const phoneNumber =
+                          "62859121392342"; 
+                      const message =
+                          "Halo, saya mengalami gangguan pada aplikasi HIMTIKA...";
+
+                      final Uri whatsappUrl = Uri.parse(
+                        "https://wa.me/$phoneNumber?text=${Uri.encodeComponent(message)}",
+                      );
+
+                      try {
+                        if (await canLaunchUrl(whatsappUrl)) {
+                          await launchUrl(whatsappUrl,
+                              mode: LaunchMode.externalApplication);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('Tidak dapat membuka WhatsApp.')),
+                          );
+                        }
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Gagal membuka link: $e')),
+                        );
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor:
+                          const Color(0xFF66BB6A), // Warna hijau tombol
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                    ),
+                    child: const Text("Hubungi Kami"),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 16), // Jarak
+
+            // Kolom Kanan: Gambar
+            Image.asset(
+              'src/features/home/icons/mailbox.png',
+              width: 100,
+              height: 100,
+              fit: BoxFit.contain,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+  
   Widget _menuItem(String assetPath, String label, List<Color> gradientColors,
       VoidCallback onTap) {
     return GestureDetector(
