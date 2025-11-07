@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:equatable/equatable.dart';
 import '../../../domain/usecases/resend_signup_otp.dart';
 import '../../../domain/usecases/verify_otp.dart';
@@ -34,8 +35,16 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
       await prefs.remove('verification_email');
       
       emit(OtpVerificationSuccess());
-    } catch (e) {
-      emit(OtpVerificationFailure(e.toString()));
+    } catch (e, stackTrace) { // Tambah stackTrace
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      
+      // 2. Pesan Profesional
+      String message = "Kode OTP salah atau sudah kedaluwarsa.";
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      }
+      emit(OtpVerificationFailure(message));
     }
   }
 
@@ -45,12 +54,20 @@ class OtpBloc extends Bloc<OtpEvent, OtpState> {
   ) async {
     try {
       await _resendSignUpOtp(email: event.email);
-      // Emit state sukses untuk menampilkan notifikasi di UI
       emit(OtpResendSuccess());
-      // Kembali ke state initial agar UI tidak "terjebak" di state resend
       emit(OtpInitial());
-    } catch (e) {
-      emit(OtpVerificationFailure(e.toString()));
+    } catch (e, stackTrace) { // Tambah stackTrace
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+
+      // 2. Pesan Profesional
+      String message = "Gagal mengirim ulang kode. Coba lagi nanti.";
+      if (e.toString().toLowerCase().contains('rate limit')) {
+        message = "Terlalu banyak percobaan. Coba lagi dalam 60 detik.";
+      } else if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      }
+      emit(OtpVerificationFailure(message));
     }
   }
 }

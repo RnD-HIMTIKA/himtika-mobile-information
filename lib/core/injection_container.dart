@@ -58,6 +58,7 @@ import 'package:himtika_mobile_information/features/calendar/domain/usecases/del
 import 'package:himtika_mobile_information/features/calendar/domain/usecases/update_workspace.dart';
 import 'package:himtika_mobile_information/features/calendar/domain/usecases/delete_workspace.dart';
 import 'package:himtika_mobile_information/features/calendar/domain/usecases/invite_user_to_workspace.dart';
+import 'package:himtika_mobile_information/features/calendar/domain/usecases/update_member_role.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/bloc/share_workspace/share_workspace_bloc.dart';
 import 'package:himtika_mobile_information/features/calendar/domain/usecases/get_my_invitations.dart';
 import 'package:himtika_mobile_information/features/calendar/domain/usecases/accept_invitation_by_id.dart';
@@ -149,11 +150,16 @@ import 'package:himtika_mobile_information/features/hicode/domain/usecases/updat
 import 'package:himtika_mobile_information/features/hicode/domain/usecases/get_leaderboard.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/bloc/leaderboard/leaderboard_bloc.dart';
 
+import 'package:himtika_mobile_information/core/blocs/connectivity_bloc.dart';
+
 final GetIt sl = GetIt.instance;
 
 Future<void> initDependencies() async {
   // Supabase client
   sl.registerLazySingleton<SupabaseClient>(() => Supabase.instance.client);
+
+  // --- CORE BLOCS ---
+  sl.registerLazySingleton<ConnectivityBloc>(() => ConnectivityBloc());
 
   // ==================== AUTH FEATURE ====================
   // Datasource
@@ -248,12 +254,15 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => CreateInvitationLink(sl()));
   sl.registerLazySingleton(() => InviteByRole(sl()));
   sl.registerLazySingleton(() => CreateRecurringEvent(sl()));
+  sl.registerLazySingleton(() => UpdateMemberRole(sl()));
   // BLoCs
   sl.registerFactory(() => WorkspaceBloc(
         calendarRepository: sl(),
         createWorkspace: sl(),
         updateWorkspace: sl(),
         deleteWorkspace: sl(),
+        updateMemberRole: sl(),
+        connectivityBloc: sl(),
       ));
   sl.registerFactory(() => EventBloc(
         getEvents: sl(),
@@ -273,6 +282,7 @@ Future<void> initDependencies() async {
         acceptInvitationById: sl(),
         acceptInvitationByToken: sl(),
         declineInvitation: sl(),
+        connectivityBloc: sl(),
       ));
   
 
@@ -421,9 +431,15 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => SubmitQuizAnswers(sl()));
   sl.registerLazySingleton(() => GetLeaderboard(sl()));
   // BLoCs
-  sl.registerFactory(() => HicodeBloc(getMainScreenData: sl()));
+  sl.registerFactory(() => HicodeBloc(
+        getMainScreenData: sl(),
+        connectivityBloc: sl(),
+      ));
   sl.registerFactory(() => MaterialDetailBloc(getChapterListData: sl()));
   sl.registerFactory(() => SubChapterDetailBloc(getChapterContent: sl()));
   sl.registerFactory(() => QuizBloc(getQuestions: sl(), submitQuizAnswers: sl()));
-  sl.registerFactory(() => LeaderboardBloc(getLeaderboard: sl()));
+  sl.registerFactory(() => LeaderboardBloc(
+        getLeaderboard: sl(),
+        connectivityBloc: sl(),
+      ));
 }

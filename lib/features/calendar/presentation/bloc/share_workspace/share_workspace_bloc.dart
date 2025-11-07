@@ -1,3 +1,4 @@
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'dart:async';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
@@ -52,8 +53,15 @@ class ShareWorkspaceBloc extends Bloc<ShareWorkspaceEvent, ShareWorkspaceState> 
     try {
       final users = await _searchUsers(event.query);
       emit(state.copyWith(searchStatus: SearchStatus.loaded, searchResults: users));
-    } catch (e) {
-      emit(state.copyWith(searchStatus: SearchStatus.failure, searchErrorMessage: e.toString()));
+    } catch (e, stackTrace) { // <-- UBAH
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      // 2. Pesan Profesional
+      String message = "Gagal mencari pengguna.";
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      }
+      emit(state.copyWith(searchStatus: SearchStatus.failure, searchErrorMessage: message));
     }
   }
 
@@ -71,13 +79,21 @@ class ShareWorkspaceBloc extends Bloc<ShareWorkspaceEvent, ShareWorkspaceState> 
         role: event.role,
       );
       emit(state.copyWith(shareStatus: ShareStatus.success));
-    } catch (e) {
+    } catch (e, stackTrace) { // <-- UBAH
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      // 2. Pesan Profesional (Use case sudah punya pesan bagus)
+      String message = e.toString().replaceFirst('Exception: ', '');
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      } else if (!message.contains('email tidak valid') && !message.contains('tidak ditemukan') && !message.contains('diri sendiri')) {
+        message = "Gagal mengirim undangan. Coba lagi nanti.";
+      }
       emit(state.copyWith(
         shareStatus: ShareStatus.failure,
-        shareErrorMessage: e.toString().replaceFirst('Exception: ', ''),
+        shareErrorMessage: message, // <-- Pesan profesional
       ));
     }
-    // Kembalikan status ke initial agar loading hilang
     emit(state.copyWith(shareStatus: ShareStatus.initial));
   }
 
@@ -92,10 +108,17 @@ class ShareWorkspaceBloc extends Bloc<ShareWorkspaceEvent, ShareWorkspaceState> 
       final link = 'https://himtika.cs.unsika.ac.id/join-workspace?token=$token';
       await Clipboard.setData(ClipboardData(text: link));
       emit(state.copyWith(shareStatus: ShareStatus.success));
-    } catch (e) {
+    } catch (e, stackTrace) { // <-- UBAH
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      // 2. Pesan Profesional
+      String message = "Gagal membuat link undangan.";
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      }
       emit(state.copyWith(
         shareStatus: ShareStatus.failure,
-        shareErrorMessage: e.toString().replaceFirst('Exception: ', ''),
+        shareErrorMessage: message, // <-- Pesan profesional
       ));
     }
     emit(state.copyWith(shareStatus: ShareStatus.initial));
@@ -120,10 +143,19 @@ class ShareWorkspaceBloc extends Bloc<ShareWorkspaceEvent, ShareWorkspaceState> 
         roleToGrant: event.roleToGrant,
       );
       emit(state.copyWith(shareStatus: ShareStatus.success));
-    } catch (e) {
+    } catch (e, stackTrace) { // <-- UBAH
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      // 2. Pesan Profesional (Use case sudah punya pesan bagus)
+      String message = e.toString().replaceFirst('Exception: ', '');
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      } else if (!message.contains('Kelas') && !message.contains('minimal satu role')) {
+        message = "Gagal membagikan ke role. Coba lagi nanti.";
+      }
       emit(state.copyWith(
         shareStatus: ShareStatus.failure,
-        shareErrorMessage: e.toString().replaceFirst('Exception: ', ''),
+        shareErrorMessage: message, // <-- Pesan profesional
       ));
     }
     emit(state.copyWith(shareStatus: ShareStatus.initial));

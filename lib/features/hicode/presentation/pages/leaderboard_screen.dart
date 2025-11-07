@@ -12,8 +12,7 @@ class LeaderboardScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
       // Perhatikan: Inject GetLeaderboard ke Bloc
-      create: (context) =>
-          LeaderboardBloc(getLeaderboard: sl())..add(FetchLeaderboard()),
+      create: (context) => sl<LeaderboardBloc>()..add(FetchLeaderboard()),
       child: Scaffold(
         backgroundColor: Colors.blue,
         body: SafeArea(

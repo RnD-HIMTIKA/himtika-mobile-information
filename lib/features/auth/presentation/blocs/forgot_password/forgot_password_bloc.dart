@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import '../../../domain/usecases/send_password_reset_otp.dart';
 
 part 'forgot_password_event.dart';
@@ -22,9 +23,17 @@ class ForgotPasswordBloc extends Bloc<ForgotPasswordEvent, ForgotPasswordState> 
     try {
       await _sendPasswordResetOtp(event.email);
       emit(ForgotPasswordSuccess(email: event.email));
-    } catch (e) {
-      // Tangkap semua jenis error dari use case dan tampilkan pesannya
-      emit(ForgotPasswordFailure(e.toString().replaceFirst('Exception: ', '')));
+    } catch (e, stackTrace) { // Tambah stackTrace
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+
+      // 2. Pesan Profesional
+      // Pesan dari use case (Email tidak terdaftar, Akun Google) sudah user-friendly
+      String message = e.toString().replaceFirst('Exception: ', '');
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      }
+      emit(ForgotPasswordFailure(message));
     }
   }
 }

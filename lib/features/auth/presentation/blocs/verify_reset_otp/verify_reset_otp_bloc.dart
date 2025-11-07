@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import '../../../domain/usecases/verify_password_reset_otp.dart';
 
 part 'verify_reset_otp_event.dart';
@@ -20,11 +21,18 @@ class VerifyResetOtpBloc extends Bloc<VerifyResetOtpEvent, VerifyResetOtpState> 
   ) async {
     emit(VerifyResetOtpLoading());
     try {
-      // PERBAIKAN DI SINI: Panggil dengan positional arguments
       await _verifyPasswordResetOtp(event.email, event.token);
       emit(VerifyResetOtpSuccess());
-    } catch (e) {
-      emit(VerifyResetOtpFailure(e.toString().replaceFirst('Exception: ', '')));
+    } catch (e, stackTrace) { // Tambah stackTrace
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+
+      // 2. Pesan Profesional
+      String message = "Kode OTP salah atau sudah kedaluwarsa.";
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      }
+      emit(VerifyResetOtpFailure(message));
     }
   }
 }

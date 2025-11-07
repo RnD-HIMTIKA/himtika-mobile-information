@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:himtika_mobile_information/features/home/presentation/pages/home.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -10,20 +11,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:app_links/app_links.dart';
 import 'core/supabase_config.dart';
-import 'core/injection_container.dart';
+import 'package:himtika_mobile_information/core/blocs/connectivity_bloc.dart';
+import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'features/auth/application/auth_controller.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/adminpanel_bloc.dart';
 import 'package:himtika_mobile_information/features/auth/presentation/blocs/login/login_bloc.dart';
 import 'package:himtika_mobile_information/features/auth/presentation/pages/splash.dart';
 import 'package:himtika_mobile_information/features/auth/presentation/pages/onboarding.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/pages/invitation_handler_page.dart';
-import 'package:flutter_localizations/flutter_localizations.dart'; // Tambahkan ini untuk delegate global
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // inisialisasi Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -32,7 +33,25 @@ void main() async {
   await SupabaseConfig.init();
   await initDependencies();
 
-  runApp(const MyApp());
+  final sentryDsn = dotenv.env['SENTRY_DSN'];
+  
+  if (sentryDsn == null) {
+     print("PERINGATAN: SENTRY_DSN tidak ditemukan di .env. Error tidak akan dilaporkan.");
+     runApp(const MyApp());
+  } else {
+    await SentryFlutter.init(
+      (options) {
+        options.dsn = sentryDsn;
+        options.tracesSampleRate = 1.0;
+      },
+      // --- PERBAIKAN DI SINI ---
+      // 'appRunner' hanya perlu menjalankan 'runApp'.
+      appRunner: () => runApp(
+        const MyApp(), // Hapus SentryAssetBundle dari sini
+      ),
+      // --- AKHIR PERBAIKAN ---
+    );
+  }
 }
 
 class MyApp extends StatefulWidget {
@@ -119,6 +138,9 @@ class _MyAppState extends State<MyApp> {
       providers: [
         BlocProvider(create: (_) => sl<AdminPanelBloc>()),
         BlocProvider(create: (_) => sl<LoginBloc>()),
+        BlocProvider<ConnectivityBloc>(
+          create: (_) => sl<ConnectivityBloc>()..add(StartListening()),
+        ),
       ],
       child: MaterialApp(
         navigatorKey: navigatorKey,

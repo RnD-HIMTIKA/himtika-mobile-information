@@ -1,3 +1,4 @@
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../domain/entities/event.dart';
@@ -52,10 +53,17 @@ class EventBloc extends Bloc<EventEvent, EventState> {
         status: EventStatus.loaded,
         events: events,
       ));
-    } catch (e) {
+    } catch (e, stackTrace) { // <-- UBAH
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      // 2. Pesan Profesional
+      String message = "Gagal memuat jadwal.";
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      }
       emit(state.copyWith(
         status: EventStatus.failure,
-        errorMessage: e.toString(),
+        errorMessage: message, // <-- Pesan profesional
       ));
     }
   }
@@ -84,10 +92,19 @@ class EventBloc extends Bloc<EventEvent, EventState> {
         reminderMinutesBefore: event.reminderMinutesBefore,
       );
       _refreshEvents(event.workspaceId);
-    } catch (e) {
+    } catch (e, stackTrace) { // <-- UBAH
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      // 2. Pesan Profesional
+      String message = e.toString().replaceFirst('Exception: ', '');
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      } else if (!message.contains('Judul event') && !message.contains('Waktu selesai')) {
+        message = "Gagal membuat event. Coba lagi nanti.";
+      }
       emit(state.copyWith(
         status: EventStatus.failure,
-        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+        errorMessage: message, // <-- Pesan profesional
       ));
     }
   }
@@ -108,10 +125,19 @@ class EventBloc extends Bloc<EventEvent, EventState> {
         reminderMinutesBefore: event.reminderMinutesBefore,
       );
       _refreshEvents(event.workspaceId);
-    } catch (e) {
+    } catch (e, stackTrace) { // <-- UBAH
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      // 2. Pesan Profesional
+      String message = e.toString().replaceFirst('Exception: ', '');
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      } else if (!message.contains('Judul event') && !message.contains('Pilih minimal satu hari')) {
+        message = "Gagal membuat event berulang. Coba lagi nanti.";
+      }
       emit(state.copyWith(
         status: EventStatus.failure,
-        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+        errorMessage: message, // <-- Pesan profesional
       ));
     }
   }
@@ -123,10 +149,19 @@ class EventBloc extends Bloc<EventEvent, EventState> {
     try {
       await _updateEvent(event.event);
       _refreshEvents(event.event.workspaceId);
-    } catch (e) {
+    } catch (e, stackTrace) { // <-- UBAH
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      // 2. Pesan Profesional
+      String message = e.toString().replaceFirst('Exception: ', '');
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      } else if (!message.contains('Judul event') && !message.contains('Waktu selesai')) {
+        message = "Gagal memperbarui event. Coba lagi nanti.";
+      }
       emit(state.copyWith(
         status: EventStatus.failure,
-        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+        errorMessage: message, // <-- Pesan profesional
       ));
     }
   }
@@ -138,10 +173,17 @@ class EventBloc extends Bloc<EventEvent, EventState> {
     try {
       await _deleteEvent(event.eventId);
       _refreshEvents(event.workspaceId);
-    } catch (e) {
+    } catch (e, stackTrace) { // <-- UBAH
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      // 2. Pesan Profesional
+      String message = "Gagal menghapus event.";
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      }
       emit(state.copyWith(
         status: EventStatus.failure,
-        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+        errorMessage: message, // <-- Pesan profesional
       ));
     }
   }

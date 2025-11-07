@@ -2,8 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:async';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:himtika_mobile_information/core/helpers/image_optimizer.dart';
 import 'package:himtika_mobile_information/core/injection_container.dart';
+import 'package:himtika_mobile_information/features/calendar/presentation/bloc/invitation/invitation_bloc.dart';
+import 'package:himtika_mobile_information/features/hicode/presentation/bloc/main_screen/main_screen_bloc.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/pages/calendar_screen.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/pages/notification_page.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/main_screen.dart';
@@ -25,6 +29,9 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
+  
+  StreamSubscription<ConnectivityResult>? _connectivitySubscription;
+  bool _isOffline = false; // Status untuk melacak koneksi
 
   void _onBottomNavTapped(int index) {
     if (_selectedIndex == index) return;
@@ -55,6 +62,94 @@ class _HomePageState extends State<HomePage> {
           break;
       }
     });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _initConnectivityListener();
+  }
+
+  void _initConnectivityListener() {
+    // Cek status awal
+    Connectivity().checkConnectivity().then((result) {
+      if (result == ConnectivityResult.none) {
+        _isOffline = true;
+        _showOfflineBanner(); // Tampilkan banner jika pertama buka sudah offline
+      }
+    });
+
+    // Dengarkan perubahan
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+      if (result == ConnectivityResult.none) {
+        // --- JARINGAN HILANG ---
+        _isOffline = true;
+        _showOfflineBanner();
+      } else {
+        // --- JARINGAN KEMBALI ONLINE ---
+        if (_isOffline) {
+          // Hanya refresh jika SEBELUMNYA offline
+          _isOffline = false; 
+          _showOnlineBanner();
+          _refreshAllData(); // Panggil fungsi refresh
+        }
+      }
+    });
+  }
+
+  // --- 5. TAMBAHKAN FUNGSI dispose ---
+  @override
+  void dispose() {
+    _connectivitySubscription?.cancel(); // Hentikan listener
+    super.dispose();
+  }
+  
+  // --- 6. TAMBAHKAN FUNGSI HELPER (Banner & Refresh) ---
+  void _showOfflineBanner() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Koneksi internet terputus.'),
+        backgroundColor: Colors.red,
+        duration: Duration(seconds: 3),
+      ),
+    );
+  }
+
+  void _showOnlineBanner() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Kembali online! Menyegarkan data...'),
+        backgroundColor: Colors.green,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _refreshAllData() {
+    // Memicu refresh BLoC-BLoC utama.
+    // Kita butuh context yang memiliki akses ke BLoC-BLoC ini.
+    // Jika BLoC belum ada (karena lazy), kita perlu memastikan BLoC-nya
+    // disediakan di atas HomePage, atau kita panggil saat BLoC-nya ada.
+    
+    // Cara aman: Gunakan context.read()
+    // Pastikan BLoC sudah di-provide di main.dart atau di atas HomePage
+    
+    // Kita refresh HomeBloc (yang sudah pasti ada)
+    context.read<HomeBloc>().add(LoadHomeData());
+    
+    // Kita juga bisa refresh BLoC lain jika sudah di-inject:
+    // (Jika BLoC ini di-create di halaman lain, panggilannya tidak akan error
+    // tapi tidak akan melakukan apa-apa jika BLoC-nya tidak aktif)
+    
+    // Coba refresh InvitationBloc (untuk notifikasi)
+    if (sl.isRegistered<InvitationBloc>()) {
+       // sl<InvitationBloc>().add(LoadMyInvitations()); 
+       // Lebih aman lagi jika kita tahu BLoC-nya ada di tree:
+       // context.read<InvitationBloc>().add(LoadMyInvitations());
+       // Untuk saat ini, kita fokus refresh halaman yang aktif.
+    }
   }
 
   @override

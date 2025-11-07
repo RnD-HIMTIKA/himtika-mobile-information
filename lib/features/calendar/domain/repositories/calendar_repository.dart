@@ -45,4 +45,9 @@ abstract class CalendarRepository {
     required DateTime untilDate,
     List<int>? reminderMinutesBefore,
   });
+  Future<void> updateMemberRole({
+    required String workspaceId,
+    required String userIdToUpdate,
+    required String newRole,
+  });
 }

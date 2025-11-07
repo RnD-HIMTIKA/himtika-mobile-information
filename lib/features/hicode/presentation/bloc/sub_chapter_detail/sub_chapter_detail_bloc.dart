@@ -1,6 +1,6 @@
+import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-// Ganti import ke path domain
 import 'package:himtika_mobile_information/features/hicode/domain/usecases/get_chapter_content.dart';
 
 part 'sub_chapter_detail_event.dart';
@@ -13,9 +13,7 @@ class SubChapterDetailBloc extends Bloc<SubChapterDetailEvent, SubChapterDetailS
       : _getChapterContent = getChapterContent,
         super(const SubChapterDetailState()) {
     on<FetchSubChapterData>(_onFetchSubChapterData);
-    // --- TAMBAHKAN HANDLER INI ---
     on<QuizManuallyUnlocked>(_onQuizManuallyUnlocked);
-    // --- END TAMBAHAN ---
   }
 
   Future<void> _onFetchSubChapterData(
@@ -37,12 +35,20 @@ class SubChapterDetailBloc extends Bloc<SubChapterDetailEvent, SubChapterDetailS
         isQuizUnlocked: content.isQuizUnlocked,
       ));
 
-    } catch (e) {
-      emit(state.copyWith(status: SubChapterDetailStatus.failure, errorMessage: e.toString()));
+    } catch (e, stackTrace) { // <-- UBAH
+      // 1. Log Licik
+      Sentry.captureException(e, stackTrace: stackTrace);
+      // 2. Pesan Profesional
+      String message = "Gagal memuat materi chapter.";
+      if (e.toString().toLowerCase().contains('socket')) {
+        message = "Koneksi gagal. Periksa internet Anda.";
+      }
+      emit(state.copyWith(
+          status: SubChapterDetailStatus.failure,
+          errorMessage: message)); // <-- Pesan profesional
     }
   }
 
-  // --- TAMBAHKAN HANDLER INI ---
   void _onQuizManuallyUnlocked(
     QuizManuallyUnlocked event,
     Emitter<SubChapterDetailState> emit,
@@ -52,5 +58,4 @@ class SubChapterDetailBloc extends Bloc<SubChapterDetailEvent, SubChapterDetailS
        emit(state.copyWith(isQuizUnlocked: true));
     }
   }
-  // --- END TAMBAHAN ---
 }
