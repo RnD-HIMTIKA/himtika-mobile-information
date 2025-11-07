@@ -65,10 +65,38 @@ class HiCodeManagementRepositoryImpl implements HiCodeManagementRepository {
     );
   }
 
-  // --- Chapter Methods (BARU) ---
+  @override
+  Future<void> updateMaterial({
+    required String id,
+    required String categoryId,
+    required String title,
+    required String description,
+    File? imageFile,
+    required String borderColor,
+  }) async {
+    String? newImageUrl;
+    if (imageFile != null) {
+      newImageUrl = await remoteDatasource.uploadMaterialImage(imageFile: imageFile);
+    }
+    await remoteDatasource.updateMaterial(
+      id: id,
+      categoryId: categoryId,
+      title: title,
+      description: description,
+      imageUrl: newImageUrl,
+      borderColor: borderColor,
+    );
+  }
+
+  @override
+  Future<void> deleteMaterial({required String id}) {
+    return remoteDatasource.deleteMaterial(id: id);
+  }
+
   @override
   Future<List<HiCodeChapter>> getChaptersByMaterial(String materialId) async {
     final data = await remoteDatasource.getChaptersByMaterial(materialId);
+    // Pastikan HiCodeChapterModel.fromMap sudah diupdate
     return data.map((map) => HiCodeChapterModel.fromMap(map)).toList();
   }
 
@@ -76,7 +104,7 @@ class HiCodeManagementRepositoryImpl implements HiCodeManagementRepository {
   Future<void> createChapter({
     required String materialId,
     required String title,
-    required Map<String, dynamic> content,
+    required List<dynamic> content,
     int? estimatedReadTime,
     required int order,
   }) {
@@ -93,7 +121,7 @@ class HiCodeManagementRepositoryImpl implements HiCodeManagementRepository {
   Future<void> updateChapter({
     required String id,
     String? title,
-    Map<String, dynamic>? content,
+    List<dynamic>? content,
     int? estimatedReadTime,
     int? order,
   }) {

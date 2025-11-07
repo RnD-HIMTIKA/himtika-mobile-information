@@ -1,5 +1,4 @@
-import 'package:equatable/equatable.dart';
-import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/question_option_input.dart';
+part of 'question_bank_bloc.dart';
 
 abstract class QuestionBankEvent extends Equatable {
   const QuestionBankEvent();
@@ -7,9 +6,45 @@ abstract class QuestionBankEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+// --- MODIFIKASI EVENT INI ---
+// LoadAdminQuestions sekarang tidak perlu parameter,
+// karena BLoC akan mengambil filter dari state-nya sendiri
 class LoadAdminQuestions extends QuestionBankEvent {
   const LoadAdminQuestions();
 }
+// --- AKHIR MODIFIKASI ---
+
+class FilterChanged extends QuestionBankEvent {
+  final QuestionBankFilter filter;
+  const FilterChanged(this.filter);
+
+  @override
+  List<Object?> get props => [filter];
+}
+
+// --- GANTI RelatedIdFilterChanged DENGAN DUA EVENT INI ---
+
+// Dipanggil saat dropdown "Filter Materi" (Dropdown 1) berubah
+class MaterialFilterChanged extends QuestionBankEvent {
+  final String? materialId; // null jika memilih "Semua Materi"
+  const MaterialFilterChanged(this.materialId);
+
+  @override
+  List<Object?> get props => [materialId];
+}
+
+// Dipanggil saat dropdown "Filter Chapter" (Dropdown 2) berubah
+class ChapterFilterChanged extends QuestionBankEvent {
+  final String? chapterId; // null jika memilih "Semua Chapter"
+  const ChapterFilterChanged(this.chapterId);
+
+  @override
+  List<Object?> get props => [chapterId];
+}
+// --- AKHIR PENGGANTIAN ---
+
+
+// (Sisa event: Add, LoadDropdown, FetchDetails, Edit, Delete tetap sama)
 
 class AddQuestionSubmitted extends QuestionBankEvent {
   final String relatedId;
@@ -43,7 +78,6 @@ class LoadDropdownData extends QuestionBankEvent {
   const LoadDropdownData();
 }
 
-// Event untuk memulai fetch detail soal sebelum edit
 class FetchQuestionDetailsForEdit extends QuestionBankEvent {
   final String questionId;
   const FetchQuestionDetailsForEdit({required this.questionId});
@@ -52,9 +86,8 @@ class FetchQuestionDetailsForEdit extends QuestionBankEvent {
   List<Object?> get props => [questionId];
 }
 
-// --- Tambahkan Event Baru ---
 class EditQuestionSubmitted extends QuestionBankEvent {
-  final String questionId; // ID Soal yang diedit
+  final String questionId;
   final String relatedId;
   final String questionType;
   final String difficulty;
@@ -72,9 +105,9 @@ class EditQuestionSubmitted extends QuestionBankEvent {
     required this.options,
   });
 
-   @override
+  @override
   List<Object?> get props => [
-        questionId, // Tambahkan questionId
+        questionId,
         relatedId,
         questionType,
         difficulty,
@@ -88,6 +121,6 @@ class DeleteQuestionPressed extends QuestionBankEvent {
   final String questionId;
   const DeleteQuestionPressed({required this.questionId});
 
-   @override
+  @override
   List<Object?> get props => [questionId];
 }

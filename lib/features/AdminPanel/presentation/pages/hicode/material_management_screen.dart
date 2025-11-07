@@ -7,6 +7,9 @@ import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/a
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/material_management/material_management_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/domain/entities/hicode_category.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/pages/hicode/chapter_management_screen.dart';
+// Import Supabase client untuk fetch detail
+import 'package:supabase_flutter/supabase_flutter.dart'; 
+
 
 class MaterialManagementScreen extends StatelessWidget {
   const MaterialManagementScreen({super.key});
@@ -54,9 +57,15 @@ class MaterialManagementScreen extends StatelessWidget {
                     return _buildMaterialCard(
                       context,
                       material: material,
-                      onEdit: () => _showModifyMaterialDialog(context, state.categories, material: material),
+                      // --- PERBAIKAN: Kirim data yang ada ke dialog ---
+                      onEdit: () => _showModifyMaterialDialog(
+                        context, 
+                        state.categories, // Kirim daftar kategori
+                        material: material, // Kirim data materi
+                      ),
+                      // --- PERBAIKAN: Panggil dialog hapus ---
                       onDelete: () {
-                        // Logika hapus akan ditambahkan di sini
+                        _showDeleteConfirmationDialog(context, material);
                       },
                     );
                   },
@@ -74,7 +83,8 @@ class MaterialManagementScreen extends StatelessWidget {
           builder: (context) => FloatingActionButton(
             onPressed: () {
               final state = context.read<MaterialManagementBloc>().state;
-              if (state.status == MaterialManagementStatus.success) {
+              // Izinkan tambah jika state success ATAU jika sudah ada data (meski sedang error)
+              if (state.status == MaterialManagementStatus.success || state.materials.isNotEmpty) { 
                 if (state.categories.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Buat kategori terlebih dahulu sebelum menambah materi.'), backgroundColor: Colors.orange),
@@ -107,13 +117,11 @@ class MaterialManagementScreen extends StatelessWidget {
             message: 'Edit Info Materi',
             child: IconButton(icon: Icon(Icons.edit_note, color: Colors.blue.shade700), onPressed: onEdit),
           ),
-          // Tombol Kelola Chapter (Navigasi)
           Tooltip(
-            message: 'Kelola Chapter', // Beri tooltip
+            message: 'Kelola Chapter',
             child: IconButton(
-              icon: Icon(Icons.list_alt, color: Colors.green.shade700), // Ganti ikon
+              icon: Icon(Icons.list_alt, color: Colors.green.shade700),
               onPressed: () {
-                // NAVIGASI KE ChapterManagementScreen
                 Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -126,14 +134,12 @@ class MaterialManagementScreen extends StatelessWidget {
               },
             ),
           ),
-          // Tombol Hapus Materi
           Tooltip(
             message: 'Hapus Materi',
             child: IconButton(icon: Icon(Icons.delete_outline, color: Colors.red.shade700), onPressed: onDelete),
           ),
         ],
       ),
-      // onTap sekarang bisa digunakan untuk navigasi cepat ke chapter management
       onTap: () {
          Navigator.push(
             context,
@@ -161,8 +167,36 @@ class MaterialManagementScreen extends StatelessWidget {
       },
     );
   }
+
+  // --- FUNGSI BARU UNTUK KONFIRMASI HAPUS ---
+  void _showDeleteConfirmationDialog(BuildContext context, AdminHiCodeMaterial material) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Hapus Materi'),
+          content: Text('Anda yakin ingin menghapus materi "${material.title}"? Semua chapter dan soal kuis di dalamnya juga akan terhapus.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              onPressed: () {
+                context.read<MaterialManagementBloc>().add(DeleteMaterialPressed(id: material.id));
+                Navigator.of(dialogContext).pop();
+              },
+              child: const Text('Hapus', style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
+// --- MODIFIKASI BESAR DI _ModifyMaterialDialog ---
 class _ModifyMaterialDialog extends StatefulWidget {
   final AdminHiCodeMaterial? material;
   final List<HiCodeCategory> categories;
@@ -176,10 +210,12 @@ class _ModifyMaterialDialogState extends State<_ModifyMaterialDialog> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _borderColorController = TextEditingController(text: '#');
+  final _borderColorController = TextEditingController();
   String? _selectedCategoryId;
   File? _selectedImageFile;
+  String? _existingImageUrl;
   final ImagePicker _picker = ImagePicker();
+  bool _isLoadingDetails = false; // <-- State loading untuk fetch detail
 
   bool get isEditing => widget.material != null;
 
@@ -187,10 +223,56 @@ class _ModifyMaterialDialogState extends State<_ModifyMaterialDialog> {
   void initState() {
     super.initState();
     if (isEditing) {
-      _titleController.text = widget.material!.title;
-      // Logika pre-fill lain akan ditambahkan di sini nanti
+      // Panggil fungsi fetch detail saat mode edit
+      _fetchMaterialDetailsForEdit();
+    } else {
+      // Set default border color untuk Add
+      _borderColorController.text = '#';
     }
   }
+
+  // --- FUNGSI BARU UNTUK FETCH DETAIL ---
+  Future<void> _fetchMaterialDetailsForEdit() async {
+    if (widget.material == null) return;
+    
+    setState(() => _isLoadingDetails = true); // Tampilkan loading
+    
+    try {
+      final client = sl<SupabaseClient>();
+      // Panggil RPC get_material_details (RPC-59)
+      final data = await client.rpc('get_material_details', params: {
+        'p_material_id': widget.material!.id,
+      });
+
+      if (mounted && data != null) {
+        setState(() {
+          _titleController.text = data['title'] ?? widget.material!.title;
+          _descriptionController.text = data['description'] ?? '';
+          _borderColorController.text = data['border_color'] ?? '#';
+          _selectedCategoryId = data['category_id'];
+          _existingImageUrl = data['image_url'];
+          _isLoadingDetails = false; // Sembunyikan loading
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+         setState(() => _isLoadingDetails = false);
+         // Setidaknya pre-fill nama jika gagal
+         _titleController.text = widget.material!.title;
+         // Cari categoryId berdasarkan nama (fallback)
+         _selectedCategoryId = widget.categories.firstWhere(
+            (c) => c.name == widget.material!.categoryName,
+            orElse: () => const HiCodeCategory(id: '', name: '', iconUrl: '')
+         ).id;
+         
+         ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Gagal memuat detail materi: $e'), backgroundColor: Colors.orange),
+          );
+      }
+    }
+  }
+  // --- AKHIR FUNGSI BARU ---
+
 
   @override
   void dispose() {
@@ -205,20 +287,32 @@ class _ModifyMaterialDialogState extends State<_ModifyMaterialDialog> {
     if (pickedFile != null) {
       setState(() {
         _selectedImageFile = File(pickedFile.path);
+        _existingImageUrl = null;
       });
     }
   }
 
   void _onSavePressed() {
     if (_formKey.currentState!.validate()) {
-      if (_selectedImageFile == null && !isEditing) {
+      if (_selectedImageFile == null && _existingImageUrl == null) { // Validasi gambar (harus ada salah satu)
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Gambar materi wajib diunggah.'), backgroundColor: Colors.orange));
         return;
       }
 
       if (isEditing) {
-        // Logika update akan ditambahkan di sini
+        // --- LOGIKA UPDATE ---
+        context.read<MaterialManagementBloc>().add(
+          UpdateMaterialSubmitted(
+            id: widget.material!.id,
+            categoryId: _selectedCategoryId!,
+            title: _titleController.text,
+            description: _descriptionController.text,
+            imageFile: _selectedImageFile, // Kirim file baru (jika ada)
+            borderColor: _borderColorController.text,
+          ),
+        );
       } else {
+        // --- LOGIKA ADD ---
         context.read<MaterialManagementBloc>().add(
           AddMaterialSubmitted(
             categoryId: _selectedCategoryId!,
@@ -235,6 +329,23 @@ class _ModifyMaterialDialogState extends State<_ModifyMaterialDialog> {
 
   @override
   Widget build(BuildContext context) {
+    // Tampilkan loading jika sedang fetch detail
+    if (_isLoadingDetails) {
+       return const Dialog(
+         child: Padding(
+           padding: EdgeInsets.all(32.0),
+           child: Row(
+             mainAxisSize: MainAxisSize.min,
+             children: [
+               CircularProgressIndicator(),
+               SizedBox(width: 20),
+               Text("Memuat Detail..."),
+             ],
+           ),
+         ),
+       );
+    }
+    
     return AlertDialog(
       title: Text(isEditing ? 'Edit Materi' : 'Tambah Materi Baru'),
       content: Form(
@@ -290,16 +401,22 @@ class _ModifyMaterialDialogState extends State<_ModifyMaterialDialog> {
               Container(
                 height: 150,
                 width: double.infinity,
-                decoration: BoxDecoration(border: Border.all(color: Colors.grey)),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey),
+                  color: Colors.grey[200]
+                ),
                 child: _selectedImageFile != null
                     ? Image.file(_selectedImageFile!, fit: BoxFit.cover)
-                    : const Center(child: Text('Pilih Gambar')),
+                    : (_existingImageUrl != null && _existingImageUrl!.isNotEmpty) // <-- Cek jika URL lama ada
+                        ? Image.network(_existingImageUrl!, fit: BoxFit.cover,
+                            errorBuilder: (c,e,s) => const Icon(Icons.broken_image, color: Colors.grey))
+                        : const Center(child: Text('Pilih Gambar')),
               ),
               const SizedBox(height: 8),
               ElevatedButton.icon(
                 onPressed: _pickImage,
                 icon: const Icon(Icons.upload_file),
-                label: const Text('Pilih Gambar'),
+                label: Text(isEditing ? 'Ganti Gambar' : 'Pilih Gambar'),
               ),
             ],
           ),

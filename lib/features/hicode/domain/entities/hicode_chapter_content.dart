@@ -4,7 +4,7 @@ class HiCodeChapterContent extends Equatable {
   final String title;
   final String readTime;
   final String quizCount;
-  final List<Map<String, dynamic>> contentBlocks;
+  final List<dynamic> contentBlocks;
   final double lastScrollPosition;
   final bool isQuizUnlocked;
 

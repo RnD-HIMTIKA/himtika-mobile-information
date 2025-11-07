@@ -4,7 +4,6 @@ import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/adminpanel_bloc.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/adminpanel_state.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/pages/dashboard.dart';
-import 'package:himtika_mobile_information/features/AdminPanel/presentation/pages/hicode.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/pages/kontakdosen.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/pages/roles.dart';
 import 'package:himtika_mobile_information/features/auth/application/auth_controller.dart';

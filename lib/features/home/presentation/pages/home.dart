@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:himtika_mobile_information/core/helpers/image_optimizer.dart';
 import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/pages/calendar_screen.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/pages/notification_page.dart';
@@ -180,7 +181,7 @@ class _HomePageState extends State<HomePage> {
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(12),
                                         image: DecorationImage(
-                                          image: NetworkImage(banner.imageUrl),
+                                          image: NetworkImage(ImageOptimizer.getOptimizedUrl(banner.imageUrl, width: 600, quality: 80)),
                                           fit: BoxFit.cover,
                                         ),
                                       ),
@@ -243,16 +244,11 @@ class _HomePageState extends State<HomePage> {
                                   _menuItem(
                                     "src/features/home/icons/hiconnect.svg",
                                     "HiConnect",
-                                    [
-                                      const Color(0xFFFFC107),
-                                      const Color(0xFFFFC107)
-                                    ],
+                                    [const Color(0xFFFFC107), const Color(0xFFFFC107)],
                                     () {
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(
-                                            builder: (_) =>
-                                                const UnderMaintenanceScreen()),
+                                        MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
                                       );
                                     },
                                   ),
@@ -275,16 +271,11 @@ class _HomePageState extends State<HomePage> {
                                   _menuItem(
                                     "src/features/home/icons/hispace.svg",
                                     "HiSpace",
-                                    [
-                                      const Color(0xFF402DAE),
-                                      const Color(0xFFBD63D1)
-                                    ],
+                                    [const Color(0xFF402DAE), const Color(0xFFBD63D1)],
                                     () {
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(
-                                            builder: (_) =>
-                                                const UnderMaintenanceScreen()),
+                                        MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
                                       );
                                     },
                                   ),
@@ -295,41 +286,29 @@ class _HomePageState extends State<HomePage> {
                                     () {
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(
-                                            builder: (_) =>
-                                                const UnderMaintenanceScreen()),
+                                        MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
                                       );
                                     },
                                   ),
                                   _menuItem(
                                     "src/features/home/icons/event.svg",
                                     "Event",
-                                    [
-                                      const Color(0xFF4CAF50),
-                                      const Color(0xFF4CAF50)
-                                    ],
+                                    [const Color(0xFF4CAF50), const Color(0xFF4CAF50)],
                                     () {
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(
-                                            builder: (_) =>
-                                                const UnderMaintenanceScreen()),
+                                        MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
                                       );
                                     },
                                   ),
                                   _menuItem(
                                     "src/features/home/icons/more.svg",
                                     "More",
-                                    [
-                                      const Color(0xFFF7F7F7),
-                                      const Color(0xFFF7F7F7)
-                                    ],
+                                    [const Color(0xFFF7F7F7), const Color(0xFFF7F7F7)],
                                     () {
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(
-                                            builder: (_) =>
-                                                const UnderMaintenanceScreen()),
+                                        MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
                                       );
                                     },
                                   ),
@@ -374,9 +353,8 @@ class _HomePageState extends State<HomePage> {
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(12),
                                         image: DecorationImage(
-                                          image: NetworkImage(division.logoUrl),
-                                          fit: BoxFit
-                                              .contain, // Contain agar logo tidak terpotong
+                                          image: NetworkImage(ImageOptimizer.getOptimizedUrl(division.logoUrl, width: 400, quality: 80)),
+                                          fit: BoxFit.contain, // Contain agar logo tidak terpotong
                                         ),
                                       ),
                                     );

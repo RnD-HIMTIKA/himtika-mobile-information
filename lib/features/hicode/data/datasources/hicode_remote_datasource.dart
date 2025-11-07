@@ -1,6 +1,4 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-// Tambahkan import ini jika belum ada
-import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:himtika_mobile_information/features/auth/domain/usecases/get_current_user.dart';
 
 abstract class HiCodeRemoteDatasource {

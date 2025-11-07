@@ -8,10 +8,9 @@ import 'package:path/path.dart' as p;
 import 'package:himtika_mobile_information/core/theme/app_colors.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/question_option_input.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/question_bank/question_bank_bloc.dart';
-import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/question_bank/question_bank_event.dart';
-import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/question_bank/question_bank_state.dart';
 import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/upload_hicode_image.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_chapter_map_entry.dart';
 
 class AddQuestionDialog extends StatefulWidget {
   const AddQuestionDialog({super.key});
@@ -30,7 +29,7 @@ class _AddQuestionDialogState extends State<AddQuestionDialog> {
   String? _selectedRelatedId; // ID Chapter atau Materi
 
   // State untuk opsi dinamis
-  List<TextEditingController> _optionControllers = [
+  final List<TextEditingController> _optionControllers = [
     TextEditingController(),
     TextEditingController()
   ];
@@ -98,6 +97,16 @@ class _AddQuestionDialogState extends State<AddQuestionDialog> {
     final XFile? pickedFile =
         await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
+      final fileSize = await pickedFile.length();
+      const maxSizeInBytes = 5 * 1024 * 1024; // 5 MB
+      if (fileSize > maxSizeInBytes) {
+        if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Gagal: Ukuran gambar melebihi 5 MB.'), backgroundColor: Colors.red),
+            );
+        }
+        return; // Hentikan fungsi jika file terlalu besar
+      }
       File? compressedFile = await compressImage(pickedFile);
       if (compressedFile != null) {
         setState(() {
@@ -112,10 +121,11 @@ class _AddQuestionDialogState extends State<AddQuestionDialog> {
           }
         });
       } else {
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
               content: Text('Gagal mengompres gambar.'),
               backgroundColor: Colors.orange));
+        }
       }
     }
   }
@@ -203,7 +213,7 @@ class _AddQuestionDialogState extends State<AddQuestionDialog> {
       final uploadUseCase = sl<UploadHicodeImage>(); // Dapatkan use case upload
 
       // 2. Upload/Persiapkan URL Gambar Soal
-      String? finalQuestionImageUrl = null; // Add dialog starts with null
+      String? finalQuestionImageUrl; // Add dialog starts with null
       if (_questionImageFile != null) {
         print("Uploading question image...");
         finalQuestionImageUrl = await uploadUseCase(_questionImageFile!, 'soal');
@@ -214,7 +224,7 @@ class _AddQuestionDialogState extends State<AddQuestionDialog> {
       // 3. Upload/Persiapkan URL Gambar Opsi & Buat List Opsi Final
       final List<QuestionOptionInput> finalOptions = [];
     for (int i = 0; i < _optionControllers.length; i++) {
-      String? finalOptionImageUrl = null; // Add dialog starts with null
+      String? finalOptionImageUrl; // Add dialog starts with null
       if (_optionImageFiles.containsKey(i) && _optionImageFiles[i] != null) {
         print("Uploading option image for index $i...");
         finalOptionImageUrl = await uploadUseCase(_optionImageFiles[i]!, 'opsi');
@@ -266,7 +276,7 @@ class _AddQuestionDialogState extends State<AddQuestionDialog> {
   @override
   Widget build(BuildContext context) {
     final state = context.watch<QuestionBankBloc>().state;
-    final chaptersMap = state.chaptersMap;
+    final Map<String, AdminChapterMapEntry> chaptersMap = state.chaptersMap;
     final materialsMap = state.materialsMap;
 
     return AlertDialog(
@@ -275,7 +285,7 @@ class _AddQuestionDialogState extends State<AddQuestionDialog> {
       contentPadding:
           const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0), // Atur padding
       // Bungkus content dengan Container yang diberi lebar
-      content: Container(
+      content: SizedBox(
         // Beri lebar agar tidak infinite, misal 90% lebar layar
         width: MediaQuery.of(context).size.width * 0.9,
         // HAPUS scrollable: true dari AlertDialog
@@ -321,8 +331,8 @@ class _AddQuestionDialogState extends State<AddQuestionDialog> {
                         ]
                       : chaptersMap.entries
                           .map((entry) => DropdownMenuItem(
-                              value: entry.key,
-                              child: Text(entry.value,
+                              value: entry.key, // <-- key adalah ID Chapter
+                              child: Text(entry.value.title, // <-- value.title adalah Teks
                                   overflow: TextOverflow.ellipsis)))
                           .toList(),
                   onChanged: chaptersMap.isEmpty

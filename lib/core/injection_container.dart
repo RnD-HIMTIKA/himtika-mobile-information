@@ -108,6 +108,8 @@ import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/h
 // Import untuk HiCode Management Materi
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/get_admin_hicode_materials.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/create_hicode_material.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/delete_hicode_material.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/update_hicode_material.dart';
 // IMPORT USE CASES UNTUK CHAPTER MANAGEMENT:
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/get_chapters_by_material.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/create_hicode_chapter.dart';
@@ -345,7 +347,8 @@ Future<void> initDependencies() async {
   // Usecases (Material)
   sl.registerLazySingleton(() => GetAdminHiCodeMaterials(sl()));
   sl.registerLazySingleton(() => CreateHiCodeMaterial(sl()));
-  
+  sl.registerLazySingleton(() => DeleteHiCodeMaterial(sl()));
+  sl.registerLazySingleton(() => UpdateHiCodeMaterial(sl()));
 
   // Usecases (Chapter)
   sl.registerLazySingleton(() => GetChaptersByMaterial(sl()));
@@ -379,6 +382,8 @@ Future<void> initDependencies() async {
         getAdminHiCodeMaterials: sl(),
         createHiCodeMaterial: sl(),
         getHiCodeCategories: sl(),
+        deleteHiCodeMaterial: sl(),
+        updateHiCodeMaterial: sl(),
       ));
 
   // --- TAMBAHKAN REGISTRASI BLOC CHAPTER DI SINI ---

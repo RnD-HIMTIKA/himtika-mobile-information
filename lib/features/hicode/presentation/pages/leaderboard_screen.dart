@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/bloc/leaderboard/leaderboard_bloc.dart';
 import '../../domain/entities/leaderboard_entry.dart';
 import 'package:himtika_mobile_information/core/injection_container.dart';
+import 'package:himtika_mobile_information/core/helpers/image_optimizer.dart';
+
 
 class LeaderboardScreen extends StatelessWidget {
   const LeaderboardScreen({super.key});
@@ -334,13 +336,13 @@ class _PodiumPlace extends StatelessWidget {
               CircleAvatar(
                 radius: 30,
                 backgroundImage: (hasUser && user!.profileUrl != null && user!.profileUrl!.isNotEmpty)
-                  ? NetworkImage(user!.profileUrl!)
+                  ? NetworkImage(ImageOptimizer.getOptimizedUrl(user!.profileUrl, width: 120, quality: 75))
                   : null,
+                backgroundColor: Colors.white.withOpacity(0.2),
                 // Tampilkan ikon placeholder jika tidak ada user atau tidak ada gambar
                 child: (!hasUser || user!.profileUrl == null || user!.profileUrl!.isEmpty)
                   ? Icon(Icons.person, size: 30, color: Colors.white.withOpacity(0.5)) // Ikon placeholder abu-abu
-                  : null,
-                backgroundColor: Colors.white.withOpacity(0.2), // Background fallback
+                  : null, // Background fallback
               ),
                // Tampilkan mahkota hanya jika ada user
                if (hasUser)
@@ -424,12 +426,12 @@ class _UserListTile extends StatelessWidget {
           const SizedBox(width: 16),
           CircleAvatar(
              backgroundImage: (user.profileUrl != null && user.profileUrl!.isNotEmpty)
-               ? NetworkImage(user.profileUrl!)
+               ? NetworkImage(ImageOptimizer.getOptimizedUrl(user.profileUrl, width: 100, quality: 75))
                : null,
+             backgroundColor: Colors.grey.shade400,
              child: (user.profileUrl == null || user.profileUrl!.isEmpty)
                ? Icon(Icons.person, size: 20, color: Colors.white.withOpacity(0.7)) // Ikon default
-               : null,
-             backgroundColor: Colors.grey.shade400, // Background default
+               : null, // Background default
           ),
           const SizedBox(width: 16),
           Expanded(

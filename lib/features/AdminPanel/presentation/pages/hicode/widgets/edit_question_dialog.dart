@@ -10,11 +10,10 @@ import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_question.dart'; // <-- Import AdminQuestion
 import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/question_option_input.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/question_bank/question_bank_bloc.dart';
-import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/question_bank/question_bank_event.dart';
-import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/question_bank/question_bank_state.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_question_detail.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_option_detail.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/upload_hicode_image.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/admin_chapter_map_entry.dart'; // Pastikan ini diimpor
 
 class EditQuestionDialog extends StatefulWidget {
   final AdminQuestionDetail questionDetail;
@@ -98,6 +97,16 @@ class _EditQuestionDialogState extends State<EditQuestionDialog> {
     final XFile? pickedFile =
         await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
+      final fileSize = await pickedFile.length();
+      const maxSizeInBytes = 5 * 1024 * 1024; // 5 MB
+      if (fileSize > maxSizeInBytes) {
+        if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Gagal: Ukuran gambar melebihi 5 MB.'), backgroundColor: Colors.red),
+            );
+        }
+        return; // Hentikan fungsi jika file terlalu besar
+      }
       File? compressedFile = await compressImage(pickedFile);
       if (compressedFile != null) {
         setState(() {
@@ -112,10 +121,11 @@ class _EditQuestionDialogState extends State<EditQuestionDialog> {
           }
         });
       } else {
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
               content: Text('Gagal mengompres gambar.'),
               backgroundColor: Colors.orange));
+        }
       }
     }
   }
@@ -278,30 +288,18 @@ class _EditQuestionDialogState extends State<EditQuestionDialog> {
 
       // 5. Kirim Event BLoC (Add atau Edit)
       final bloc = context.read<QuestionBankBloc>();
-      if (widget is EditQuestionDialog) {
-        final questionId = (widget as EditQuestionDialog).questionDetail.id;
-        print("Dispatching EditQuestionSubmitted for ID: $questionId");
-        bloc.add(EditQuestionSubmitted(
-          questionId: questionId,
-          relatedId: finalRelatedId,
-          questionType: _selectedQuestionType!,
-          difficulty: _selectedDifficulty!,
-          questionText: _questionTextController.text.trim(),
-          imageUrl: finalQuestionImageUrl,
-          options: finalOptions,
-        ));
-      } else {
-        print("Dispatching AddQuestionSubmitted");
-        bloc.add(AddQuestionSubmitted(
-          relatedId: finalRelatedId,
-          questionType: _selectedQuestionType!,
-          difficulty: _selectedDifficulty!,
-          questionText: _questionTextController.text.trim(),
-          imageUrl: finalQuestionImageUrl,
-          options: finalOptions,
-        ));
-      }
-
+      final questionId = (widget as EditQuestionDialog).questionDetail.id;
+      print("Dispatching EditQuestionSubmitted for ID: $questionId");
+      bloc.add(EditQuestionSubmitted(
+        questionId: questionId,
+        relatedId: finalRelatedId,
+        questionType: _selectedQuestionType!,
+        difficulty: _selectedDifficulty!,
+        questionText: _questionTextController.text.trim(),
+        imageUrl: finalQuestionImageUrl,
+        options: finalOptions,
+      ));
+    
       if (mounted) Navigator.of(context).pop(); // Tutup dialog jika berhasil
     } catch (e) {
       // Tangani error upload/submit
@@ -324,13 +322,13 @@ class _EditQuestionDialogState extends State<EditQuestionDialog> {
   Widget build(BuildContext context) {
     // Ambil state BLoC untuk mendapatkan map chapter & materi
     final state = context.watch<QuestionBankBloc>().state;
-    final chaptersMap = state.chaptersMap;
+    final Map<String, AdminChapterMapEntry> chaptersMap = state.chaptersMap;
     final materialsMap = state.materialsMap;
 
     return AlertDialog(
       title: const Text('Edit Soal'), // Judul dialog Edit
       contentPadding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
-      content: Container(
+      content: SizedBox(
         // Beri lebar agar dialog tidak terlalu sempit
         width: MediaQuery.of(context).size.width * 0.9,
         child: Form(
@@ -376,8 +374,8 @@ class _EditQuestionDialogState extends State<EditQuestionDialog> {
                         ]
                       : chaptersMap.entries
                           .map((entry) => DropdownMenuItem(
-                              value: entry.key,
-                              child: Text(entry.value,
+                              value: entry.key, // <-- key adalah ID Chapter
+                              child: Text(entry.value.title, // <-- value.title adalah Teks
                                   overflow: TextOverflow.ellipsis)))
                           .toList(),
                   onChanged: chaptersMap.isEmpty

@@ -5,33 +5,43 @@ import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/a
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/create_hicode_material.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/get_admin_hicode_materials.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/get_hicode_categories.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/delete_hicode_material.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/update_hicode_material.dart';
 import 'package:himtika_mobile_information/features/hicode/domain/entities/hicode_category.dart';
 
 part 'material_management_event.dart';
 part 'material_management_state.dart';
 
-class MaterialManagementBloc extends Bloc<MaterialManagementEvent, MaterialManagementState> {
+class MaterialManagementBloc
+    extends Bloc<MaterialManagementEvent, MaterialManagementState> {
   final GetAdminHiCodeMaterials _getAdminHiCodeMaterials;
   final CreateHiCodeMaterial _createHiCodeMaterial;
-  final GetHiCodeCategories _getHiCodeCategories; // <-- TAMBAHKAN DEPENDENSI
+  final GetHiCodeCategories _getHiCodeCategories;
+  final DeleteHiCodeMaterial _deleteHiCodeMaterial;
+  final UpdateHiCodeMaterial _updateHiCodeMaterial;
 
   MaterialManagementBloc({
     required GetAdminHiCodeMaterials getAdminHiCodeMaterials,
     required CreateHiCodeMaterial createHiCodeMaterial,
-    required GetHiCodeCategories getHiCodeCategories, // <-- TAMBAHKAN DEPENDENSI
+    required GetHiCodeCategories getHiCodeCategories,
+    required DeleteHiCodeMaterial deleteHiCodeMaterial,
+    required UpdateHiCodeMaterial updateHiCodeMaterial,
   })  : _getAdminHiCodeMaterials = getAdminHiCodeMaterials,
         _createHiCodeMaterial = createHiCodeMaterial,
-        _getHiCodeCategories = getHiCodeCategories, // <-- TAMBAHKAN DEPENDENSI
+        _getHiCodeCategories = getHiCodeCategories,
+        _deleteHiCodeMaterial = deleteHiCodeMaterial,
+        _updateHiCodeMaterial = updateHiCodeMaterial,
         super(const MaterialManagementState()) {
     on<LoadAdminMaterials>(_onLoadAdminMaterials);
     on<AddMaterialSubmitted>(_onAddMaterial);
+    on<DeleteMaterialPressed>(_onDeleteMaterial);
+    on<UpdateMaterialSubmitted>(_onUpdateMaterial);
   }
 
   Future<void> _onLoadAdminMaterials(
       LoadAdminMaterials event, Emitter<MaterialManagementState> emit) async {
     emit(state.copyWith(status: MaterialManagementStatus.loading));
     try {
-      // Ambil kedua data secara paralel
       final materialsFuture = _getAdminHiCodeMaterials();
       final categoriesFuture = _getHiCodeCategories();
 
@@ -46,7 +56,8 @@ class MaterialManagementBloc extends Bloc<MaterialManagementEvent, MaterialManag
         categories: categories,
       ));
     } catch (e) {
-      emit(state.copyWith(status: MaterialManagementStatus.failure, errorMessage: e.toString()));
+      emit(state.copyWith(
+          status: MaterialManagementStatus.failure, errorMessage: e.toString()));
     }
   }
 
@@ -63,7 +74,50 @@ class MaterialManagementBloc extends Bloc<MaterialManagementEvent, MaterialManag
       );
       add(LoadAdminMaterials()); // Muat ulang daftar setelah berhasil
     } catch (e) {
-      emit(state.copyWith(status: MaterialManagementStatus.failure, errorMessage: e.toString().replaceFirst('Exception: ', '')));
+      emit(state.copyWith(
+          status: MaterialManagementStatus.failure,
+          errorMessage: e.toString().replaceFirst('Exception: ', '')));
+      // Kembali ke success agar UI tidak stuck di loading
+      emit(state.copyWith(status: MaterialManagementStatus.success));
+    }
+  }
+
+  // --- HANDLER BARU UNTUK DELETE ---
+  Future<void> _onDeleteMaterial(
+      DeleteMaterialPressed event, Emitter<MaterialManagementState> emit) async {
+    emit(state.copyWith(status: MaterialManagementStatus.loading));
+    try {
+      await _deleteHiCodeMaterial(id: event.id);
+      add(LoadAdminMaterials()); 
+    } catch (e) {
+      emit(state.copyWith(
+        status: MaterialManagementStatus.failure,
+        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+      ));
+      emit(state.copyWith(status: MaterialManagementStatus.success));
+    }
+  }
+
+  // --- HANDLER BARU UNTUK UPDATE ---
+  Future<void> _onUpdateMaterial(
+      UpdateMaterialSubmitted event, Emitter<MaterialManagementState> emit) async {
+    emit(state.copyWith(status: MaterialManagementStatus.loading));
+    try {
+      await _updateHiCodeMaterial(
+        id: event.id,
+        categoryId: event.categoryId,
+        title: event.title,
+        description: event.description,
+        imageFile: event.imageFile,
+        borderColor: event.borderColor,
+      );
+      add(LoadAdminMaterials()); 
+    } catch (e) {
+      emit(state.copyWith(
+        status: MaterialManagementStatus.failure,
+        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+      ));
+      emit(state.copyWith(status: MaterialManagementStatus.success));
     }
   }
 }

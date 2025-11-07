@@ -8,7 +8,7 @@ class CreateHiCodeChapter {
   Future<void> call({
     required String materialId,
     required String title,
-    required Map<String, dynamic> content,
+    required List<dynamic> content,
     int? estimatedReadTime,
     required int order,
   }) {

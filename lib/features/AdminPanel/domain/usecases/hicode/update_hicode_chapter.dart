@@ -8,7 +8,7 @@ class UpdateHiCodeChapter {
   Future<void> call({
     required String id,
     String? title,
-    Map<String, dynamic>? content,
+    List<dynamic>? content,
     int? estimatedReadTime,
     int? order,
   }) {

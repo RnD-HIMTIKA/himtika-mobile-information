@@ -5,7 +5,9 @@ class GetAdminQuestions {
   final QuestionBankRepository repository;
   GetAdminQuestions(this.repository);
 
-  Future<List<AdminQuestion>> call({int limit = 50, int offset = 0}) {
-    return repository.getAdminQuestions(limit: limit, offset: offset);
+  Future<List<AdminQuestion>> call(
+      {int limit = 50, int offset = 0, String? questionType, String? relatedId}) { // <-- TAMBAHKAN
+    return repository.getAdminQuestions(
+        limit: limit, offset: offset, questionType: questionType, relatedId: relatedId); // <-- TAMBAHKAN
   }
 }

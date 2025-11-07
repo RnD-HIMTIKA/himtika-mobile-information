@@ -6,11 +6,13 @@ import '../bloc/final_practice_detail/final_practice_detail_bloc.dart';
 class FinalExamDetailScreen extends StatelessWidget {
   final String materialName;
   final String materialId;
+  final int questionCount;
 
   const FinalExamDetailScreen({
     super.key, 
     required this.materialName,
     required this.materialId,
+    required this.questionCount,
   });
 
   @override
@@ -95,7 +97,7 @@ class FinalExamDetailScreen extends StatelessWidget {
                           _buildInfoRow('src/features/hicode/images/timer.png', // Sesuaikan path aset Anda
                               'Tanpa batas waktu pengerjaan'),
                           _buildInfoRow('src/features/hicode/images/document.png', // Sesuaikan path aset Anda
-                              '10 Soal Pilihan Ganda'),
+                              '$questionCount Soal Pilihan Ganda'),
                           _buildInfoRow('src/features/hicode/images/badge.png', // Sesuaikan path aset Anda
                               'Minimal 6 jawaban benar untuk lulus'),
                           const SizedBox(height: 24),

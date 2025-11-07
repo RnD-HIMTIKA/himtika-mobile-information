@@ -19,21 +19,29 @@ abstract class HiCodeManagementRemoteDatasource {
     required String imageUrl,
     required String borderColor,
   });
+  Future<void> updateMaterial({
+    required String id,
+    required String categoryId,
+    required String title,
+    required String description,
+    String? imageUrl, // Opsional
+    required String borderColor,
+  });
+  Future<void> deleteMaterial({required String id});
   Future<String> uploadMaterialImage({required File imageFile});
-
   // Operasi CRUD Chapter (BARU)
   Future<List<Map<String, dynamic>>> getChaptersByMaterial(String materialId);
   Future<void> createChapter({
     required String materialId,
     required String title,
-    required Map<String, dynamic> content,
+    required List<dynamic> content,
     int? estimatedReadTime,
     required int order,
   });
   Future<void> updateChapter({
     required String id,
     String? title,
-    Map<String, dynamic>? content,
+    List<dynamic>? content,
     int? estimatedReadTime,
     int? order,
   });
@@ -119,6 +127,31 @@ class HiCodeManagementRemoteDatasourceImpl implements HiCodeManagementRemoteData
     }
   }
 
+  @override
+  Future<void> updateMaterial({
+    required String id,
+    required String categoryId,
+    required String title,
+    required String description,
+    String? imageUrl, // Opsional
+    required String borderColor,
+  }) async {
+    await client.rpc('update_hicode_material', params: {
+      'p_id': id,
+      'p_category_id': categoryId,
+      'p_title': title,
+      'p_description': description,
+      'p_image_url': imageUrl, // RPC-55
+      'p_border_color': borderColor,
+    });
+  }
+  
+  @override
+  Future<void> deleteMaterial({required String id}) async {
+    // Memanggil RPC yang sudah ada
+    await client.rpc('delete_hicode_material', params: {'p_id': id});
+  }
+
   // --- Chapter Implementations (BARU) ---
   @override
   Future<List<Map<String, dynamic>>> getChaptersByMaterial(String materialId) async {
@@ -134,7 +167,7 @@ class HiCodeManagementRemoteDatasourceImpl implements HiCodeManagementRemoteData
   Future<void> createChapter({
     required String materialId,
     required String title,
-    required Map<String, dynamic> content,
+    required List<dynamic> content,
     int? estimatedReadTime,
     required int order,
   }) async {
@@ -151,16 +184,17 @@ class HiCodeManagementRemoteDatasourceImpl implements HiCodeManagementRemoteData
   Future<void> updateChapter({
     required String id,
     String? title,
-    Map<String, dynamic>? content,
+    List<dynamic>? content,
     int? estimatedReadTime,
     int? order,
   }) async {
     final updates = <String, dynamic>{};
     if (title != null) updates['title'] = title;
-    if (content != null) updates['content'] = content;
+    // Kirim List<dynamic>? langsung sebagai nilai 'content' (jsonb)
+    if (content != null) updates['content'] = content; // <-- Kirim List<dynamic>?
     if (estimatedReadTime != null) updates['estimated_read_time'] = estimatedReadTime;
     if (order != null) updates['order'] = order;
-    
+
     if (updates.isNotEmpty) {
       await client.from('hicode_chapters').update(updates).eq('id', id);
     }

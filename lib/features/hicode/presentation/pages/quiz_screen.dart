@@ -6,6 +6,59 @@ import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/bloc/quiz/quiz_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/score_screen.dart';
 import 'package:himtika_mobile_information/core/theme/app_colors.dart';
+import 'package:himtika_mobile_information/core/helpers/image_optimizer.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:no_screenshot/no_screenshot.dart';
+import 'dart:io' show Platform;
+
+void _showZoomableImage(BuildContext context, String imageUrl) {
+  // Ambil URL versi resolusi tinggi untuk zooming
+  final zoomableUrl = ImageOptimizer.getOptimizedUrl(imageUrl, width: 1200, quality: 90);
+
+  showDialog(
+    context: context,
+    barrierColor: Colors.black.withOpacity(0.8),
+    builder: (ctx) {
+      return Dialog(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        insetPadding: const EdgeInsets.all(16),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            InteractiveViewer(
+              panEnabled: true,
+              minScale: 1.0,
+              maxScale: 4.0,
+              child: Image.network(
+                zoomableUrl,
+                loadingBuilder: (context, child, progress) {
+                  if (progress == null) return child;
+                  return const Center(child: CircularProgressIndicator(color: Colors.white));
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return const Center(child: Icon(Icons.broken_image, color: Colors.grey, size: 50));
+                },
+              ),
+            ),
+            Positioned(
+              top: 0,
+              right: 0,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                onPressed: () => Navigator.of(ctx).pop(),
+                style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all(Colors.black.withOpacity(0.5))
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
 
 class QuizScreen extends StatelessWidget {
   final String quizId;
@@ -28,14 +81,25 @@ class QuizScreen extends StatelessWidget {
             _showResultDialog(context, state, quizId, chapterTitle); // Kirim context QuizScreen
           }
           else if (state.status == QuizStatus.failure && state.error != null) {
-             // Penanganan error submit (jika perlu)
+             // --- LOGIKA UNTUK ME-RESET FLAG ---
+             
+             // 1. Tampilkan SnackBar
              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (context.mounted) { // Cek mounted sebelum panggil ScaffoldMessenger
+                if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Gagal submit: ${state.error}'), backgroundColor: Colors.red),
                   );
                 }
              });
+             
+             // 2. Cari State dari _FinalExamView (jika ada) dan reset flag-nya
+             final examViewState = context.findAncestorStateOfType<__FinalExamViewState>();
+             if (examViewState != null && examViewState.mounted) {
+                examViewState.setState(() {
+                  examViewState._isSubmitted = false;
+                });
+             }
+             // --- AKHIR LOGIKA RESET ---
           }
         },
         child: Scaffold(
@@ -332,18 +396,23 @@ class _QuizView extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.only(bottom: 16.0),
                       child: Center( // Pusatkan gambar
-                        child: Image.network(
-                          currentQuestion.imageUrl!,
-                          // Atur tinggi maksimum agar tidak terlalu besar
-                          height: MediaQuery.of(context).size.height * 0.25,
-                          fit: BoxFit.contain,
-                          loadingBuilder: (context, child, progress) {
-                            if (progress == null) return child;
-                            return const SizedBox(height: 100, child: Center(child: CircularProgressIndicator()));
-                          },
-                          errorBuilder: (context, error, stackTrace) {
-                            return const SizedBox(height: 100, child: Center(child: Icon(Icons.broken_image, color: Colors.grey)));
-                          },
+                        // 3. BUNGKUS DENGAN GESTUREDETECTOR (GAMBAR SOAL)
+                        child: GestureDetector(
+                          onTap: () => _showZoomableImage(context, currentQuestion.imageUrl!),
+                          child: Image.network(
+                            // Gunakan URL optimasi yang sudah kita buat
+                            ImageOptimizer.getOptimizedUrl(currentQuestion.imageUrl),
+                            // Atur tinggi maksimum agar tidak terlalu besar
+                            height: MediaQuery.of(context).size.height * 0.25,
+                            fit: BoxFit.contain,
+                            loadingBuilder: (context, child, progress) {
+                              if (progress == null) return child;
+                              return const SizedBox(height: 100, child: Center(child: CircularProgressIndicator()));
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return const SizedBox(height: 100, child: Center(child: Icon(Icons.broken_image, color: Colors.grey)));
+                            },
+                          ),
                         ),
                       ),
                     ),
@@ -443,7 +512,7 @@ class _QuizView extends StatelessWidget {
       // Kondisi untuk Latihan Final per materi
       subtitle = 'Anda sedang mengerjakan Latihan Soal Final. Keluar sekarang akan mengulang seluruh soal. Yakin ingin keluar?';
       primaryButtonText = 'Keluar Latihan';
-    } else if (quizId == 'OVERALL_EXAM') {
+    } else if (quizId == '00000000-0000-0000-0000-000000000000') { // <-- Perbaiki ID Ujian Akhir
       // Kondisi untuk Ujian Akhir keseluruhan
       subtitle = 'Anda sedang mengerjakan Ujian Akhir. Keluar sekarang akan mengulang seluruh soal-soal. Yakin ingin keluar?';
       primaryButtonText = 'Keluar Ujian';
@@ -653,18 +722,23 @@ class _OptionTile extends StatelessWidget {
                          padding: const EdgeInsets.only(bottom: 8.0),
                          child: ClipRRect( // Clip gambar agar rounded
                             borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              imageUrl!,
-                              height: 100, // Atur tinggi gambar opsi
-                              width: double.infinity,
-                              fit: BoxFit.contain,
-                              loadingBuilder: (context, child, progress) {
-                                 if (progress == null) return child;
-                                 return const SizedBox(height: 100, child: Center(child: CircularProgressIndicator()));
-                               },
-                               errorBuilder: (context, error, stackTrace) {
-                                 return Container(height: 100, color: Colors.grey[200], child: const Center(child: Icon(Icons.broken_image)));
-                               },
+                            // 4. BUNGKUS DENGAN GESTUREDETECTOR (GAMBAR OPSI)
+                            child: GestureDetector(
+                              onTap: () => _showZoomableImage(context, imageUrl!),
+                              child: Image.network(
+                                // Gunakan URL optimasi yang sudah kita buat
+                                ImageOptimizer.getOptimizedUrl(imageUrl, width: 600, quality: 75),
+                                height: 100, // Atur tinggi gambar opsi
+                                width: double.infinity,
+                                fit: BoxFit.contain,
+                                loadingBuilder: (context, child, progress) {
+                                   if (progress == null) return child;
+                                   return const SizedBox(height: 100, child: Center(child: CircularProgressIndicator()));
+                                 },
+                                 errorBuilder: (context, error, stackTrace) {
+                                   return Container(height: 100, color: Colors.grey[200], child: const Center(child: Icon(Icons.broken_image)));
+                                 },
+                              ),
                             ),
                          ),
                        ),
@@ -839,20 +913,73 @@ class _FinalExamView extends StatefulWidget {
   State<_FinalExamView> createState() => __FinalExamViewState();
 }
 
-class __FinalExamViewState extends State<_FinalExamView> {
+class __FinalExamViewState extends State<_FinalExamView> with WidgetsBindingObserver {
   Timer? _timer;
   Duration _timeRemaining = const Duration(minutes: 30);
+  bool _isSubmitted = false;
+  final NoScreenshot _noScreenshot = NoScreenshot.instance;
 
   @override
   void initState() {
     super.initState();
     _startTimer();
+    _setupExamSecurity();
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _releaseExamSecurity();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  Future<void> _setupExamSecurity() async {
+    try {
+      // 1. Jaga layar tetap menyala (WakelockPlus)
+      await WakelockPlus.enable();
+      print("Wakelock diaktifkan: Layar tidak akan mati.");
+      
+      // 2. GANTI IMPLEMENTASI BLOKIR SCREENSHOT
+      await _noScreenshot.screenshotOff();
+      print("Layar Ujian Akhir diamankan (Anti-Screenshot/Recording).");
+      
+    } catch (e) {
+      print("Gagal mengatur keamanan layar: $e");
+    }
+  }
+
+  Future<void> _releaseExamSecurity() async {
+    try {
+      // 1. Izinkan layar mati kembali (WakelockPlus)
+      await WakelockPlus.disable();
+      print("Wakelock dinonaktifkan.");
+
+      // 2. GANTI IMPLEMENTASI MENGAKTIFKAN SCREENSHOT
+      await _noScreenshot.screenshotOn();
+      print("Pengaman layar Ujian Akhir dilepas.");
+      
+    } catch (e) {
+      print("Gagal melepas keamanan layar: $e");
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    
+    // Cek jika app di-pause (pindah app, lock screen, dll)
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+      // Hanya submit jika ini Final Exam (quizId sudah pasti) DAN belum di-submit
+      if (!_isSubmitted) {
+        print("App Paused during Final Exam. Auto-submitting...");
+        setState(() {
+          _isSubmitted = true; // Tandai sudah di-submit
+        });
+        context.read<QuizBloc>().add(SubmitQuiz());
+      }
+    }
   }
 
   void _startTimer() {
@@ -864,7 +991,13 @@ class __FinalExamViewState extends State<_FinalExamView> {
       } else {
         _timer?.cancel();
         // Auto-submit jika waktu habis
-        context.read<QuizBloc>().add(SubmitQuiz());
+        if (context.mounted && !_isSubmitted) { // <-- TAMBAHKAN CEK !_isSubmitted
+          print("Timer ran out. Auto-submitting...");
+          setState(() {
+            _isSubmitted = true; // Tandai sudah di-submit
+          });
+          context.read<QuizBloc>().add(SubmitQuiz());
+        }
       }
     });
   }
@@ -878,9 +1011,43 @@ class __FinalExamViewState extends State<_FinalExamView> {
 
   @override
   Widget build(BuildContext context) {
+
+    if (_isSubmitted) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text("Sedang men-submit jawaban..."),
+          ],
+        ),
+      );
+    }
+
     final currentQuestion = widget.state.questions[widget.state.currentQuestionIndex];
 
-    return Column(
+    // --- TAMBAHKAN WIDGET INI ---
+    return PopScope(
+      // canPop: false berarti kita MENCEGAT tombol back
+      canPop: false, 
+      // onPopInvoked akan dipanggil saat user mencoba back
+      onPopInvoked: (didPop) async {
+        if (didPop) return; // Jika pop sudah terjadi (seharusnya tidak)
+
+        // Panggil dialog kita. Jika user pilih "Keluar & Submit" (true)
+        final bool? shouldExit = await _showExitFinalExamDialog(context);
+        
+        if (shouldExit == true && context.mounted && !_isSubmitted) {
+          print("User pressed System Back. Auto-submitting...");
+          setState(() {
+            _isSubmitted = true; // Tandai sudah di-submit
+          });
+          context.read<QuizBloc>().add(SubmitQuiz());
+        }
+      },
+
+      child: Column(
       children: [
         _buildFinalExamTopBar(context, widget.state),
         const SizedBox(height: 16),
@@ -899,17 +1066,21 @@ class __FinalExamViewState extends State<_FinalExamView> {
                     Padding(
                       padding: const EdgeInsets.only(bottom: 16.0),
                       child: Center(
-                        child: Image.network(
-                          currentQuestion.imageUrl!,
-                          height: MediaQuery.of(context).size.height * 0.25,
-                          fit: BoxFit.contain,
-                          loadingBuilder: (context, child, progress) {
-                            if (progress == null) return child;
-                            return const SizedBox(height: 100, child: Center(child: CircularProgressIndicator()));
-                          },
-                          errorBuilder: (context, error, stackTrace) {
-                            return const SizedBox(height: 100, child: Center(child: Icon(Icons.broken_image, color: Colors.grey)));
-                          },
+                        // 5. BUNGKUS DENGAN GESTUREDETECTOR (UJIAN AKHIR - SOAL)
+                        child: GestureDetector(
+                          onTap: () => _showZoomableImage(context, currentQuestion.imageUrl!),
+                          child: Image.network(
+                            ImageOptimizer.getOptimizedUrl(currentQuestion.imageUrl),
+                            height: MediaQuery.of(context).size.height * 0.25,
+                            fit: BoxFit.contain,
+                            loadingBuilder: (context, child, progress) {
+                              if (progress == null) return child;
+                              return const SizedBox(height: 100, child: Center(child: CircularProgressIndicator()));
+                            },
+                            errorBuilder: (context, error, stackTrace) {
+                              return const SizedBox(height: 100, child: Center(child: Icon(Icons.broken_image, color: Colors.grey)));
+                            },
+                          ),
                         ),
                       ),
                     ),
@@ -923,7 +1094,7 @@ class __FinalExamViewState extends State<_FinalExamView> {
                     return _OptionTile( // Menggunakan kembali widget _OptionTile
                       optionKey: '',
                       optionText: option.optionText,
-                      imageUrl: option.imageUrl,
+                      imageUrl: option.imageUrl, // _OptionTile sudah di-update
                       isSelected: isSelected,
                       onTap: () {
                         context.read<QuizBloc>().add(AnswerSelected(
@@ -940,46 +1111,53 @@ class __FinalExamViewState extends State<_FinalExamView> {
         ),
         _BottomNavBar(state: widget.state, isFinalExam: true),
       ],
+    )
     );
   }
 
-  // --- WIDGET-WIDGET PEMBANTU UNTUK UJIAN AKHIR ---
   Widget _buildFinalExamTopBar(BuildContext context, QuizState state) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-    child: Row(
-      children: [
-        IconButton(
-          onPressed: () async {
-            // Gunakan _QuizView sementara untuk akses dialog keluar
-            final quizView = _QuizView(state: state, quizId: state.quizId);
-             final bool? shouldExit = await quizView._showExitQuizDialog(context, state.quizId);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: () async {
+              // --- MODIFIKASI LOGIKA DI SINI ---
+              // Jangan panggil dialog lama, panggil dialog baru
+              final bool? shouldExit = await _showExitFinalExamDialog(context);
 
-            if (shouldExit == true && context.mounted) {
-              Navigator.of(context).pop();
-            }
-          },
-          icon: Image.asset(
-            'src/features/hicode/icon/kembali.png',
-            width: 32,
-            height: 32,
-            // Beri warna biru agar kontras dengan background putih
-            color: AppColors.himfoBlue,
+              if (shouldExit == true && context.mounted && !_isSubmitted) {
+                // Jika user menekan "Keluar & Submit"
+                print("User pressed Exit & Submit. Auto-submitting...");
+                setState(() {
+                  _isSubmitted = true; // Tandai sudah di-submit
+                });
+                context.read<QuizBloc>().add(SubmitQuiz());
+                // Kita tidak perlu pop, listener BLoC akan pushReplacement ke ScoreScreen
+              }
+              // Jika false (Batal), tidak terjadi apa-apa
+              // --- AKHIR MODIFIKASI ---
+            },
+            icon: Image.asset(
+              'src/features/hicode/icon/kembali.png',
+              width: 32,
+              height: 32,
+              color: AppColors.himfoBlue,
+            ),
           ),
-        ),
-        Expanded(
-          child: Text('Ujian Akhir HiCode', // Judul tetap
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.himfoBlue)), // Warna global
-        ),
-        const SizedBox(width: 48), // Placeholder
-      ],
-    ),
-  );
-}
+          Expanded(
+            child: Text('Ujian Akhir HiCode',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.himfoBlue)),
+          ),
+          const SizedBox(width: 48), // Placeholder
+        ],
+      ),
+    );
+  }
 
   Widget _buildFinalExamProgressBar(QuizState state) {
     final double progress = state.questions.isEmpty ? 0 : (state.currentQuestionIndex + 1) / state.questions.length;
@@ -1028,61 +1206,65 @@ class __FinalExamViewState extends State<_FinalExamView> {
       ),
     );
   }
-}
 
-// Widget untuk setiap pilihan jawaban Ujian Akhir
-class _FinalExamOptionTile extends StatelessWidget {
-  final String optionKey;
-  final String optionText;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _FinalExamOptionTile(
-      {required this.optionKey,
-      required this.optionText,
-      required this.isSelected,
-      required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: isSelected ? Colors.blue.withOpacity(0.1) : Colors.transparent,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isSelected ? Colors.blue : Colors.grey.shade300,
-            ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: isSelected ? Colors.blue : Colors.grey.shade200,
-                  shape: BoxShape.circle,
+  Future<bool?> _showExitFinalExamDialog(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
+          backgroundColor: const Color(0xFFF5F9FF),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset('src/features/hicode/icon/sirine.png', height: 80),
+                const SizedBox(height: 16),
+                const Text('Keluar dari Ujian?', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+                const Text(
+                  'Keluar dari halaman ini akan otomatis menyelesaikan ujian dan men-submit jawaban Anda. Aksi ini tidak bisa dibatalkan.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: Colors.black54)
                 ),
-                child: Center(
-                  child: Text(
-                    optionKey,
-                    style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: isSelected ? Colors.white : Colors.grey.shade700),
+                const SizedBox(height: 24),
+                // Tombol Keluar & Submit
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(true), // Return TRUE
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    ),
+                    child: const Text('Keluar & Submit'),
                   ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(child: Text(optionText)),
-            ],
+                const SizedBox(height: 8),
+                // Tombol Batal
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(false), // Return FALSE
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      backgroundColor: const Color(0xFFE0E0E0),
+                      foregroundColor: Colors.black54,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    ),
+                    child: const Text('Batal'),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

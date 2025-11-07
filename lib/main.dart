@@ -6,6 +6,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_quill/flutter_quill.dart';
 import 'package:app_links/app_links.dart';
 import 'core/supabase_config.dart';
 import 'core/injection_container.dart';
@@ -15,6 +17,7 @@ import 'package:himtika_mobile_information/features/auth/presentation/blocs/logi
 import 'package:himtika_mobile_information/features/auth/presentation/pages/splash.dart';
 import 'package:himtika_mobile_information/features/auth/presentation/pages/onboarding.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/pages/invitation_handler_page.dart';
+import 'package:flutter_localizations/flutter_localizations.dart'; // Tambahkan ini untuk delegate global
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
@@ -122,6 +125,17 @@ class _MyAppState extends State<MyApp> {
         title: 'HIMTIKA Mobile Information',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(primarySwatch: Colors.blue),
+        // Tambahkan localizationsDelegates dan supportedLocales di sini untuk fix error Quill
+        localizationsDelegates: const [
+          FlutterQuillLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: const [
+          Locale('en', 'US'),
+          Locale('id', 'ID'),
+        ],
         home: const SplashScreen(),
       ),
     );
