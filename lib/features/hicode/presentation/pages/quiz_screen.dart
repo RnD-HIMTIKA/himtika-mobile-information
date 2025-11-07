@@ -6,19 +6,18 @@ import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/bloc/quiz/quiz_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/score_screen.dart';
 import 'package:himtika_mobile_information/core/theme/app_colors.dart';
-// 1. IMPORT HELPER YANG KITA BUAT SEBELUMNYA
 import 'package:himtika_mobile_information/core/helpers/image_optimizer.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
+import 'package:no_screenshot/no_screenshot.dart';
+import 'dart:io' show Platform;
 
-// 2. LETAKKAN FUNGSI HELPER DI SINI (DI LUAR CLASS MANAPUN)
-//    Ini akan memperbaiki error '_showZoomableImage isn't defined'
-//    Parameter 'barrierDismissColor' juga sudah diganti menjadi 'barrierColor'
 void _showZoomableImage(BuildContext context, String imageUrl) {
   // Ambil URL versi resolusi tinggi untuk zooming
   final zoomableUrl = ImageOptimizer.getOptimizedUrl(imageUrl, width: 1200, quality: 90);
 
   showDialog(
     context: context,
-    barrierColor: Colors.black.withOpacity(0.8), // <-- PERBAIKAN ERROR 1
+    barrierColor: Colors.black.withOpacity(0.8),
     builder: (ctx) {
       return Dialog(
         backgroundColor: Colors.transparent,
@@ -903,20 +902,73 @@ class _FinalExamView extends StatefulWidget {
   State<_FinalExamView> createState() => __FinalExamViewState();
 }
 
-class __FinalExamViewState extends State<_FinalExamView> {
+class __FinalExamViewState extends State<_FinalExamView> with WidgetsBindingObserver {
   Timer? _timer;
   Duration _timeRemaining = const Duration(minutes: 30);
+  bool _isSubmitted = false;
+  final NoScreenshot _noScreenshot = NoScreenshot.instance;
 
   @override
   void initState() {
     super.initState();
     _startTimer();
+    _setupExamSecurity();
+    WidgetsBinding.instance.addObserver(this);
   }
 
   @override
   void dispose() {
     _timer?.cancel();
+    _releaseExamSecurity();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  Future<void> _setupExamSecurity() async {
+    try {
+      // 1. Jaga layar tetap menyala (WakelockPlus)
+      await WakelockPlus.enable();
+      print("Wakelock diaktifkan: Layar tidak akan mati.");
+      
+      // 2. GANTI IMPLEMENTASI BLOKIR SCREENSHOT
+      await _noScreenshot.screenshotOff();
+      print("Layar Ujian Akhir diamankan (Anti-Screenshot/Recording).");
+      
+    } catch (e) {
+      print("Gagal mengatur keamanan layar: $e");
+    }
+  }
+
+  Future<void> _releaseExamSecurity() async {
+    try {
+      // 1. Izinkan layar mati kembali (WakelockPlus)
+      await WakelockPlus.disable();
+      print("Wakelock dinonaktifkan.");
+
+      // 2. GANTI IMPLEMENTASI MENGAKTIFKAN SCREENSHOT
+      await _noScreenshot.screenshotOn();
+      print("Pengaman layar Ujian Akhir dilepas.");
+      
+    } catch (e) {
+      print("Gagal melepas keamanan layar: $e");
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    
+    // Cek jika app di-pause (pindah app, lock screen, dll)
+    if (state == AppLifecycleState.paused || state == AppLifecycleState.detached) {
+      // Hanya submit jika ini Final Exam (quizId sudah pasti) DAN belum di-submit
+      if (!_isSubmitted) {
+        print("App Paused during Final Exam. Auto-submitting...");
+        setState(() {
+          _isSubmitted = true; // Tandai sudah di-submit
+        });
+        context.read<QuizBloc>().add(SubmitQuiz());
+      }
+    }
   }
 
   void _startTimer() {
@@ -928,7 +980,11 @@ class __FinalExamViewState extends State<_FinalExamView> {
       } else {
         _timer?.cancel();
         // Auto-submit jika waktu habis
-        if (context.mounted) { // Tambah cek mounted
+        if (context.mounted && !_isSubmitted) { // <-- TAMBAHKAN CEK !_isSubmitted
+          print("Timer ran out. Auto-submitting...");
+          setState(() {
+            _isSubmitted = true; // Tandai sudah di-submit
+          });
           context.read<QuizBloc>().add(SubmitQuiz());
         }
       }
@@ -1013,43 +1069,49 @@ class __FinalExamViewState extends State<_FinalExamView> {
     );
   }
 
-  // --- WIDGET-WIDGET PEMBANTU UNTUK UJIAN AKHIR ---
   Widget _buildFinalExamTopBar(BuildContext context, QuizState state) {
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-    child: Row(
-      children: [
-        IconButton(
-          onPressed: () async {
-            // Gunakan _QuizView sementara untuk akses dialog keluar
-            final quizView = _QuizView(state: state, quizId: state.quizId);
-             final bool? shouldExit = await quizView._showExitQuizDialog(context, state.quizId);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+      child: Row(
+        children: [
+          IconButton(
+            onPressed: () async {
+              // --- MODIFIKASI LOGIKA DI SINI ---
+              // Jangan panggil dialog lama, panggil dialog baru
+              final bool? shouldExit = await _showExitFinalExamDialog(context);
 
-            if (shouldExit == true && context.mounted) {
-              Navigator.of(context).pop();
-            }
-          },
-          icon: Image.asset(
-            'src/features/hicode/icon/kembali.png',
-            width: 32,
-            height: 32,
-            // Beri warna biru agar kontras dengan background putih
-            color: AppColors.himfoBlue,
+              if (shouldExit == true && context.mounted && !_isSubmitted) {
+                // Jika user menekan "Keluar & Submit"
+                print("User pressed Exit & Submit. Auto-submitting...");
+                setState(() {
+                  _isSubmitted = true; // Tandai sudah di-submit
+                });
+                context.read<QuizBloc>().add(SubmitQuiz());
+                // Kita tidak perlu pop, listener BLoC akan pushReplacement ke ScoreScreen
+              }
+              // Jika false (Batal), tidak terjadi apa-apa
+              // --- AKHIR MODIFIKASI ---
+            },
+            icon: Image.asset(
+              'src/features/hicode/icon/kembali.png',
+              width: 32,
+              height: 32,
+              color: AppColors.himfoBlue,
+            ),
           ),
-        ),
-        Expanded(
-          child: Text('Ujian Akhir HiCode', // Judul tetap
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.himfoBlue)), // Warna global
-        ),
-        const SizedBox(width: 48), // Placeholder
-      ],
-    ),
-  );
-}
+          Expanded(
+            child: Text('Ujian Akhir HiCode',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.himfoBlue)),
+          ),
+          const SizedBox(width: 48), // Placeholder
+        ],
+      ),
+    );
+  }
 
   Widget _buildFinalExamProgressBar(QuizState state) {
     final double progress = state.questions.isEmpty ? 0 : (state.currentQuestionIndex + 1) / state.questions.length;
@@ -1096,6 +1158,67 @@ class __FinalExamViewState extends State<_FinalExamView> {
           ),
         ],
       ),
+    );
+  }
+
+  Future<bool?> _showExitFinalExamDialog(BuildContext context) {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.0)),
+          backgroundColor: const Color(0xFFF5F9FF),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.asset('src/features/hicode/icon/sirine.png', height: 80),
+                const SizedBox(height: 16),
+                const Text('Keluar dari Ujian?', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+                const Text(
+                  'Keluar dari halaman ini akan otomatis menyelesaikan ujian dan men-submit jawaban Anda. Aksi ini tidak bisa dibatalkan.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: Colors.black54)
+                ),
+                const SizedBox(height: 24),
+                // Tombol Keluar & Submit
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(true), // Return TRUE
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    ),
+                    child: const Text('Keluar & Submit'),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // Tombol Batal
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.of(dialogContext).pop(false), // Return FALSE
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      backgroundColor: const Color(0xFFE0E0E0),
+                      foregroundColor: Colors.black54,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    ),
+                    child: const Text('Batal'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
