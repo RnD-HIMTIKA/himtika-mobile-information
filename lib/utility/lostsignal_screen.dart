@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
 
-class UnderMaintenanceScreen extends StatelessWidget {
-  const UnderMaintenanceScreen({super.key});
+class LostsignalScreen extends StatelessWidget {
+  const LostsignalScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -27,14 +27,14 @@ class UnderMaintenanceScreen extends StatelessWidget {
                         child: ImageFiltered(
                           imageFilter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
                           child: Image.asset(
-                            'src/features/utility/maintenance.png',
+                            'src/features/utility/signal.png',
                             fit: BoxFit.contain,
                             color: Colors.black.withOpacity(0.3),
                           ),
                         ),
                       ),
                       Image.asset(
-                        'src/features/utility/maintenance.png',
+                        'src/features/utility/signal.png',
                         fit: BoxFit.contain,
                       ),
                     ],
@@ -43,9 +43,8 @@ class UnderMaintenanceScreen extends StatelessWidget {
               ),
               const SizedBox(height: 32),
               ErrorInfo(
-                title: "Under Maintenance.",
-                description:
-                    "Kami sedang memperbaiki semuanya biar kamu nyaman.",
+                title: "Oh Noo!",
+                description: "Sepertinya sinyal kamu kurang bagus nih.",
                 btnText: "Kembali ke Halaman Utama",
                 press: () {
                   if (Navigator.canPop(context)) {

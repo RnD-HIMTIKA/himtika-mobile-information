@@ -9,6 +9,8 @@ import 'package:himtika_mobile_information/features/hicode/presentation/pages/ma
 import 'package:himtika_mobile_information/features/himtika/presentation/pages/himtika_screen.dart';
 import 'package:himtika_mobile_information/features/home/presentation/pages/sidebar_home.dart';
 import 'package:himtika_mobile_information/utility/undermaintance_screen.dart';
+import 'package:himtika_mobile_information/utility/comingsoon_screen.dart';
+
 import '../bloc/home_bloc.dart';
 import '../bloc/home_event.dart';
 import '../bloc/home_state.dart';
@@ -248,7 +250,7 @@ class _HomePageState extends State<HomePage> {
                                     () {
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
+                                        MaterialPageRoute(builder: (_) => const ComingsoonScreen()),
                                       );
                                     },
                                   ),
@@ -275,7 +277,7 @@ class _HomePageState extends State<HomePage> {
                                     () {
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
+                                        MaterialPageRoute(builder: (_) => const ComingsoonScreen()),
                                       );
                                     },
                                   ),
@@ -286,7 +288,7 @@ class _HomePageState extends State<HomePage> {
                                     () {
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
+                                        MaterialPageRoute(builder: (_) => const ComingsoonScreen()),
                                       );
                                     },
                                   ),
@@ -297,7 +299,7 @@ class _HomePageState extends State<HomePage> {
                                     () {
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
+                                        MaterialPageRoute(builder: (_) => const ComingsoonScreen()),
                                       );
                                     },
                                   ),
@@ -308,7 +310,7 @@ class _HomePageState extends State<HomePage> {
                                     () {
                                       Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (_) => const UnderMaintenanceScreen()),
+                                        MaterialPageRoute(builder: (_) => const ComingsoonScreen()),
                                       );
                                     },
                                   ),

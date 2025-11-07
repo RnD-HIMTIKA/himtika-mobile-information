@@ -255,6 +255,10 @@ flutter:
     - src/features/himtika/kabinet/daun.png
     - src/features/himtika/kabinet/gear.png
 
+    - src/features/utility/maintenance.png
+    - src/features/utility/comingsoon.png
+    - src/features/utility/signal.png
+
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
