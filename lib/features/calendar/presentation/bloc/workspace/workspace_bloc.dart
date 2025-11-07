@@ -5,6 +5,7 @@ import '../../../domain/usecases/create_workspace.dart';
 import '../../../domain/repositories/calendar_repository.dart';
 import '../../../domain/usecases/update_workspace.dart';
 import '../../../domain/usecases/delete_workspace.dart';
+import '../../../domain/usecases/update_member_role.dart';
 
 part 'workspace_event.dart';
 part 'workspace_state.dart';
@@ -14,21 +15,25 @@ class WorkspaceBloc extends Bloc<WorkspaceEvent, WorkspaceState> {
   final CreateWorkspace _createWorkspace;
   final UpdateWorkspace _updateWorkspace;
   final DeleteWorkspace _deleteWorkspace;
+  final UpdateMemberRole _updateMemberRole;
 
   WorkspaceBloc({
     required CalendarRepository calendarRepository,
     required CreateWorkspace createWorkspace,
     required UpdateWorkspace updateWorkspace,
     required DeleteWorkspace deleteWorkspace,
+    required UpdateMemberRole updateMemberRole,
   })  : _calendarRepository = calendarRepository,
         _createWorkspace = createWorkspace,
         _updateWorkspace = updateWorkspace,
         _deleteWorkspace = deleteWorkspace,
+        _updateMemberRole = updateMemberRole,
         super(const WorkspaceState()) {
     on<LoadMyWorkspaces>(_onLoadMyWorkspaces);
     on<CreateWorkspaceSubmitted>(_onCreateWorkspaceSubmitted);
     on<UpdateWorkspaceSubmitted>(_onUpdateWorkspaceSubmitted);
     on<DeleteWorkspacePressed>(_onDeleteWorkspacePressed);
+    on<UpdateMemberRolePressed>(_onUpdateMemberRolePressed);
   }
 
   Future<void> _onLoadMyWorkspaces(
@@ -105,6 +110,26 @@ class WorkspaceBloc extends Bloc<WorkspaceEvent, WorkspaceState> {
     try {
       await _deleteWorkspace(event.workspaceId);
       add(LoadMyWorkspaces()); // Muat ulang daftar setelah hapus
+    } catch (e) {
+      emit(state.copyWith(
+        status: WorkspaceStatus.failure,
+        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+      ));
+    }
+  }
+
+  Future<void> _onUpdateMemberRolePressed(
+    UpdateMemberRolePressed event,
+    Emitter<WorkspaceState> emit,
+  ) async {
+    try {
+      await _updateMemberRole(
+        workspaceId: event.workspaceId,
+        userIdToUpdate: event.userIdToUpdate,
+        newRole: event.newRole,
+      );
+      // Muat ulang daftar workspace agar UI ter-refresh
+      add(LoadMyWorkspaces());
     } catch (e) {
       emit(state.copyWith(
         status: WorkspaceStatus.failure,

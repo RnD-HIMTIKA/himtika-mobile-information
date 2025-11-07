@@ -58,6 +58,7 @@ import 'package:himtika_mobile_information/features/calendar/domain/usecases/del
 import 'package:himtika_mobile_information/features/calendar/domain/usecases/update_workspace.dart';
 import 'package:himtika_mobile_information/features/calendar/domain/usecases/delete_workspace.dart';
 import 'package:himtika_mobile_information/features/calendar/domain/usecases/invite_user_to_workspace.dart';
+import 'package:himtika_mobile_information/features/calendar/domain/usecases/update_member_role.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/bloc/share_workspace/share_workspace_bloc.dart';
 import 'package:himtika_mobile_information/features/calendar/domain/usecases/get_my_invitations.dart';
 import 'package:himtika_mobile_information/features/calendar/domain/usecases/accept_invitation_by_id.dart';
@@ -248,12 +249,14 @@ Future<void> initDependencies() async {
   sl.registerLazySingleton(() => CreateInvitationLink(sl()));
   sl.registerLazySingleton(() => InviteByRole(sl()));
   sl.registerLazySingleton(() => CreateRecurringEvent(sl()));
+  sl.registerLazySingleton(() => UpdateMemberRole(sl()));
   // BLoCs
   sl.registerFactory(() => WorkspaceBloc(
         calendarRepository: sl(),
         createWorkspace: sl(),
         updateWorkspace: sl(),
         deleteWorkspace: sl(),
+        updateMemberRole: sl(),
       ));
   sl.registerFactory(() => EventBloc(
         getEvents: sl(),

@@ -1052,13 +1052,14 @@ class _ShareWorkspaceDialogState extends State<_ShareWorkspaceDialog> {
                   OutlinedButton(
                     onPressed: () {
                       // Tutup dialog saat ini, lalu buka dialog baru
-                      Navigator.of(context).pop();
+
+                      final shareBloc = context.read<ShareWorkspaceBloc>();
+
                       showDialog(
                         context: context,
                         builder: (ctx) {
-                          // Teruskan BLoC yang sudah ada
                           return BlocProvider.value(
-                            value: context.read<ShareWorkspaceBloc>(),
+                            value: shareBloc, // <-- Berikan BLoC yang aktif
                             child: _ShareByRoleDialog(
                               workspaceId: widget.workspaceId,
                               roleToGrant: _selectedRole,
@@ -1243,6 +1244,7 @@ class _ShareByRoleDialogState extends State<_ShareByRoleDialog> {
           ),
         );
     Navigator.of(context).pop(); // Tutup dialog "Bagikan ke Role"
+    Navigator.of(context).pop(); // untuk menutup dialog "Share"
   }
 
   @override
@@ -1290,7 +1292,8 @@ class _ShareByRoleDialogState extends State<_ShareByRoleDialog> {
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('Batal')),
         ElevatedButton(
-            onPressed: _onSimpanPressed, child: const Text('Simpan')),
+            onPressed: _onSimpanPressed, 
+            child: const Text('Bagikan')),
       ],
     );
   }
@@ -1333,18 +1336,24 @@ class _WorkspaceInfoDialog extends StatelessWidget {
               const SizedBox(height: 16),
               _buildReadOnlyField("Deskripsi", workspace.description, maxLines: 3),
               const SizedBox(height: 24),
-              const Text("Yang Punya Akses", style: TextStyle(fontWeight: FontWeight.w500)),
-              const SizedBox(height: 8),
-              if (allMembers.isEmpty)
-                const Text("Tidak ada anggota lain.", style: TextStyle(color: Colors.grey))
-              else
-                // PERBAIKAN 2: Gunakan ListView.builder dengan logika yang benar
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: allMembers.length,
-                  itemBuilder: (context, index) {
+
+              // --- PERBAIKAN DI SINI ---
+              // Tampilkan daftar anggota HANYA JIKA BUKAN 'Agenda Himtika'
+              if (workspace.title != 'Agenda Himtika') ...[
+                const Text("Yang Punya Akses", style: TextStyle(fontWeight: FontWeight.w500)),
+                const SizedBox(height: 8),
+                if (allMembers.isEmpty)
+                  const Text("Tidak ada anggota lain.", style: TextStyle(color: Colors.grey))
+                else
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: allMembers.length,
+                    itemBuilder: (context, index) {
                     final member = allMembers[index];
+                    final bool isOwner =
+                          workspaceWithMembers.currentUserRole == 'owner';
+                          
                     return ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: CircleAvatar(
@@ -1358,14 +1367,38 @@ class _WorkspaceInfoDialog extends StatelessWidget {
                       ),
                       title: Text(member.user.fullName),
                       subtitle: Text("@${member.user.username}"),
-                      trailing: Text(
-                        // Kapitalisasi huruf pertama
-                        member.role.substring(0, 1).toUpperCase() + member.role.substring(1),
-                        style: TextStyle(color: Colors.grey.shade600, fontStyle: FontStyle.italic),
-                      ),
+                      trailing: DropdownButton<String>(
+                          value: member.role,
+                          // Nonaktifkan dropdown jika BUKAN owner
+                          onChanged: !isOwner
+                              ? null
+                              : (String? newValue) {
+                                  if (newValue != null &&
+                                      newValue != member.role) {
+                                    // Panggil BLoC
+                                    context.read<WorkspaceBloc>().add(
+                                          UpdateMemberRolePressed(
+                                            workspaceId: workspace.id,
+                                            userIdToUpdate: member.user.id,
+                                            newRole: newValue,
+                                          ),
+                                        );
+                                  }
+                                },
+                          items: <String>['editor', 'viewer']
+                              .map<DropdownMenuItem<String>>((String value) {
+                            return DropdownMenuItem<String>(
+                              value: value,
+                              // Kapitalisasi text
+                              child: Text(value[0].toUpperCase() +
+                                  value.substring(1)),
+                            );
+                          }).toList(),
+                        ),
                     );
                   },
                 ),
+            ],
             ],
           ),
         ),

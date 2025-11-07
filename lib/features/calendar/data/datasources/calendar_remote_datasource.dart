@@ -209,4 +209,16 @@ class CalendarRemoteDatasource {
       'p_role_to_grant': roleToGrant,
     });
   }
+
+  Future<void> updateMemberRole({
+    required String workspaceId,
+    required String userIdToUpdate,
+    required String newRole,
+  }) async {
+    await _client.rpc('update_workspace_member_role', params: {
+      'p_workspace_id': workspaceId,
+      'p_user_id_to_update': userIdToUpdate,
+      'p_new_role': newRole,
+    });
+  }
 }

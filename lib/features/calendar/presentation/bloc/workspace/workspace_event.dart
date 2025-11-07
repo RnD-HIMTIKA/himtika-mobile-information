@@ -43,3 +43,18 @@ class DeleteWorkspacePressed extends WorkspaceEvent {
   @override
   List<Object> get props => [workspaceId];
 }
+
+class UpdateMemberRolePressed extends WorkspaceEvent {
+  final String workspaceId;
+  final String userIdToUpdate;
+  final String newRole;
+
+  const UpdateMemberRolePressed({
+    required this.workspaceId,
+    required this.userIdToUpdate,
+    required this.newRole,
+  });
+
+  @override
+  List<Object> get props => [workspaceId, userIdToUpdate, newRole];
+}

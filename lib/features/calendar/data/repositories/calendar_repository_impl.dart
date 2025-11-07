@@ -223,4 +223,17 @@ class CalendarRepositoryImpl implements CalendarRepository {
       roleToGrant: roleToGrant,
     );
   }
+
+  @override
+  Future<void> updateMemberRole({
+    required String workspaceId,
+    required String userIdToUpdate,
+    required String newRole,
+  }) {
+    return remoteDatasource.updateMemberRole(
+      workspaceId: workspaceId,
+      userIdToUpdate: userIdToUpdate,
+      newRole: newRole,
+    );
+  }
 }
