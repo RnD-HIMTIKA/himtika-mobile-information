@@ -21,60 +21,37 @@ class SidebarHome extends StatelessWidget {
             child: Stack(
               children: [
                 Container(
-                  padding: const EdgeInsets.only(top: 54),
-                  color: const Color(0xFF1e1e1e),
+                  padding: const EdgeInsets.only(top: 60),
+                  color: const Color.fromARGB(255, 255, 255, 255),
                   child: ListView(
-                    padding: EdgeInsets.zero,
                     children: [
-                      // Logo dan Judul
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 40, 16, 16),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.face,
-                                color: Colors.white, size: 32),
-                            const SizedBox(width: 12),
-                            RichText(
-                              text: const TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: 'HIM',
-                                    style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.blueAccent,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: 'FO.',
-                                    style: TextStyle(
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
                       // Menu
                       ListTile(
-                        leading:
-                            const Icon(Icons.person, color: Colors.white),
+                        leading: const Icon(Icons.person, color: Colors.black),
                         title: const Text('Profil',
-                            style: TextStyle(color: Colors.white)),
+                            style: TextStyle(color: Colors.black)),
                         onTap: () {},
                       ),
                       // Tombol Admin Kondisional
                       if (state.isPengurus)
                         ListTile(
-                          leading:
-                              const Icon(Icons.people, color: Colors.white),
-                          title: const Text('Admin',
-                              style: TextStyle(color: Colors.white)),
+                          leading: Stack(
+                            clipBehavior: Clip.none,
+                            children: [
+                              const Icon(Icons.person,
+                                  color: Colors.black, size: 28),
+                              const Positioned(
+                                right: -2,
+                                bottom: -2,
+                                child: Icon(Icons.lock,
+                                    color: Colors.black54, size: 14),
+                              ),
+                            ],
+                          ),
+                          title: const Text(
+                            'Admin',
+                            style: TextStyle(color: Colors.black),
+                          ),
                           onTap: () {
                             Navigator.push(
                               context,
@@ -84,11 +61,9 @@ class SidebarHome extends StatelessWidget {
                           },
                         ),
 
-                      const Divider(color: Colors.white30), // Pemisah
-
                       ListTile(
-                        leading: const Icon(Icons.logout,
-                            color: Colors.redAccent),
+                        leading:
+                            const Icon(Icons.logout, color: Colors.redAccent),
                         title: const Text('Sign Out',
                             style: TextStyle(color: Colors.redAccent)),
                         onTap: () {
@@ -102,10 +77,10 @@ class SidebarHome extends StatelessWidget {
 
                 // Tombol Close
                 Positioned(
-                  top: 16,
+                  top: 26,
                   left: 8,
                   child: IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white),
+                    icon: const Icon(Icons.close, color: Colors.black),
                     onPressed: () {
                       Navigator.pop(context);
                     },
