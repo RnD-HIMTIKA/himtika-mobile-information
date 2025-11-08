@@ -6,7 +6,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:app_links/app_links.dart';
@@ -29,27 +28,43 @@ Future<void> main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
   
-  await dotenv.load(fileName: ".env");
-  await SupabaseConfig.init();
+  // HAPUS BARIS INI:
+  // await dotenv.load(fileName: ".env"); 
+  
+  await SupabaseConfig.init(); // Pastikan ini dipanggil
   await initDependencies();
 
-  final sentryDsn = dotenv.env['SENTRY_DSN'];
+  // --- PERBAIKAN SENTRY ---
+  // Ambil DSN dari environment, BUKAN dari dotenv
+  const sentryDsn = String.fromEnvironment('SENTRY_DSN');
   
-  if (sentryDsn == null) {
-     print("PERINGATAN: SENTRY_DSN tidak ditemukan di .env. Error tidak akan dilaporkan.");
+  if (sentryDsn.isEmpty) { // <-- Ubah pengecekan
+     print("PERINGATAN: SENTRY_DSN tidak ditemukan (gunakan --dart-define). Error tidak akan dilaporkan.");
      runApp(const MyApp());
   } else {
     await SentryFlutter.init(
       (options) {
         options.dsn = sentryDsn;
         options.tracesSampleRate = 1.0;
+        
+        // --- PERBAIKAN OAUTH (YANG KITA DISKUSIKAN SEBELUMNYA) ---
+        // Ini tetap disarankan untuk memperbaiki login Google Anda
+        options.tracesSampler = (samplingContext) {
+          final transactionContext = samplingContext.transactionContext;
+          final transactionName = transactionContext?.name;
+          // Jika transaksi adalah callback Supabase, JANGAN LACAK
+          if (transactionName != null && transactionName.contains('io.supabase.flutter')) {
+            print('[Sentry] Mengabaikan trace untuk callback Supabase: $transactionName');
+            return null; // <-- Ini akan memperbaiki login Google
+          }
+          // Lacak semua hal lain
+          return 1.0;
+        };
+        // --- AKHIR PERBAIKAN OAUTH ---
       },
-      // --- PERBAIKAN DI SINI ---
-      // 'appRunner' hanya perlu menjalankan 'runApp'.
       appRunner: () => runApp(
-        const MyApp(), // Hapus SentryAssetBundle dari sini
+        const MyApp(),
       ),
-      // --- AKHIR PERBAIKAN ---
     );
   }
 }
