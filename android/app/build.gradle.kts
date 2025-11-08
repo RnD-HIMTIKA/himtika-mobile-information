@@ -27,7 +27,7 @@ android {
         applicationId = "com.example.himtika_mobile_information"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 23
+        minSdkVersion (flutter.minSdkVersion)
         compileSdk = flutter.compileSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
