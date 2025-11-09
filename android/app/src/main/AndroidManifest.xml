@@ -1,5 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.himtika_mobile_information">
+
+    <uses-permission android:name="android.permission.INTERNET"/>
+    
     <application
         android:label="HIMFO"
         android:name="${applicationName}"

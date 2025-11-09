@@ -29,7 +29,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
-  
+
   StreamSubscription<ConnectivityResult>? _connectivitySubscription;
   bool _isOffline = false; // Status untuk melacak koneksi
 
@@ -80,7 +80,9 @@ class _HomePageState extends State<HomePage> {
     });
 
     // Dengarkan perubahan
-    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((ConnectivityResult result) {
+    _connectivitySubscription = Connectivity()
+        .onConnectivityChanged
+        .listen((ConnectivityResult result) {
       if (result == ConnectivityResult.none) {
         // --- JARINGAN HILANG ---
         _isOffline = true;
@@ -89,7 +91,7 @@ class _HomePageState extends State<HomePage> {
         // --- JARINGAN KEMBALI ONLINE ---
         if (_isOffline) {
           // Hanya refresh jika SEBELUMNYA offline
-          _isOffline = false; 
+          _isOffline = false;
           _showOnlineBanner();
           _refreshAllData(); // Panggil fungsi refresh
         }
@@ -103,7 +105,7 @@ class _HomePageState extends State<HomePage> {
     _connectivitySubscription?.cancel(); // Hentikan listener
     super.dispose();
   }
-  
+
   // --- 6. TAMBAHKAN FUNGSI HELPER (Banner & Refresh) ---
   void _showOfflineBanner() {
     if (!mounted) return;
@@ -132,23 +134,23 @@ class _HomePageState extends State<HomePage> {
     // Kita butuh context yang memiliki akses ke BLoC-BLoC ini.
     // Jika BLoC belum ada (karena lazy), kita perlu memastikan BLoC-nya
     // disediakan di atas HomePage, atau kita panggil saat BLoC-nya ada.
-    
+
     // Cara aman: Gunakan context.read()
     // Pastikan BLoC sudah di-provide di main.dart atau di atas HomePage
-    
+
     // Kita refresh HomeBloc (yang sudah pasti ada)
     context.read<HomeBloc>().add(LoadHomeData());
-    
+
     // Kita juga bisa refresh BLoC lain jika sudah di-inject:
     // (Jika BLoC ini di-create di halaman lain, panggilannya tidak akan error
     // tapi tidak akan melakukan apa-apa jika BLoC-nya tidak aktif)
-    
+
     // Coba refresh InvitationBloc (untuk notifikasi)
     if (sl.isRegistered<InvitationBloc>()) {
-       // sl<InvitationBloc>().add(LoadMyInvitations()); 
-       // Lebih aman lagi jika kita tahu BLoC-nya ada di tree:
-       // context.read<InvitationBloc>().add(LoadMyInvitations());
-       // Untuk saat ini, kita fokus refresh halaman yang aktif.
+      // sl<InvitationBloc>().add(LoadMyInvitations());
+      // Lebih aman lagi jika kita tahu BLoC-nya ada di tree:
+      // context.read<InvitationBloc>().add(LoadMyInvitations());
+      // Untuk saat ini, kita fokus refresh halaman yang aktif.
     }
   }
 
@@ -616,7 +618,7 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () async {
-                      const phoneNumber = "62859121392342";
+                      const phoneNumber = "62895404280001";
                       const message =
                           "Halo, saya mengalami gangguan pada aplikasi HIMTIKA...";
 

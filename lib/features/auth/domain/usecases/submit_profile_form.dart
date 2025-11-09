@@ -27,7 +27,11 @@ class SubmitProfileForm {
     await _checkDuplicates(normalizedUsername, normalizedPhone!, authUser.id);
 
     // 4. Dapatkan User ID dari tabel public.users
-    final userRow = await client.from('users').select('id').eq('auth_id', authUser.id).single();
+    final userRow = await client
+        .from('users')
+        .select('id')
+        .eq('auth_id', authUser.id)
+        .single();
     final String userId = userRow['id'] as String;
 
     // 5. Handle Role 'Kelas'
@@ -52,23 +56,23 @@ class SubmitProfileForm {
     if (p.fullName.trim().length < 2) {
       throw Exception('Nama lengkap minimal 2 karakter.');
     }
-    
-    // --- TAMBAHAN VALIDASI (Alert 6) ---
-    // Aturan: Hanya boleh huruf, spasi, titik, dan apostrof.
-    final RegExp nameRegExp = RegExp(r'^[a-zA-Z0-9_]{3,20}$');
+
+    final RegExp nameRegExp = RegExp(r'^[a-zA-Z0-9_ ]{3,20}$');
     if (!nameRegExp.hasMatch(p.fullName.trim())) {
-      throw Exception('Nama lengkap hanya boleh berisi huruf, spasi, atau underscore');
+      // Pesan error juga diupdate agar sesuai dengan aturan validasi
+      throw Exception(
+          'Nama lengkap hanya boleh berisi huruf, angka, spasi, atau underscore');
     }
-    // --- AKHIR TAMBAHAN ---
 
     if (p.username.trim().isEmpty) {
       throw Exception('Username wajib diisi.');
     }
     if (_hasSQLInjection(p.fullName) || _hasSQLInjection(p.username)) {
-        throw Exception('Input terdeteksi tidak aman.');
+      throw Exception('Input terdeteksi tidak aman.');
     }
     if (!RegExp(r'^[a-zA-Z0-9._]{3,20}$').hasMatch(p.username.trim())) {
-      throw Exception('Username hanya boleh huruf, angka, titik, atau underscore dengan panjang 3–20 karakter.');
+      throw Exception(
+          'Username hanya boleh huruf, angka, titik, atau underscore dengan panjang 3–20 karakter.');
     }
     final normalizedPhone = _normalizePhone(p.phone.trim());
     if (normalizedPhone == null) {
@@ -79,13 +83,24 @@ class SubmitProfileForm {
     }
   }
 
-  Future<void> _checkDuplicates(String username, String phone, String currentAuthId) async {
-    final unameDup = await client.from('users').select('auth_id').ilike('username', username).neq('auth_id', currentAuthId).maybeSingle();
+  Future<void> _checkDuplicates(
+      String username, String phone, String currentAuthId) async {
+    final unameDup = await client
+        .from('users')
+        .select('auth_id')
+        .ilike('username', username)
+        .neq('auth_id', currentAuthId)
+        .maybeSingle();
     if (unameDup != null) {
       throw Exception('Username telah digunakan di akun lain.');
     }
 
-    final phoneDup = await client.from('users').select('auth_id').eq('phone_number', phone).neq('auth_id', currentAuthId).maybeSingle();
+    final phoneDup = await client
+        .from('users')
+        .select('auth_id')
+        .eq('phone_number', phone)
+        .neq('auth_id', currentAuthId)
+        .maybeSingle();
     if (phoneDup != null) {
       throw Exception('Nomor telepon telah digunakan di akun lain.');
     }
@@ -99,15 +114,26 @@ class SubmitProfileForm {
   }
 
   Future<void> _handleClassRole(String userId, String kelas) async {
-    final roleRow = await client.from('roles').select('id').eq('name', kelas).eq('group_name', 'Kelas').maybeSingle();
+    final roleRow = await client
+        .from('roles')
+        .select('id')
+        .eq('name', kelas)
+        .eq('group_name', 'Kelas')
+        .maybeSingle();
     String roleId;
     if (roleRow == null) {
-      final newRole = await client.from('roles').insert({'name': kelas, 'group_name': 'Kelas'}).select('id').single();
+      final newRole = await client
+          .from('roles')
+          .insert({'name': kelas, 'group_name': 'Kelas'})
+          .select('id')
+          .single();
       roleId = newRole['id'];
     } else {
       roleId = roleRow['id'];
     }
-    await client.from('user_roles').upsert({'user_id': userId, 'role_id': roleId});
+    await client
+        .from('user_roles')
+        .upsert({'user_id': userId, 'role_id': roleId});
   }
 
   String? _normalizePhone(String phone) {
