@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:himtika_mobile_information/features/calendar/domain/entities/workspace.dart';
 import 'package:himtika_mobile_information/features/home/presentation/pages/home.dart';
 import '../../../../core/injection_container.dart';
+import 'package:himtika_mobile_information/core/helpers/image_optimizer.dart';
 import '../bloc/workspace/workspace_bloc.dart';
 import 'schedule_detail_screen.dart';
 import '../../../auth/domain/entities/user.dart';
@@ -366,7 +367,8 @@ class _WorkspaceCard extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 16),
-              _buildMembersRow(members), // Panggil dengan parameter yang benar
+              if (workspace.title != 'Agenda Himtika')
+                _buildMembersRow(members), // Panggil dengan parameter yang benar
             ],
           ),
         ),
@@ -403,7 +405,12 @@ class _WorkspaceCard extends StatelessWidget {
                   child: CircleAvatar(
                     radius: 10,
                     backgroundImage: (member.user.profileUrl != null && member.user.profileUrl!.isNotEmpty)
-                        ? NetworkImage(member.user.profileUrl!)
+                        // Gunakan ImageOptimizer untuk mengambil gambar yang dioptimalkan
+                        ? NetworkImage(ImageOptimizer.getOptimizedUrl(
+                            member.user.profileUrl!,
+                            width: 60, // Ukuran kecil untuk avatar
+                            quality: 75,
+                          ))
                         : null,
                     child: (member.user.profileUrl == null || member.user.profileUrl!.isEmpty)
                         ? const Icon(Icons.person, size: 12)

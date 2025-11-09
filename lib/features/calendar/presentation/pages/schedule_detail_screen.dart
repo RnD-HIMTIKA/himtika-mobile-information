@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:himtika_mobile_information/core/injection_container.dart';
+import 'package:himtika_mobile_information/core/helpers/image_optimizer.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'dart:collection';
 import 'package:intl/intl.dart';
@@ -1359,7 +1360,11 @@ class _WorkspaceInfoDialog extends StatelessWidget {
                       leading: CircleAvatar(
                         // PERBAIKAN 3: Akses properti melalui member.user
                         backgroundImage: (member.user.profileUrl != null && member.user.profileUrl!.isNotEmpty)
-                            ? NetworkImage(member.user.profileUrl!)
+                            ? NetworkImage(ImageOptimizer.getOptimizedUrl(
+                                member.user.profileUrl!,
+                                width: 60,
+                                quality: 75,
+                              ))
                             : null,
                         child: (member.user.profileUrl == null || member.user.profileUrl!.isEmpty)
                             ? const Icon(Icons.person)
