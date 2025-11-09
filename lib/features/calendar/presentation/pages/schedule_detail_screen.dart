@@ -1372,34 +1372,45 @@ class _WorkspaceInfoDialog extends StatelessWidget {
                       ),
                       title: Text(member.user.fullName),
                       subtitle: Text("@${member.user.username}"),
-                      trailing: DropdownButton<String>(
-                          value: member.role,
-                          // Nonaktifkan dropdown jika BUKAN owner
-                          onChanged: !isOwner
-                              ? null
-                              : (String? newValue) {
-                                  if (newValue != null &&
-                                      newValue != member.role) {
-                                    // Panggil BLoC
-                                    context.read<WorkspaceBloc>().add(
-                                          UpdateMemberRolePressed(
-                                            workspaceId: workspace.id,
-                                            userIdToUpdate: member.user.id,
-                                            newRole: newValue,
-                                          ),
-                                        );
-                                  }
-                                },
-                          items: <String>['editor', 'viewer']
-                              .map<DropdownMenuItem<String>>((String value) {
-                            return DropdownMenuItem<String>(
-                              value: value,
-                              // Kapitalisasi text
-                              child: Text(value[0].toUpperCase() +
-                                  value.substring(1)),
-                            );
-                          }).toList(),
-                        ),
+                      trailing: member.role == 'owner'
+                          // 1. Jika member adalah owner, tampilkan Teks
+                          ? Padding(
+                              padding: const EdgeInsets.only(right: 12.0), // Beri padding agar sejajar
+                              child: Text(
+                                'Owner',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blue.shade700, // Samakan dengan warna tema
+                                ),
+                              ),
+                            )
+                          : DropdownButton<String>(
+                              value: member.role,
+                              // Logika onChanged Anda sudah benar (hanya owner yang bisa mengubah)
+                              onChanged: !isOwner
+                                  ? null 
+                                  : (String? newValue) {
+                                      if (newValue != null &&
+                                          newValue != member.role) {
+                                        context.read<WorkspaceBloc>().add(
+                                              UpdateMemberRolePressed(
+                                                workspaceId: workspace.id,
+                                                userIdToUpdate: member.user.id,
+                                                newRole: newValue,
+                                              ),
+                                            );
+                                      }
+                                    },
+                              // Daftar items (tetap sama)
+                              items: <String>['editor', 'viewer']
+                                  .map<DropdownMenuItem<String>>((String value) {
+                                return DropdownMenuItem<String>(
+                                  value: value,
+                                  child: Text(value[0].toUpperCase() +
+                                      value.substring(1)),
+                                );
+                              }).toList(),
+                            ),
                     );
                   },
                 ),
