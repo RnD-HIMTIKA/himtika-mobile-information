@@ -51,6 +51,7 @@
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="https" android:host="himtika.cs.unsika.ac.id" />
+                <data android:pathPrefix="/join-workspace" />
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

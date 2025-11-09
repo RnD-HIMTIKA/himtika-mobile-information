@@ -1,0 +1,27 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "HIMFO (Debug)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "debug",
+            "args": [
+                "--dart-define=SENTRY_DSN=DSN_ANDA",
+                "--dart-define=SUPABASE_URL=https://kezvxliamqwfvlpuckvm.supabase.co",
+                "--dart-define=SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtlenZ4bGlhbXF3ZnZscHVja3ZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NzE2MDMsImV4cCI6MjA2NzM0NzYwM30.dhvgAXDyHvCDEfuMR3MHDPzUO5DuyT2T__dxsouXL88"
+            ]
+        },
+        {
+            "name": "HIMFO (Profile)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile",
+            "args": [
+                "--dart-define=SENTRY_DSN=DSN_ANDA",
+                "--dart-define=SUPABASE_URL=https://kezvxliamqwfvlpuckvm.supabase.co",
+                "--dart-define=SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtlenZ4bGlhbXF3ZnZscHVja3ZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE3NzE2MDMsImV4cCI6MjA2NzM0NzYwM30.dhvgAXDyHvCDEfuMR3MHDPzUO5DuyT2T__dxsouXL88"
+            ]
+        }
+    ]
+}
