@@ -161,8 +161,15 @@ class _HomePageState extends State<HomePage> {
     final double gridItemHeight = 100;
     final double childAspectRatio = gridItemWidth / gridItemHeight;
 
-    return BlocProvider(
-      create: (_) => sl<HomeBloc>()..add(LoadHomeData()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) => sl<HomeBloc>()..add(LoadHomeData())
+        ),
+        BlocProvider(
+          create: (_) => sl<InvitationBloc>()..add(LoadMyInvitations()),
+        ),
+      ],
       child: Scaffold(
         endDrawer: const SidebarHome(),
         body: BlocBuilder<HomeBloc, HomeState>(
@@ -225,15 +232,53 @@ class _HomePageState extends State<HomePage> {
                           ),
                           Row(
                             children: [
-                              IconButton(
-                                icon: const Icon(Icons.notifications_outlined,
-                                    color: Colors.white),
-                                onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                        builder: (context) =>
-                                            const NotificationPage()),
+                              // 4. Bungkus IconButton dengan BlocBuilder
+                              BlocBuilder<InvitationBloc, InvitationState>(
+                                builder: (context, invState) {
+                                  // 5. Tentukan apakah ada notifikasi
+                                  final bool hasNotifications = 
+                                      invState.status == InvitationStatus.loaded && 
+                                      invState.invitations.isNotEmpty;
+
+                                  // 6. Gunakan Stack untuk menumpuk ikon dan tanda merah
+                                  return Stack(
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.notifications_outlined,
+                                            color: Colors.white),
+                                        onPressed: () {
+                                          // --- PERBAIKAN NAVIGASI ---
+                                          // Kita harus menyediakan InvitationBloc ke halaman notifikasi
+                                          // karena kita sudah memuatnya di sini.
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (_) => BlocProvider.value(
+                                                // Berikan instance BLoC yang sudah ada
+                                                value: context.read<InvitationBloc>(), 
+                                                child: const NotificationPage(),
+                                              ),
+                                            ),
+                                          );
+                                          // -------------------------
+                                        },
+                                      ),
+                                      // 7. Tampilkan tanda merah jika ada notifikasi
+                                      if (hasNotifications)
+                                        Positioned(
+                                          top: 10,
+                                          right: 10,
+                                          child: Container(
+                                            width: 10,
+                                            height: 10,
+                                            decoration: BoxDecoration(
+                                              color: Colors.redAccent,
+                                              shape: BoxShape.circle,
+                                              border: Border.all(color: Colors.white, width: 1.5),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
                                   );
                                 },
                               ),

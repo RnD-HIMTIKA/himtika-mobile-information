@@ -11,67 +11,69 @@ class NotificationPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => sl<InvitationBloc>()..add(LoadMyInvitations()),
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Pusat Notifikasi'),
-          backgroundColor: const Color(0xFF0175C8),
-          foregroundColor: Colors.white,
-        ),
-        body: BlocBuilder<InvitationBloc, InvitationState>(
-          builder: (context, state) {
-            if (state.status == InvitationStatus.loading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (state.status == InvitationStatus.failure) {
-              return Center(child: Text('Gagal memuat notifikasi: ${state.errorMessage}'));
-            }
-            // HAPUS logic 'if (state.invitations.isEmpty)' dari sini
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Pusat Notifikasi'),
+        backgroundColor: const Color(0xFF0175C8),
+        foregroundColor: Colors.white,
+      ),
+      body: BlocBuilder<InvitationBloc, InvitationState>(
+        builder: (context, state) {
+          if (state.status == InvitationStatus.loading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (state.status == InvitationStatus.failure) {
+            return Center(
+                child: Text('Gagal memuat notifikasi: ${state.errorMessage}'));
+          }
+          // HAPUS logic 'if (state.invitations.isEmpty)' dari sini
 
-            // --- PERBAIKAN DIMULAI DI SINI ---
-            // Langsung return RefreshIndicator
-            return RefreshIndicator(
-              onRefresh: () async {
-                context.read<InvitationBloc>().add(LoadMyInvitations());
-              },
-              // Tentukan child berdasarkan state.invitations.isEmpty
-              child: state.invitations.isEmpty
-                  // JIKA KOSONG: Tampilkan pesan di dalam ListView agar tetap bisa di-refresh
-                  ? LayoutBuilder( // Gunakan LayoutBuilder untuk mendapatkan tinggi
-                      builder: (context, constraints) {
-                        return ListView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(16.0),
-                              height: constraints.maxHeight, // Set tinggi agar Center bekerja
-                              child: const Center(
-                                child: Text(
-                                  'Tidak ada notifikasi baru.',
-                                  style: TextStyle(fontSize: 16, color: Colors.grey),
-                                ),
+          // --- PERBAIKAN DIMULAI DI SINI ---
+          // Langsung return RefreshIndicator
+          return RefreshIndicator(
+            onRefresh: () async {
+              context.read<InvitationBloc>().add(LoadMyInvitations());
+            },
+            // Tentukan child berdasarkan state.invitations.isEmpty
+            child: state.invitations.isEmpty
+                // JIKA KOSONG: Tampilkan pesan di dalam ListView agar tetap bisa di-refresh
+                ? LayoutBuilder(
+                    // Gunakan LayoutBuilder untuk mendapatkan tinggi
+                    builder: (context, constraints) {
+                      return ListView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(16.0),
+                            height: constraints
+                                .maxHeight, // Set tinggi agar Center bekerja
+                            child: const Center(
+                              child: Text(
+                                'Tidak ada notifikasi baru.',
+                                style:
+                                    TextStyle(fontSize: 16, color: Colors.grey),
                               ),
                             ),
-                          ],
-                        );
-                      },
-                    )
-                  // JIKA ADA DATA: Tampilkan ListView.separated seperti sebelumnya
-                  : ListView.separated(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(16.0),
-                      itemCount: state.invitations.length,
-                      separatorBuilder: (context, index) => const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final invitation = state.invitations[index];
-                        return _InvitationCard(invitation: invitation);
-                      },
-                    ),
-            );
-            // --- AKHIR PERBAIKAN ---
-          },
-        ),
+                          ),
+                        ],
+                      );
+                    },
+                  )
+                // JIKA ADA DATA: Tampilkan ListView.separated seperti sebelumnya
+                : ListView.separated(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.all(16.0),
+                    itemCount: state.invitations.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final invitation = state.invitations[index];
+                      return _InvitationCard(invitation: invitation);
+                    },
+                  ),
+          );
+          // --- AKHIR PERBAIKAN ---
+        },
       ),
     );
   }
@@ -83,7 +85,8 @@ class _InvitationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final formattedDate = DateFormat('d MMMM yyyy, HH:mm').format(invitation.createdAt);
+    final formattedDate =
+        DateFormat('d MMMM yyyy, HH:mm').format(invitation.createdAt);
 
     return Card(
       elevation: 2,
@@ -123,7 +126,8 @@ class _InvitationCard extends StatelessWidget {
                       ),
                       Text(
                         'Dari: ${invitation.inviterName}',
-                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        style:
+                            const TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                     ],
                   ),
@@ -135,7 +139,8 @@ class _InvitationCard extends StatelessWidget {
               TextSpan(
                 style: const TextStyle(fontSize: 14, color: Colors.black87),
                 children: [
-                  const TextSpan(text: 'Anda diundang untuk bergabung ke workspace '),
+                  const TextSpan(
+                      text: 'Anda diundang untuk bergabung ke workspace '),
                   TextSpan(
                     text: '"${invitation.workspaceTitle}"',
                     style: const TextStyle(fontWeight: FontWeight.bold),
@@ -155,7 +160,9 @@ class _InvitationCard extends StatelessWidget {
               children: [
                 OutlinedButton(
                   onPressed: () {
-                    context.read<InvitationBloc>().add(DeclineInvitationPressed(invitation.id));
+                    context
+                        .read<InvitationBloc>()
+                        .add(DeclineInvitationPressed(invitation.id));
                   },
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.red,
@@ -166,7 +173,9 @@ class _InvitationCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: () {
-                    context.read<InvitationBloc>().add(AcceptInvitationByIdPressed(invitation.id));
+                    context
+                        .read<InvitationBloc>()
+                        .add(AcceptInvitationByIdPressed(invitation.id));
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
