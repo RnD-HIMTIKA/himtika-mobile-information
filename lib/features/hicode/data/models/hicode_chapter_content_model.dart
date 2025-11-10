@@ -8,6 +8,7 @@ class HiCodeChapterContentModel extends HiCodeChapterContent {
     required super.contentBlocks,
     required super.lastScrollPosition,
     required super.isQuizUnlocked,
+    required super.isQuizless,
   });
 
   factory HiCodeChapterContentModel.fromMap(Map<String, dynamic> map) {
@@ -51,6 +52,7 @@ class HiCodeChapterContentModel extends HiCodeChapterContent {
       contentBlocks: parsedContentBlocks, // <-- Gunakan hasil parsing
       lastScrollPosition: (map['last_scroll_position'] as num?)?.toDouble() ?? 0.0,
       isQuizUnlocked: map['is_quiz_unlocked'] as bool? ?? false,
+      isQuizless: map['is_quizless'] as bool? ?? false,
     );
   }
 }

@@ -37,54 +37,74 @@ class ChapterManagementScreen extends StatelessWidget {
             }
           },
           builder: (context, state) {
-            if (state.status == ChapterManagementStatus.loading && state.chapters.isEmpty) {
+            if (state.status == ChapterManagementStatus.loading &&
+                state.chapters.isEmpty) {
               return const Center(child: CircularProgressIndicator());
             }
             if (state.chapters.isEmpty) {
               return const Center(
                 child: Padding(
                   padding: EdgeInsets.all(16.0),
-                  child: Text('Belum ada chapter. Tekan tombol + untuk menambah.', textAlign: TextAlign.center),
+                  child: Text(
+                      'Belum ada chapter. Tekan tombol + untuk menambah.',
+                      textAlign: TextAlign.center),
                 ),
               );
             }
 
             // Tampilkan daftar chapter
-            return ListView.builder(
+            return ReorderableListView.builder(
               padding: const EdgeInsets.all(16.0),
               itemCount: state.chapters.length,
+              
               itemBuilder: (context, index) {
                 final chapter = state.chapters[index];
+                
                 return Card(
+                  key: ValueKey(chapter.id), 
                   margin: const EdgeInsets.only(bottom: 12),
                   child: ListTile(
-                    leading: CircleAvatar(child: Text('${chapter.order}')), // Tampilkan urutan
+                    leading: ReorderableDragStartListener(
+                      index: index,
+                      // Nonaktifkan drag saat BLoC sedang sibuk
+                      enabled: state.status == ChapterManagementStatus.success,
+                      child: const Icon(Icons.drag_handle, color: Colors.grey),
+                    ),
+                    // Tampilkan urutan visual (index + 1)
                     title: Text(chapter.title),
+                    subtitle: Text('Urutan di User: ${chapter.order}'),
+                    
                     trailing: Row(
                        mainAxisSize: MainAxisSize.min,
                        children: [
                          IconButton(
                            icon: Icon(Icons.edit, color: Colors.blue.shade700),
-                           onPressed: () {
-                             // TODO: Implementasi edit dialog
+                           // Nonaktifkan tombol saat BLoC sibuk
+                           onPressed: state.status == ChapterManagementStatus.success ? () {
                               _showModifyChapterDialog(context, materialId, chapterToEdit: chapter);
-                           },
+                           } : null,
                          ),
                           IconButton(
                            icon: Icon(Icons.delete_outline, color: Colors.red.shade700),
-                           onPressed: () {
-                             // Panggil fungsi konfirmasi hapus
+                           // Nonaktifkan tombol saat BLoC sibuk
+                           onPressed: state.status == ChapterManagementStatus.success ? () {
                              _showDeleteConfirmationDialog(context, chapter);
-                           },
+                           } : null,
                          ),
                        ],
                     ),
-                    onTap: () {
-                      // TODO: Implementasi edit dialog
+                    onTap: state.status == ChapterManagementStatus.success ? () {
                        _showModifyChapterDialog(context, materialId, chapterToEdit: chapter);
-                    },
+                    } : null,
                   ),
                 );
+              },
+
+              // onReorder HANYA MENGIRIM EVENT
+              onReorder: (int oldIndex, int newIndex) {
+                context.read<ChapterManagementBloc>().add(
+                      ReorderChapters(materialId, oldIndex, newIndex),
+                    );
               },
             );
           },
@@ -104,30 +124,33 @@ class ChapterManagementScreen extends StatelessWidget {
   }
 
   // Fungsi helper untuk menampilkan dialog
-  void _showModifyChapterDialog(BuildContext context, String materialId, {HiCodeChapter? chapterToEdit}) {
-     showDialog(
-       context: context,
-       barrierDismissible: false,
-       builder: (dialogContext) {
-         return BlocProvider.value(
-           // Teruskan Bloc yang sudah ada
-           value: BlocProvider.of<ChapterManagementBloc>(context),
-           child: ModifyChapterDialog(
-               materialId: materialId,
-               chapterToEdit: chapterToEdit,
-           ),
-         );
-       },
-     );
+  void _showModifyChapterDialog(BuildContext context, String materialId,
+      {HiCodeChapter? chapterToEdit}) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        return BlocProvider.value(
+          // Teruskan Bloc yang sudah ada
+          value: BlocProvider.of<ChapterManagementBloc>(context),
+          child: ModifyChapterDialog(
+            materialId: materialId,
+            chapterToEdit: chapterToEdit,
+          ),
+        );
+      },
+    );
   }
 
-  void _showDeleteConfirmationDialog(BuildContext context, HiCodeChapter chapter) {
+  void _showDeleteConfirmationDialog(
+      BuildContext context, HiCodeChapter chapter) {
     showDialog(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Hapus Chapter'),
-          content: Text('Anda yakin ingin menghapus chapter "${chapter.title}"? Aksi ini tidak dapat dibatalkan.'),
+          content: Text(
+              'Anda yakin ingin menghapus chapter "${chapter.title}"? Aksi ini tidak dapat dibatalkan.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
@@ -137,7 +160,9 @@ class ChapterManagementScreen extends StatelessWidget {
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
               onPressed: () {
                 // Kirim event DeleteChapterPressed ke BLoC
-                context.read<ChapterManagementBloc>().add(DeleteChapterPressed(chapter.id));
+                context
+                    .read<ChapterManagementBloc>()
+                    .add(DeleteChapterPressed(chapter.id));
                 Navigator.of(dialogContext).pop(); // Tutup dialog konfirmasi
               },
               child: const Text('Hapus', style: TextStyle(color: Colors.white)),

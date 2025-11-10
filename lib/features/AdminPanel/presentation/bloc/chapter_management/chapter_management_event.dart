@@ -56,9 +56,10 @@ class DeleteChapterPressed extends ChapterManagementEvent {
 
 class ReorderChapters extends ChapterManagementEvent {
   final String materialId;
-  final List<String> chapterIds;
+  final int oldIndex;
+  final int newIndex;
   
-  const ReorderChapters(this.materialId, this.chapterIds);
+  const ReorderChapters(this.materialId, this.oldIndex, this.newIndex);
   @override
-  List<Object?> get props => [materialId, chapterIds];
+  List<Object?> get props => [materialId, oldIndex, newIndex];
 }

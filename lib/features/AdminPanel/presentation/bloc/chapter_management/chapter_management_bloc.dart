@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/hicode_chapter.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/get_chapters_by_material.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/create_hicode_chapter.dart';
@@ -33,7 +34,7 @@ class ChapterManagementBloc extends Bloc<ChapterManagementEvent, ChapterManageme
     on<AddChapterSubmitted>(_onAddChapter);
     on<UpdateChapterSubmitted>(_onUpdateChapter);
     on<DeleteChapterPressed>(_onDeleteChapter);
-    on<ReorderChapters>(_onReorderChapters);
+    on<ReorderChapters>(_onReorderChapters, transformer: sequential());
   }
 
   Future<void> _onLoadChapters(
@@ -149,14 +150,50 @@ class ChapterManagementBloc extends Bloc<ChapterManagementEvent, ChapterManageme
     ReorderChapters event,
     Emitter<ChapterManagementState> emit,
   ) async {
+    // 1. Buat salinan list dari state saat ini
+    final List<HiCodeChapter> reorderedChapters = List.from(state.chapters);
+    
+    // 2. Lakukan logika pemindahan
+    int newIndex = event.newIndex;
+    if (event.oldIndex < newIndex) {
+      newIndex -= 1;
+    }
+    final HiCodeChapter item = reorderedChapters.removeAt(event.oldIndex);
+    reorderedChapters.insert(newIndex, item);
+
+    // 3. EMIT UI BARU (Optimistic Update)
+    // UI sekarang akan SINKRON dengan apa yang dilihat user
+    emit(state.copyWith(
+      status: ChapterManagementStatus.success, 
+      chapters: reorderedChapters
+    ));
+
+    // 4. Siapkan panggilan Server
+    final List<String> sortedChapterIds = reorderedChapters.map((c) => c.id).toList();
+
+    // 5. PANGGIL SERVER (di Latar Belakang)
     try {
-      await _reorderChapters(event.materialId, event.chapterIds);
-      add(LoadChapters(event.materialId));
-    } catch (e) {
+      await _reorderChapters(event.materialId, sortedChapterIds);
+      
+      // 6. SUKSES: Muat ulang data dari server SECARA DIAM-DIAM
+      // Ini akan mengambil chapter list dengan 'order' yang sudah benar
+      // dan memperbarui state tanpa loading
+      final chaptersFromDb = await _getChaptersByMaterial(event.materialId);
       emit(state.copyWith(
-        status: ChapterManagementStatus.failure,
-        errorMessage: e.toString().replaceFirst('Exception: ', ''),
+        status: ChapterManagementStatus.success,
+        chapters: chaptersFromDb, // Perbarui state dengan data DB yang akurat
       ));
+
+    } catch (e) {
+      // 7. GAGAL: Tampilkan error dan kembalikan ke state SEBELUM drag
+      final errorMessage = e.toString().replaceFirst('Exception: ', '');
+      emit(state.copyWith(
+        status: ChapterManagementStatus.failure, 
+        errorMessage: errorMessage,
+        chapters: state.chapters // Kembalikan ke list lama
+      ));
+      // Muat ulang data lama untuk keamanan
+      add(LoadChapters(event.materialId));
     }
   }
 }

@@ -33,6 +33,7 @@ class SubChapterDetailBloc extends Bloc<SubChapterDetailEvent, SubChapterDetailS
         // Ambil nilai dari RPC
         lastScrollPosition: content.lastScrollPosition,
         isQuizUnlocked: content.isQuizUnlocked,
+        isQuizless: content.isQuizless,
       ));
 
     } catch (e, stackTrace) { // <-- UBAH

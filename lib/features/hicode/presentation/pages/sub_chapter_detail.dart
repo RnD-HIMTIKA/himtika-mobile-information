@@ -49,11 +49,13 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
             subChapterId: widget.subChapterId, userId: _currentUserId!));
       } else if (mounted) {
         // Handle jika user tidak ditemukan (meskipun seharusnya tidak terjadi di halaman ini)
-         ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Error: User tidak ditemukan.'), backgroundColor: Colors.red),
-          );
-         // Set state ke failure agar UI menampilkan error
-         _bloc.add(const FetchSubChapterData(subChapterId: '', userId: ''));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text('Error: User tidak ditemukan.'),
+              backgroundColor: Colors.red),
+        );
+        // Set state ke failure agar UI menampilkan error
+        _bloc.add(const FetchSubChapterData(subChapterId: '', userId: ''));
       }
     });
     _scrollController.addListener(_scrollListener);
@@ -110,8 +112,9 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
         _updateScrollPosition(
             widget.subChapterId,
             _lastSavedScrollPosition,
-            currentBlocState.isQuizUnlocked || currentReachedBottom // Kirim true jika salah satu true
-        );
+            currentBlocState.isQuizUnlocked ||
+                currentReachedBottom // Kirim true jika salah satu true
+            );
       }
     });
   }
@@ -123,11 +126,11 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
     final currentBlocState = _bloc.state;
     bool finalHasReachedBottom = currentBlocState.isQuizUnlocked;
     if (_scrollController.hasClients) {
-       final maxScroll = _scrollController.position.maxScrollExtent;
-       final currentReachedBottom = (maxScroll > 0)
-        ? (_scrollController.position.pixels >= maxScroll * 0.95)
-        : true;
-       finalHasReachedBottom = finalHasReachedBottom || currentReachedBottom;
+      final maxScroll = _scrollController.position.maxScrollExtent;
+      final currentReachedBottom = (maxScroll > 0)
+          ? (_scrollController.position.pixels >= maxScroll * 0.95)
+          : true;
+      finalHasReachedBottom = finalHasReachedBottom || currentReachedBottom;
     }
     if (_currentUserId != null && _lastSavedScrollPosition >= 0) {
       _updateScrollPosition(
@@ -198,8 +201,8 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
                       onPressed: () {
                         if (_currentUserId != null) {
                           _bloc.add(FetchSubChapterData(
-                                  subChapterId: widget.subChapterId,
-                                  userId: _currentUserId!));
+                              subChapterId: widget.subChapterId,
+                              userId: _currentUserId!));
                         }
                       },
                       child: const Text('Coba Lagi'),
@@ -224,7 +227,8 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
                             focusNode: _focusNode,
                             config: QuillEditorConfig(
                               padding: const EdgeInsets.all(8),
-                              embedBuilders: FlutterQuillEmbeds.defaultEditorBuilders(), // Updated for explicit video support
+                              embedBuilders: FlutterQuillEmbeds
+                                  .defaultEditorBuilders(), // Updated for explicit video support
                             ),
                           ),
                   ),
@@ -278,7 +282,7 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
 
   Widget _buildTopIconBar(BuildContext context) {
     // ... (kode ini sama seperti sebelumnya)
-     return Row(
+    return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         IconButton(
@@ -342,28 +346,49 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
   Widget _buildBottomButton(
       BuildContext context, SubChapterDetailState state, String chapterId) {
     final String chapterTitle = state.title ?? 'Chapter Quiz';
+    final bool isQuizless = state.isQuizless;
+    final bool isUnlocked = state.isQuizUnlocked;
+
+    String buttonText;
+    VoidCallback? onPressedAction;
+
+    if (isQuizless) {
+      // --- BAB HANYA-BACA ---
+      if (isUnlocked) {
+        buttonText = 'Selesai & Lanjutkan';
+        onPressedAction = () {
+          // Langsung pop(true) karena RPC sudah menandai selesai
+          Navigator.of(context).pop(true);
+        };
+      } else {
+        buttonText = 'Scroll ke Bawah untuk Selesai';
+        onPressedAction = null; // Tombol non-aktif
+      }
+    } else {
+      // --- BAB DENGAN KUIS (Logika lama) ---
+      if (isUnlocked) {
+        buttonText = 'Kerjakan Kuis';
+        onPressedAction = () async {
+          final quizResult = await Navigator.of(context).push<bool>(
+            MaterialPageRoute(
+              builder: (_) =>
+                  QuizScreen(quizId: chapterId, chapterTitle: chapterTitle),
+            ),
+          );
+          if (quizResult == true && context.mounted) {
+            Navigator.of(context).pop(true);
+          }
+        };
+      } else {
+        buttonText = 'Scroll ke Bawah untuk Membuka Kuis';
+        onPressedAction = null; // Tombol non-aktif
+      }
+    }
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: ElevatedButton(
-        onPressed: state.isQuizUnlocked
-            ? () async { // <-- JADIKAN ASYNC
-                // --- MODIFIKASI NAVIGASI INI ---
-                final quizResult = await Navigator.of(context).push<bool>( // <-- TAMBAHKAN AWAIT & TANGKAP HASIL
-                  MaterialPageRoute(
-                    builder: (_) => QuizScreen(
-                        quizId: chapterId, chapterTitle: chapterTitle),
-                  ),
-                );
-
-                // Jika hasil kuis adalah true (lulus)
-                if (quizResult == true && context.mounted) {
-                  // Pop halaman SubChapterDetail ini dan kirim 'true'
-                  // ke ChapterDetailScreen
-                  Navigator.of(context).pop(true);
-                }
-                // --- AKHIR MODIFIKASI ---
-              }
-            : null,
+        onPressed: onPressedAction, // <-- Gunakan aksi dinamis
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 16),
           backgroundColor: AppColors.himfoBlue,
@@ -377,13 +402,11 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              state.isQuizUnlocked
-                  ? 'Kerjakan Kuis'
-                  : 'Scroll ke Bawah untuk Membuka Kuis',
+              buttonText, // <-- Gunakan teks dinamis
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(width: 8),
-            if (state.isQuizUnlocked)
+            if (isUnlocked) // Tampilkan panah jika tombol aktif
               const Icon(Icons.arrow_forward, color: Colors.white),
           ],
         ),

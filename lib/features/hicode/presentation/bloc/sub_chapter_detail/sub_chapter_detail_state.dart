@@ -11,6 +11,7 @@ class SubChapterDetailState extends Equatable {
   final String? errorMessage;
   final bool isQuizUnlocked;
   final double lastScrollPosition;
+  final bool isQuizless;
 
   const SubChapterDetailState({
     this.status = SubChapterDetailStatus.initial,
@@ -21,6 +22,7 @@ class SubChapterDetailState extends Equatable {
     this.errorMessage,
     this.isQuizUnlocked = false,
     this.lastScrollPosition = 0.0,
+    this.isQuizless = false,
   });
 
   SubChapterDetailState copyWith({
@@ -32,6 +34,7 @@ class SubChapterDetailState extends Equatable {
     String? errorMessage,
     bool? isQuizUnlocked,
     double? lastScrollPosition,
+    bool? isQuizless,
   }) {
     return SubChapterDetailState(
       status: status ?? this.status,
@@ -42,9 +45,10 @@ class SubChapterDetailState extends Equatable {
       errorMessage: errorMessage ?? this.errorMessage,
       isQuizUnlocked: isQuizUnlocked ?? this.isQuizUnlocked,
       lastScrollPosition: lastScrollPosition ?? this.lastScrollPosition,
+      isQuizless: isQuizless ?? this.isQuizless,
     );
   }
 
   @override
-  List<Object?> get props => [status, title, readTime, quizCount, contentBlocks, errorMessage, isQuizUnlocked, lastScrollPosition];
+  List<Object?> get props => [status, title, readTime, quizCount, contentBlocks, errorMessage, isQuizUnlocked, lastScrollPosition, isQuizless];
 }

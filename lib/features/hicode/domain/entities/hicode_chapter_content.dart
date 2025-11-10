@@ -7,6 +7,7 @@ class HiCodeChapterContent extends Equatable {
   final List<dynamic> contentBlocks;
   final double lastScrollPosition;
   final bool isQuizUnlocked;
+  final bool isQuizless;
 
   const HiCodeChapterContent({
     required this.title,
@@ -15,8 +16,9 @@ class HiCodeChapterContent extends Equatable {
     required this.contentBlocks,
     required this.lastScrollPosition,
     required this.isQuizUnlocked,
+    required this.isQuizless,
   });
 
   @override
-  List<Object?> get props => [title, readTime, quizCount, contentBlocks, lastScrollPosition, isQuizUnlocked];
+  List<Object?> get props => [title, readTime, quizCount, contentBlocks, lastScrollPosition, isQuizUnlocked, isQuizless];
 }
