@@ -7,12 +7,14 @@ class FinalExamDetailScreen extends StatelessWidget {
   final String materialName;
   final String materialId;
   final int questionCount;
+  final String userName;
 
   const FinalExamDetailScreen({
     super.key, 
     required this.materialName,
     required this.materialId,
     required this.questionCount,
+    required this.userName,
   });
 
   @override
@@ -202,8 +204,11 @@ class FinalExamDetailScreen extends StatelessWidget {
           if (shouldStart == true && context.mounted) {
             Navigator.of(context).push(
               MaterialPageRoute(
-                  // Ubah quizId menjadi format "FINAL_" + UUID
-                  builder: (_) => QuizScreen(quizId: 'FINAL_$materialId', chapterTitle: 'Latihan Final: $materialName')), // <-- Beri judul juga
+                  builder: (_) => QuizScreen( // 3. KIRIM KE QUIZSCREEN
+                        quizId: 'FINAL_$materialId', 
+                        chapterTitle: 'Latihan Final: $materialName',
+                        userName: userName, // <-- INI PERBAIKANNYA
+                      )),
             );
           }
         },

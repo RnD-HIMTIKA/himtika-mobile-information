@@ -8,6 +8,7 @@ class HiCodeChapter extends Equatable {
   final int? estimatedReadTime;
   final int order;
   final DateTime createdAt;
+  final bool isQuizless;
 
   const HiCodeChapter({
     required this.id,
@@ -17,6 +18,7 @@ class HiCodeChapter extends Equatable {
     this.estimatedReadTime,
     required this.order,
     required this.createdAt,
+    this.isQuizless = false,
   });
 
   @override
@@ -28,5 +30,6 @@ class HiCodeChapter extends Equatable {
     estimatedReadTime,
     order,
     createdAt,
+    isQuizless,
   ];
 }

@@ -5,7 +5,13 @@ import 'package:himtika_mobile_information/features/hicode/presentation/bloc/ove
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/quiz_screen.dart';
 
 class OverallExamScreen extends StatelessWidget {
-  const OverallExamScreen({super.key});
+  final String userName;
+
+
+  const OverallExamScreen({
+    super.key,
+    required this.userName,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -187,8 +193,11 @@ class OverallExamScreen extends StatelessWidget {
           if (shouldStart == true && context.mounted) {
             Navigator.of(context).push(
               MaterialPageRoute(
-                  // Gunakan UUID placeholder sebagai quizId
-                  builder: (_) => const QuizScreen(quizId: '00000000-0000-0000-0000-000000000000')),
+                builder: (_) => QuizScreen(
+                  quizId: '00000000-0000-0000-0000-000000000000',
+                  userName: userName, // <-- 3. TERUSKAN USERNAME KE QUIZSCREEN
+                ),
+              ),
             );
           }
         },

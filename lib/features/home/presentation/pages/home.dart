@@ -399,11 +399,14 @@ class _HomePageState extends State<HomePage> {
                                         "HiCode",
                                         [Color(0xFF333C66), Color(0xFF2D365E)],
                                         () {
+                                          // 1. Ambil userName dari HomeBloc
+                                          final String userName = context.read<HomeBloc>().state.currentUser?.username ?? 'Penantang';
+                                          
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
                                                 builder: (_) =>
-                                                    const HicodeScreen()),
+                                                    HicodeScreen(userName: userName)), // 2. Kirim userName
                                           );
                                         },
                                       ),

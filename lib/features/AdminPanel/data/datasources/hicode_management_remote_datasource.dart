@@ -37,6 +37,7 @@ abstract class HiCodeManagementRemoteDatasource {
     required List<dynamic> content,
     int? estimatedReadTime,
     required int order,
+    required bool isQuizless,
   });
   Future<void> updateChapter({
     required String id,
@@ -44,6 +45,7 @@ abstract class HiCodeManagementRemoteDatasource {
     List<dynamic>? content,
     int? estimatedReadTime,
     int? order,
+    bool? isQuizless,
   });
   Future<void> deleteChapter(String id);
   Future<void> reorderChapters(String materialId, List<String> chapterIds);
@@ -170,6 +172,7 @@ class HiCodeManagementRemoteDatasourceImpl implements HiCodeManagementRemoteData
     required List<dynamic> content,
     int? estimatedReadTime,
     required int order,
+    required bool isQuizless,
   }) async {
     await client.from('hicode_chapters').insert({
       'material_id': materialId,
@@ -177,6 +180,7 @@ class HiCodeManagementRemoteDatasourceImpl implements HiCodeManagementRemoteData
       'content': content,
       'estimated_read_time': estimatedReadTime,
       'order': order,
+      'is_quizless': isQuizless,
     });
   }
 
@@ -187,6 +191,7 @@ class HiCodeManagementRemoteDatasourceImpl implements HiCodeManagementRemoteData
     List<dynamic>? content,
     int? estimatedReadTime,
     int? order,
+    bool? isQuizless,
   }) async {
     final updates = <String, dynamic>{};
     if (title != null) updates['title'] = title;
@@ -194,6 +199,7 @@ class HiCodeManagementRemoteDatasourceImpl implements HiCodeManagementRemoteData
     if (content != null) updates['content'] = content; // <-- Kirim List<dynamic>?
     if (estimatedReadTime != null) updates['estimated_read_time'] = estimatedReadTime;
     if (order != null) updates['order'] = order;
+    if (isQuizless != null) updates['is_quizless'] = isQuizless;
 
     if (updates.isNotEmpty) {
       await client.from('hicode_chapters').update(updates).eq('id', id);

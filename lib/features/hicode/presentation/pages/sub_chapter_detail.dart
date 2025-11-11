@@ -15,8 +15,13 @@ import 'package:himtika_mobile_information/core/theme/app_colors.dart';
 
 class SubChapterDetailScreen extends StatefulWidget {
   final String subChapterId;
+  final String userName; // 1. TERIMA USERNAME
 
-  const SubChapterDetailScreen({super.key, required this.subChapterId});
+  const SubChapterDetailScreen({
+    super.key, 
+    required this.subChapterId, 
+    required this.userName // 2. UPDATE CONSTRUCTOR
+  });
 
   @override
   State<SubChapterDetailScreen> createState() => _SubChapterDetailScreenState();
@@ -244,7 +249,12 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
           if (state.status != SubChapterDetailStatus.success) {
             return const SizedBox.shrink();
           }
-          return _buildBottomButton(context, state, widget.subChapterId);
+          return _buildBottomButton(
+            context, 
+            state, 
+            widget.subChapterId,
+            widget.userName
+        );
         },
       ),
     );
@@ -344,7 +354,7 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
   }
 
   Widget _buildBottomButton(
-      BuildContext context, SubChapterDetailState state, String chapterId) {
+      BuildContext context, SubChapterDetailState state, String chapterId, String userName) {
     final String chapterTitle = state.title ?? 'Chapter Quiz';
     final bool isQuizless = state.isQuizless;
     final bool isUnlocked = state.isQuizUnlocked;
@@ -365,14 +375,17 @@ class _SubChapterDetailScreenState extends State<SubChapterDetailScreen> {
         onPressedAction = null; // Tombol non-aktif
       }
     } else {
-      // --- BAB DENGAN KUIS (Logika lama) ---
       if (isUnlocked) {
         buttonText = 'Kerjakan Kuis';
         onPressedAction = () async {
           final quizResult = await Navigator.of(context).push<bool>(
             MaterialPageRoute(
               builder: (_) =>
-                  QuizScreen(quizId: chapterId, chapterTitle: chapterTitle),
+                  QuizScreen(
+                    quizId: chapterId, 
+                    chapterTitle: chapterTitle,
+                    userName: userName, // 5. KIRIM KE QUIZSCREEN
+                  ),
             ),
           );
           if (quizResult == true && context.mounted) {

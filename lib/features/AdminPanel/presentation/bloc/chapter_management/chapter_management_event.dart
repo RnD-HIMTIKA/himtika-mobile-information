@@ -18,15 +18,17 @@ class AddChapterSubmitted extends ChapterManagementEvent {
   final String title;
   final List<dynamic>? content;
   final int? estimatedReadTime;
+  final bool isQuizless;
   
   const AddChapterSubmitted({
     required this.materialId,
     required this.title,
     required this.content,
     this.estimatedReadTime,
+    required this.isQuizless,
   });
   @override
-  List<Object?> get props => [materialId, title, content, estimatedReadTime];
+  List<Object?> get props => [materialId, title, content, estimatedReadTime, isQuizless];
 }
 
 class UpdateChapterSubmitted extends ChapterManagementEvent {
@@ -35,6 +37,7 @@ class UpdateChapterSubmitted extends ChapterManagementEvent {
   final List<dynamic>? content;
   final int? estimatedReadTime;
   final int? order;
+  final bool? isQuizless;
   
   const UpdateChapterSubmitted({
     required this.id,
@@ -42,9 +45,10 @@ class UpdateChapterSubmitted extends ChapterManagementEvent {
     this.content,
     this.estimatedReadTime,
     this.order,
+    this.isQuizless,
   });
   @override
-  List<Object?> get props => [id, title, content, estimatedReadTime, order];
+  List<Object?> get props => [id, title, content, estimatedReadTime, order, isQuizless];
 }
 
 class DeleteChapterPressed extends ChapterManagementEvent {

@@ -11,6 +11,7 @@ class UpdateHiCodeChapter {
     List<dynamic>? content,
     int? estimatedReadTime,
     int? order,
+    bool? isQuizless,
   }) {
     if (id.trim().isEmpty) {
       throw Exception('ID Chapter tidak valid.');
@@ -27,6 +28,7 @@ class UpdateHiCodeChapter {
       content: content,
       estimatedReadTime: estimatedReadTime,
       order: order,
+      isQuizless: isQuizless,
     );
   }
 }

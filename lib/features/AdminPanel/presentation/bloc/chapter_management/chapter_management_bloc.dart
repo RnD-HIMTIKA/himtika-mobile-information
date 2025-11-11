@@ -81,6 +81,7 @@ class ChapterManagementBloc extends Bloc<ChapterManagementEvent, ChapterManageme
         content: event.content!, // <-- Kirim List<dynamic> (non-null)
         estimatedReadTime: event.estimatedReadTime,
         order: nextOrder,
+        isQuizless: event.isQuizless,
       );
       add(LoadChapters(event.materialId)); // Refresh list
     } catch (e) {
@@ -114,6 +115,7 @@ class ChapterManagementBloc extends Bloc<ChapterManagementEvent, ChapterManageme
         content: event.content, // <-- Kirim List<dynamic>?
         estimatedReadTime: event.estimatedReadTime,
         order: event.order,
+        isQuizless: event.isQuizless,
       );
        // Refresh list jika ada material ID tersimpan
        if (state.currentMaterialId != null) {

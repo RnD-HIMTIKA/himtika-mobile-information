@@ -10,8 +10,13 @@ import 'package:himtika_mobile_information/features/hicode/domain/entities/hicod
 
 class MaterialDetailScreen extends StatelessWidget {
   final String materialId;
+  final String userName; // 1. TERIMA USERNAME
 
-  const MaterialDetailScreen({super.key, required this.materialId});
+  const MaterialDetailScreen({
+    super.key, 
+    required this.materialId, 
+    required this.userName // 2. UPDATE CONSTRUCTOR
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -49,25 +54,24 @@ class MaterialDetailScreen extends StatelessWidget {
                                 padding: const EdgeInsets.all(16),
                                 itemCount: state.chapters.length + 1,
                                 itemBuilder: (context, index) {
-                                // Jika index < jumlah chapter, tampilkan chapter item
-                                if (index < state.chapters.length) {
-                                  return _buildSubChapterItem(
-                                      context, state.chapters[index]);
-                                }
-                                // Jika index terakhir, tampilkan Latihan Soal Final
-                                else {
-                                  // Ambil nama materi dari state (untuk navigasi kuis)
-                                  final materialName = state.title ?? 'Materi';
-                                  return _buildFinalPracticeItem(
-                                    context,
-                                    materialName,
-                                    state.finalPracticeStatus,
-                                    // Gunakan data dari state, bukan hardcoded "10 Soal"
-                                    "${state.finalPracticeQuestionCount} Soal Pilihan Ganda", 
-                                    state.finalPracticeQuestionCount, // <-- Kirim count mentah
-                                  );
-                                }
-                              },
+                                  if (index < state.chapters.length) {
+                                    return _buildSubChapterItem(
+                                        context, 
+                                        state.chapters[index], 
+                                        userName // 3. KIRIM KE SUB-CHAPTER
+                                    );
+                                  } else {
+                                    final materialName = state.title ?? 'Materi';
+                                    return _buildFinalPracticeItem(
+                                      context,
+                                      materialName,
+                                      state.finalPracticeStatus,
+                                      "${state.finalPracticeQuestionCount} Soal Pilihan Ganda", 
+                                      state.finalPracticeQuestionCount,
+                                      userName, // 4. KIRIM KE FINAL-PRACTICE
+                                    );
+                                  }
+                                },
                               separatorBuilder: (context, index) =>
                                   const SizedBox(height: 12),
                             ),
@@ -159,7 +163,7 @@ class MaterialDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSubChapterItem(BuildContext context, HiCodeChapter chapter) {
+  Widget _buildSubChapterItem(BuildContext context, HiCodeChapter chapter, String userName) {
   // Ambil URL ikon materi dari state BLoC
   final String? materialIconUrl = context.read<MaterialDetailBloc>().state.materialIconPath;
   // Ambil materialId dari widget utama untuk refresh
@@ -200,7 +204,10 @@ class MaterialDetailScreen extends StatelessWidget {
               MaterialPageRoute(
                 builder: (_) => BlocProvider(
                   create: (context) => sl<SubChapterDetailBloc>(),
-                  child: SubChapterDetailScreen(subChapterId: chapter.id),
+                  child: SubChapterDetailScreen(
+                    subChapterId: chapter.id,
+                    userName: userName, // 6. KIRIM KE SUBCHAPTER DETAIL
+                  ),
                 ),
               ),
             );
@@ -318,7 +325,7 @@ class MaterialDetailScreen extends StatelessWidget {
   }
 
   Widget _buildFinalPracticeItem(BuildContext context, String materialName,
-    String status, String details, int questionCount) {
+    String status, String details, int questionCount, String userName) {
     // Tentukan style berdasarkan status ('locked' atau 'unlocked')
     bool isLocked = status == 'locked';
     IconData statusIcon = isLocked
@@ -345,6 +352,7 @@ class MaterialDetailScreen extends StatelessWidget {
                   materialName: materialName,
                   materialId: materialId,
                   questionCount: questionCount,
+                  userName: userName,
                 ),
               ),
             );

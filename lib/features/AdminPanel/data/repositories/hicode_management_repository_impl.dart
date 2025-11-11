@@ -107,6 +107,7 @@ class HiCodeManagementRepositoryImpl implements HiCodeManagementRepository {
     required List<dynamic> content,
     int? estimatedReadTime,
     required int order,
+    required bool isQuizless,
   }) {
     return remoteDatasource.createChapter(
       materialId: materialId,
@@ -114,6 +115,7 @@ class HiCodeManagementRepositoryImpl implements HiCodeManagementRepository {
       content: content,
       estimatedReadTime: estimatedReadTime,
       order: order,
+      isQuizless: isQuizless,
     );
   }
 
@@ -124,6 +126,7 @@ class HiCodeManagementRepositoryImpl implements HiCodeManagementRepository {
     List<dynamic>? content,
     int? estimatedReadTime,
     int? order,
+    bool? isQuizless,
   }) {
     return remoteDatasource.updateChapter(
       id: id,
@@ -131,6 +134,7 @@ class HiCodeManagementRepositoryImpl implements HiCodeManagementRepository {
       content: content,
       estimatedReadTime: estimatedReadTime,
       order: order,
+      isQuizless: isQuizless,
     );
   }
 

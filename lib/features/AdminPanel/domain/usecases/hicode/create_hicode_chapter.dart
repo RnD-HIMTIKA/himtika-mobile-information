@@ -11,6 +11,7 @@ class CreateHiCodeChapter {
     required List<dynamic> content,
     int? estimatedReadTime,
     required int order,
+    required bool isQuizless,
   }) {
     if (title.trim().isEmpty) {
       throw Exception('Judul chapter tidak boleh kosong.');
@@ -24,6 +25,7 @@ class CreateHiCodeChapter {
       content: content,
       estimatedReadTime: estimatedReadTime,
       order: order,
+      isQuizless: isQuizless,
     );
   }
 }

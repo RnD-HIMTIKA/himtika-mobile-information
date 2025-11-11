@@ -9,6 +9,7 @@ class HiCodeChapterModel extends HiCodeChapter {
     super.estimatedReadTime,
     required super.order,
     required super.createdAt,
+    required super.isQuizless,
   });
 
   factory HiCodeChapterModel.fromMap(Map<String, dynamic> map) {
@@ -28,6 +29,7 @@ class HiCodeChapterModel extends HiCodeChapter {
       estimatedReadTime: map['estimated_read_time'] as int?,
       order: map['order'] as int,
       createdAt: DateTime.parse(map['created_at'] as String),
+      isQuizless: map['is_quizless'] as bool? ?? false,
     );
   }
 

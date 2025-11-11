@@ -39,6 +39,7 @@ abstract class HiCodeManagementRepository {
     required List<dynamic> content,
     int? estimatedReadTime,
     required int order,
+    required bool isQuizless,
   });
   Future<void> updateChapter({
     required String id,
@@ -46,6 +47,7 @@ abstract class HiCodeManagementRepository {
     List<dynamic>? content,
     int? estimatedReadTime,
     int? order,
+    bool? isQuizless,
   });
   Future<void> deleteChapter(String id);
   Future<void> reorderChapters(String materialId, List<String> chapterIds);

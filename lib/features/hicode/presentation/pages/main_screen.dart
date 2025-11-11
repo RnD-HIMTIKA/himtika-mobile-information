@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:himtika_mobile_information/core/helpers/image_optimizer.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/bloc/main_screen/main_screen_bloc.dart';
+import 'package:himtika_mobile_information/features/home/presentation/bloc/home_bloc.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/chapter_detail.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/information_screen.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/leaderboard_screen.dart';
@@ -13,7 +14,8 @@ import 'package:himtika_mobile_information/features/hicode/domain/entities/hicod
 import 'package:himtika_mobile_information/core/theme/app_colors.dart';
 
 class HicodeScreen extends StatefulWidget {
-  const HicodeScreen({super.key});
+  final String userName; // 1. TERIMA USERNAME
+  const HicodeScreen({super.key, required this.userName}); // 2. UPDATE CONSTRUCTOR
 
   @override
   State<HicodeScreen> createState() => _HicodeScreenState();
@@ -117,13 +119,16 @@ class _HicodeScreenState extends State<HicodeScreen> {
 
   // --- TAMBAHKAN FUNGSI INI (PROBLEM 6) ---
   void _navigateToExamAndRefresh() {
-    // Navigasi ke Ujian Akhir
+
+    // 2. Navigasi ke Ujian Akhir DENGAN PARAMETER
     Navigator.of(context)
         .push(
-      MaterialPageRoute(builder: (_) => const OverallExamScreen()),
+      MaterialPageRoute(builder: (_) => OverallExamScreen(
+        userName: widget.userName, // 4. GUNAKAN 'widget.userName'
+      )),
     )
-        .then((_) {
-      // .then() akan dieksekusi saat user KEMBALI dari OverallExamScreen/ScoreScreen
+    .then((_) {
+      // ... (sisa .then() tetap sama)
       print("Kembali ke MainScreen, memuat ulang data...");
       _refreshData();
     });
@@ -209,6 +214,7 @@ class _HicodeScreenState extends State<HicodeScreen> {
         return _MaterialCard(
           material: state.materials[index],
           index: index,
+          userName: widget.userName, // 5. KIRIM KE CARD
         );
       },
       separatorBuilder: (context, index) => const SizedBox(height: 16),
@@ -507,8 +513,13 @@ class _CategoryCard extends StatelessWidget {
 class _MaterialCard extends StatelessWidget {
   final HiCodeMaterial material;
   final int index;
+  final String userName; // 6. TERIMA DI CARD
 
-  const _MaterialCard({required this.material, required this.index});
+  const _MaterialCard({
+    required this.material, 
+    required this.index, 
+    required this.userName // 7. UPDATE CONSTRUCTOR
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -614,7 +625,10 @@ class _MaterialCard extends StatelessWidget {
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                    builder: (_) => MaterialDetailScreen(materialId: material.id)),
+                    builder: (_) => MaterialDetailScreen(
+                      materialId: material.id,
+                      userName: userName, // 8. KIRIM SAAT NAVIGASI
+                    )),
               );
             },
             style: ElevatedButton.styleFrom(

@@ -385,7 +385,7 @@ class _PodiumPlace extends StatelessWidget {
           const SizedBox(height: 8),
           // Tampilkan nama atau placeholder
           Text(
-            hasUser ? user!.fullName : '-', // Tampilkan '-' jika tidak ada user
+            hasUser ? '@${user!.username}' : '-', // Tampilkan '-' jika tidak ada user
             style: TextStyle(
                 color: Colors.white,
                 fontWeight: hasUser
@@ -486,7 +486,7 @@ class _UserListTile extends StatelessWidget {
           ),
           const SizedBox(width: 16),
           Expanded(
-            child: Text(user.fullName,
+            child: Text(user.username,
                 style: const TextStyle(fontWeight: FontWeight.bold)),
           ),
           Text('${user.highestScore} PTS',

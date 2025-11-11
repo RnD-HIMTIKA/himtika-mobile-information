@@ -1,13 +1,21 @@
+import 'dart:io';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:himtika_mobile_information/core/theme/app_colors.dart';
 import 'package:himtika_mobile_information/features/hicode/presentation/pages/leaderboard_screen.dart';
-import 'dart:async';
+import 'package:share_plus/share_plus.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'dart:typed_data';
 
 class ScoreScreen extends StatefulWidget {
   final int score;
   final int totalQuestions;
   final Duration timeTaken;
   final int correctAnswers;
+  final String userName;
 
   const ScoreScreen({
     super.key,
@@ -15,6 +23,7 @@ class ScoreScreen extends StatefulWidget {
     required this.totalQuestions,
     required this.timeTaken,
     required this.correctAnswers,
+    required this.userName,
   });
 
   @override
@@ -23,6 +32,7 @@ class ScoreScreen extends StatefulWidget {
 
 class _ScoreScreenState extends State<ScoreScreen> {
   bool _isLoading = true;
+  final ScreenshotController _screenshotController = ScreenshotController();
 
   @override
   void initState() {
@@ -37,9 +47,63 @@ class _ScoreScreenState extends State<ScoreScreen> {
     });
   }
 
+  Future<void> _onSharePressed() async {
+    // 3. UBAH BARIS INI:
+    // Hapus: final userName = context.read<HomeBloc>().state.currentUser?.username ?? 'Penantang';
+    // Ganti dengan:
+    final userName = widget.userName; // <-- Ambil dari parameter widget
+
+    // Tampilkan loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      // 3. Capture widget _ShareableScoreCard
+      final Uint8List? image = await _screenshotController.captureFromWidget(
+      // Kita build widget-nya di sini
+      _ShareableScoreCard(
+        score: widget.score,
+        correctAnswers: widget.correctAnswers,
+        totalQuestions: widget.totalQuestions,
+        userName: userName, // <-- Pastikan ini ter-pass
+      ),
+      context: context,
+    );
+
+      if (image == null) throw Exception('Gagal mengambil gambar');
+
+      // 4. Simpan gambar ke file sementara
+      final tempDir = await getTemporaryDirectory();
+      final imagePath = '${tempDir.path}/hicode_score.png';
+      final file = File(imagePath);
+      await file.writeAsBytes(image);
+
+      // Tutup dialog loading
+      if (mounted) Navigator.of(context).pop();
+
+      // 5. Bagikan file
+      await Share.shareXFiles(
+        [XFile(imagePath)],
+        text:
+            'Saya baru saja menyelesaikan Ujian Akhir HiCode dengan skor ${widget.score} poin! Yuk, coba juga!',
+      );
+    } catch (e) {
+      // Tutup dialog loading
+      if (mounted) Navigator.of(context).pop();
+      // Tampilkan error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Gagal membagikan: $e'), backgroundColor: Colors.red),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-     if (_isLoading) {
+    if (_isLoading) {
       return Scaffold(
         backgroundColor: Colors.white,
         body: Center(
@@ -111,7 +175,6 @@ class _ScoreScreenState extends State<ScoreScreen> {
     );
   }
 
-
   // --- WIDGET-WIDGET PEMBANTU ---
   String _formatDuration(Duration duration) {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
@@ -137,7 +200,8 @@ class _ScoreScreenState extends State<ScoreScreen> {
           // Jarak aman untuk status bar
           SizedBox(height: MediaQuery.of(context).padding.top),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -154,7 +218,8 @@ class _ScoreScreenState extends State<ScoreScreen> {
                   onPressed: () {
                     // Navigasi ke halaman Leaderboard
                     Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const LeaderboardScreen()),
+                      MaterialPageRoute(
+                          builder: (_) => const LeaderboardScreen()),
                     );
                   },
                   icon: Image.asset(
@@ -194,13 +259,15 @@ class _ScoreScreenState extends State<ScoreScreen> {
     );
   }
 
-  Widget _buildScoreDetails() { // Hapus parameter dari sini
+  Widget _buildScoreDetails() {
+    // Hapus parameter dari sini
     // Hitung jawaban salah berdasarkan correctAnswers dan totalQuestions dari widget
     final int wrongAnswers = widget.totalQuestions - widget.correctAnswers;
     final int total = widget.totalQuestions; // Ambil total dari widget
 
     // Pastikan return statement ada dan benar
-    return Padding( // <- Kemungkinan error ada di sekitar sini atau sebelumnya
+    return Padding(
+      // <- Kemungkinan error ada di sekitar sini atau sebelumnya
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
       child: Column(
         children: [
@@ -209,8 +276,11 @@ class _ScoreScreenState extends State<ScoreScreen> {
               Expanded(
                 child: _buildStatCard(
                   title: 'Jawaban Benar',
-                  value: '${widget.correctAnswers}', // Gunakan widget.correctAnswers
-                  progress: total > 0 ? widget.correctAnswers / total : 0.0, // Pastikan 0.0 jika total 0
+                  value:
+                      '${widget.correctAnswers}', // Gunakan widget.correctAnswers
+                  progress: total > 0
+                      ? widget.correctAnswers / total
+                      : 0.0, // Pastikan 0.0 jika total 0
                   color: Colors.green,
                 ),
               ),
@@ -219,7 +289,9 @@ class _ScoreScreenState extends State<ScoreScreen> {
                 child: _buildStatCard(
                   title: 'Jawaban Salah',
                   value: '$wrongAnswers', // Gunakan wrongAnswers yang dihitung
-                  progress: total > 0 ? wrongAnswers / total : 0.0, // Pastikan 0.0 jika total 0
+                  progress: total > 0
+                      ? wrongAnswers / total
+                      : 0.0, // Pastikan 0.0 jika total 0
                   color: Colors.red,
                 ),
               ),
@@ -281,8 +353,7 @@ class _ScoreScreenState extends State<ScoreScreen> {
             value,
             // 2. Tambahkan textAlign: TextAlign.center di sini juga
             textAlign: TextAlign.center,
-            style:
-                const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -316,7 +387,8 @@ class _ScoreScreenState extends State<ScoreScreen> {
           padding: const EdgeInsets.only(top: 6.0, right: 8.0),
           child: Text('•', style: TextStyle(color: Colors.grey.shade700)),
         ),
-        Expanded(child: Text(text, style: TextStyle(color: Colors.grey.shade700))),
+        Expanded(
+            child: Text(text, style: TextStyle(color: Colors.grey.shade700))),
       ]),
     );
   }
@@ -328,23 +400,104 @@ class _ScoreScreenState extends State<ScoreScreen> {
         children: [
           Expanded(
             child: ElevatedButton(
-              onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
+              onPressed: () =>
+                  Navigator.of(context).popUntil((route) => route.isFirst),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(30)),
               ),
               child: const Text('Kembali ke Beranda'),
             ),
           ),
           const SizedBox(width: 16),
           IconButton(
-            onPressed: () {},
+            onPressed: _onSharePressed, // <-- Panggil fungsi share
             icon: const Icon(Icons.share, color: Colors.blue),
             style: IconButton.styleFrom(
               side: BorderSide(color: Colors.grey.shade300),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ShareableScoreCard extends StatelessWidget {
+  final int score;
+  final int correctAnswers;
+  final int totalQuestions;
+  final String userName; // Kita butuh nama user
+
+  const _ShareableScoreCard({
+    required this.score,
+    required this.correctAnswers,
+    required this.totalQuestions,
+    required this.userName,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Desain kartu ini sesuai keinginan Anda
+    // Ini adalah contoh sederhana:
+    return Container(
+      width: 400, // Lebar gambar
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.blue.shade700, AppColors.himfoBlue],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.white, width: 2),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Header
+          Row(
+            children: [
+              Image.asset('src/features/login&register/images/himtika.png',
+                  height: 40),
+              const SizedBox(width: 10),
+              const Text('HiCode Exam Result',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold)),
+            ],
+          ),
+          const Divider(color: Colors.white54, height: 24),
+
+          // Nama User
+          Text('@$userName',
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold),
+              textAlign: TextAlign.center),
+          const Text('Telah Menyelesaikan Ujian Akhir!',
+              style: TextStyle(color: Colors.white70, fontSize: 14)),
+          const SizedBox(height: 20),
+
+          // Skor
+          Text('$score',
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 72,
+                  fontWeight: FontWeight.bold)),
+          const Text('POIN',
+              style: TextStyle(color: Colors.white, fontSize: 18)),
+          const SizedBox(height: 20),
+
+          // Detail
+          Text(
+            'Jawaban Benar: $correctAnswers / $totalQuestions',
+            style: const TextStyle(color: Colors.white, fontSize: 16),
           ),
         ],
       ),

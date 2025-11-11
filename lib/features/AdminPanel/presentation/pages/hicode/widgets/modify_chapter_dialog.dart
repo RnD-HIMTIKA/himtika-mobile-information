@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart' hide Text; // 'hide Text' untuk menghindari konflik
 import 'package:flutter_quill_extensions/flutter_quill_extensions.dart'; // Untuk embed (gambar, dll)
-
+import 'package:himtika_mobile_information/features/AdminPanel/data/models/hicode_chapter_model.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/hicode_chapter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path/path.dart' as p;
 import 'package:himtika_mobile_information/core/injection_container.dart';
-import 'package:himtika_mobile_information/features/AdminPanel/domain/entities/hicode_chapter.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/chapter_management/chapter_management_bloc.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/hicode/upload_hicode_image.dart';
 
@@ -35,6 +35,7 @@ class _ModifyChapterDialogState extends State<ModifyChapterDialog> {
   QuillController? _quillController;
   bool _isLoadingContent = true;
   bool _isUploadingImage = false;
+  bool _isQuizless = false;
 
   // Definisikan ScrollController dan FocusNode di state (Good practice)
   final ScrollController _scrollController = ScrollController();
@@ -46,7 +47,17 @@ class _ModifyChapterDialogState extends State<ModifyChapterDialog> {
   @override
   void initState() {
     super.initState();
-    _initializeEditor();
+    _initializeEditor(); // Panggilan ini sudah ada
+
+    // Tambahkan ini
+    if (isEditing) {
+      _titleController.text = widget.chapterToEdit!.title;
+      _readTimeController.text =
+          widget.chapterToEdit!.estimatedReadTime?.toString() ?? '';
+
+      // (Kita perlu update entity & model dulu agar ini berhasil)
+      _isQuizless = widget.chapterToEdit!.isQuizless; 
+    }
   }
 
   void _initializeEditor() {
@@ -275,6 +286,7 @@ class _ModifyChapterDialogState extends State<ModifyChapterDialog> {
           title: title,
           content: contentJson, // Kirim List
           estimatedReadTime: readTime,
+          isQuizless: _isQuizless,
         ));
       } else {
         bloc.add(AddChapterSubmitted(
@@ -282,6 +294,7 @@ class _ModifyChapterDialogState extends State<ModifyChapterDialog> {
           title: title,
           content: contentJson, // Kirim List
           estimatedReadTime: readTime,
+          isQuizless: _isQuizless,
         ));
       }
       Navigator.of(context).pop();
@@ -333,6 +346,15 @@ class _ModifyChapterDialogState extends State<ModifyChapterDialog> {
                 ),
                 validator: (value) =>
                     (value?.trim().isEmpty ?? true) ? 'Judul tidak boleh kosong' : null,
+              ),
+              const SizedBox(height: 16),
+              SwitchListTile(
+                title: const Text("Chapter Hanya-Baca (Tanpa Kuis)"),
+                value: _isQuizless,
+                onChanged: (val) => setState(() => _isQuizless = val),
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                subtitle: const Text("Jika aktif, chapter ini akan selesai setelah di-scroll."),
               ),
               const SizedBox(height: 16),
               TextFormField(
