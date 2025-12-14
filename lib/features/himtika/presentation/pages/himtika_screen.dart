@@ -5,6 +5,7 @@ import 'package:himtika_mobile_information/features/calendar/presentation/pages/
 import 'package:himtika_mobile_information/features/himtika/presentation/pages/about_himtika_screen.dart';
 import 'package:himtika_mobile_information/features/himtika/presentation/pages/divisi_detail_screen.dart';
 import 'package:himtika_mobile_information/features/himtika/presentation/pages/grand_design_screen.dart';
+import 'package:himtika_mobile_information/features/himtika/presentation/pages/program_kerja_screen.dart';
 import 'package:himtika_mobile_information/features/himtika/presentation/pages/sejarah_screen.dart'; 
 import 'package:himtika_mobile_information/features/himtika/presentation/pages/kabinet_screen.dart'; 
 
@@ -304,7 +305,7 @@ class HimtikaScreen extends StatelessWidget {
                               child: Text(
                                 'Sinergi, Inovatif, Eksplorasi, Responsif, Generalis, Sistematis',
                                 style: TextStyle(
-                                    color: Colors.black54, fontSize: 10),
+                                    color: Colors.black54, fontSize: 12),
                               ),
                             ),
                           ],
@@ -439,7 +440,7 @@ class HimtikaScreen extends StatelessWidget {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (_) => const SejarahScreen()),
+          MaterialPageRoute(builder: (_) => const ProgramKerjaScreen()),
         );
       },
       borderRadius: BorderRadius.circular(15),

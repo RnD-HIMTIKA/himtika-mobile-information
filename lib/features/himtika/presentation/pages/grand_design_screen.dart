@@ -52,12 +52,12 @@ class _GrandDesignScreenState extends State<GrandDesignScreen> {
     return Column(
       children: [
         _buildTopBar(context),
-        _buildHeroImage('src/features/himtika/icon/himtika.png'),
         Expanded(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(16, 24, 16, 32),
             child: Column(
               children: [
+                _buildHeroImage('src/features/himtika/icon/himtika.png'),
+                const SizedBox(height: 16),
                 _buildDescription(),
                 const SizedBox(height: 16),
                 GestureDetector(
@@ -153,10 +153,10 @@ class _GrandDesignScreenState extends State<GrandDesignScreen> {
   }
 
   // ================= HERO IMAGE =================
-  Widget _buildHeroImage(String imagePath) {
+  Widget _buildHeroImage(String coverPath) {
     return Container(
       width: double.infinity,
-      height: 280,
+      height: 300, // tinggi hero image
       decoration: const BoxDecoration(
         color: Colors.blue,
         borderRadius: BorderRadius.only(
@@ -166,9 +166,9 @@ class _GrandDesignScreenState extends State<GrandDesignScreen> {
       ),
       child: Center(
         child: Image.asset(
-          imagePath,
-          width: 240,
-          height: 240,
+          coverPath, // path dari state atau assets
+          width: 300,
+          height: 300,
           fit: BoxFit.contain,
         ),
       ),

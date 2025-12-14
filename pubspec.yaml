@@ -256,6 +256,26 @@ flutter:
 
     - src/features/himtika/gd/grand_design.pdf
     - src/features/himtika/gd/cover.jpg
+
+    - src/features/himtika/proker/card_dept.png
+    - src/features/himtika/proker/internal/diesnatalis.png
+    - src/features/himtika/proker/internal/itb.png
+    - src/features/himtika/proker/internal/lkmmpd.png
+    - src/features/himtika/proker/internal/hoa.png
+    - src/features/himtika/proker/relasi/corporation.png
+    - src/features/himtika/proker/relasi/hos.png
+    - src/features/himtika/proker/relasi/hgtc.png
+    - src/features/himtika/proker/relasi/kemitraan.png
+    - src/features/himtika/proker/rnd/hsd.png
+    - src/features/himtika/proker/rnd/sh.png
+    - src/features/himtika/proker/edukasi/study_club.png
+    - src/features/himtika/proker/edukasi/cic.png
+    - src/features/himtika/proker/edukasi/open_project.png
+    - src/features/himtika/proker/edukasi/pekan_it.png
+    - src/features/himtika/proker/edukasi/semantik.png
+    - src/features/himtika/proker/infokom/always_on.png
+    - src/features/himtika/proker/infokom/content_Writer.png
+    - src/features/himtika/proker/infokom/dkv.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
