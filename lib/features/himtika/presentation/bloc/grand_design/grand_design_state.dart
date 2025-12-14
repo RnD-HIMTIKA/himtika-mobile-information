@@ -3,8 +3,9 @@ abstract class GrandDesignState {}
 class GrandDesignLoading extends GrandDesignState {}
 
 class GrandDesignLoaded extends GrandDesignState {
-  final List<String> pages; // asset paths
-  GrandDesignLoaded(this.pages);
+  final String pdfPath; // Path ke PDF (asset atau URL)
+  final String coverPath; // Path ke cover image (opsional, untuk preview)
+  GrandDesignLoaded(this.pdfPath, this.coverPath);
 }
 
 class GrandDesignError extends GrandDesignState {

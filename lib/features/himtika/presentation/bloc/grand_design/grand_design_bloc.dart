@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'package:flutter/services.dart' show rootBundle;
+import 'package:path_provider/path_provider.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'grand_design_event.dart';
 import 'grand_design_state.dart';
@@ -15,13 +18,27 @@ class GrandDesignBloc extends Bloc<GrandDesignEvent, GrandDesignState> {
     Emitter<GrandDesignState> emit,
   ) async {
     try {
-      // 🔹 Dinamis
-      final pages = List.generate(
-        90,
-        (i) => 'src/features/himtika/gd/page_${i + 1}.jpg',
+      // Load bytes dari asset
+      final byteData = await rootBundle.load(
+          'src/features/himtika/gd/grand_design.pdf'); 
+
+      // Dapatkan temp dir
+      final tempDir = await getTemporaryDirectory();
+      final filePath = '${tempDir.path}/grand_design.pdf';
+
+      // Simpan ke file temp
+      final file = File(filePath);
+      await file.writeAsBytes(
+        byteData.buffer
+            .asUint8List(byteData.offsetInBytes, byteData.lengthInBytes),
       );
 
-      emit(GrandDesignLoaded(pages));
+      // pdfPath sekarang adalah local file path (bisa tambah 'file://$filePath' kalau error persist)
+      final pdfPath = filePath;
+      final coverPath =
+          'src/features/himtika/gd/cover.jpg'; // Cover tetep asset
+
+      emit(GrandDesignLoaded(pdfPath, coverPath));
     } catch (e) {
       emit(GrandDesignError(e.toString()));
     }

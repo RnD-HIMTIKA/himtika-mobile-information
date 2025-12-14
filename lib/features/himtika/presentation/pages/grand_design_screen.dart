@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:page_flip/page_flip.dart';
+import 'package:flutter_pdf_flipbook/flutter_pdf_flipbook.dart';
 
 import 'package:himtika_mobile_information/features/calendar/presentation/pages/notification_page.dart';
 import 'package:himtika_mobile_information/features/himtika/presentation/bloc/grand_design/grand_design_bloc.dart';
@@ -31,8 +31,8 @@ class _GrandDesignScreenState extends State<GrandDesignScreen> {
 
               if (state is GrandDesignLoaded) {
                 return isReading
-                    ? _buildBookReader(state.pages)
-                    : _buildPreview(context, state.pages.first);
+                    ? _buildBookReader(state.pdfPath)
+                    : _buildPreview(context, state.coverPath);
               }
 
               if (state is GrandDesignError) {
@@ -73,24 +73,29 @@ class _GrandDesignScreenState extends State<GrandDesignScreen> {
     );
   }
 
-
   // ================= READER MODE =================
-  Widget _buildBookReader(List<String> pages) {
+  Widget _buildBookReader(String pdfPath) {
+    String url = pdfPath;
+    // Optional: Tambah 'file://' untuk platform tertentu (test dulu tanpa)
+    // if (Platform.isAndroid || Platform.isIOS) {
+    //   url = 'file://$pdfPath';
+    // }
+
     return Stack(
       children: [
-        PageFlipWidget(
+        PdfBookViewer(
+          pdfUrl: url, // Path lokal dari temp file
           backgroundColor: Colors.grey.shade200,
-          children: pages
-              .map(
-                (path) => Container(
-                  color: Colors.white,
-                  child: Image.asset(
-                    path,
-                    fit: BoxFit.contain,
-                  ),
-                ),
-              )
-              .toList(),
+          showNavigationControls: true,
+          onError: (error) {
+            ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Error memuat PDF: $error')));
+          },
+          style: PdfBookViewerStyle(
+            bookBackgroundColor: Colors.white,
+            centerDividerColor: Colors.grey,
+            loadingIndicatorColor: Colors.blue,
+          ),
         ),
         Positioned(
           top: 16,
