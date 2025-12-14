@@ -57,6 +57,7 @@ dependencies:
   firebase_messaging: ^16.0.0
   app_settings: ^6.1.1
   flutter_animate: ^4.5.0
+  page_flip: ^0.2.5+1
 
 dev_dependencies:
   flutter_test:
@@ -162,6 +163,8 @@ flutter:
     - src/features/himtika/images/card_hero.png
     - src/features/himtika/images/kabinet.png
     - src/features/himtika/images/card_sejarah.png
+    - src/features/himtika/images/card_proker.png
+    - src/features/himtika/images/card_gd.png
 
     - src/features/himtika/divisi/sc/sc.png
     - src/features/himtika/divisi/sc/kahim.png
@@ -249,6 +252,97 @@ flutter:
     - src/features/himtika/kabinet/teratai.png
     - src/features/himtika/kabinet/daun.png
     - src/features/himtika/kabinet/gear.png
+
+    - src/features/himtika/gd/page_1.jpg
+    - src/features/himtika/gd/page_2.jpg
+    - src/features/himtika/gd/page_3.jpg
+    - src/features/himtika/gd/page_4.jpg
+    - src/features/himtika/gd/page_5.jpg
+    - src/features/himtika/gd/page_6.jpg
+    - src/features/himtika/gd/page_7.jpg
+    - src/features/himtika/gd/page_8.jpg
+    - src/features/himtika/gd/page_9.jpg
+    - src/features/himtika/gd/page_10.jpg
+    - src/features/himtika/gd/page_11.jpg
+    - src/features/himtika/gd/page_12.jpg
+    - src/features/himtika/gd/page_13.jpg
+    - src/features/himtika/gd/page_14.jpg
+    - src/features/himtika/gd/page_15.jpg
+    - src/features/himtika/gd/page_16.jpg
+    - src/features/himtika/gd/page_17.jpg
+    - src/features/himtika/gd/page_18.jpg
+    - src/features/himtika/gd/page_19.jpg
+    - src/features/himtika/gd/page_20.jpg
+    - src/features/himtika/gd/page_21.jpg
+    - src/features/himtika/gd/page_22.jpg
+    - src/features/himtika/gd/page_23.jpg
+    - src/features/himtika/gd/page_24.jpg
+    - src/features/himtika/gd/page_25.jpg
+    - src/features/himtika/gd/page_26.jpg
+    - src/features/himtika/gd/page_27.jpg
+    - src/features/himtika/gd/page_28.jpg
+    - src/features/himtika/gd/page_29.jpg
+    - src/features/himtika/gd/page_30.jpg
+    - src/features/himtika/gd/page_31.jpg
+    - src/features/himtika/gd/page_32.jpg
+    - src/features/himtika/gd/page_33.jpg
+    - src/features/himtika/gd/page_34.jpg
+    - src/features/himtika/gd/page_35.jpg
+    - src/features/himtika/gd/page_36.jpg
+    - src/features/himtika/gd/page_37.jpg
+    - src/features/himtika/gd/page_38.jpg
+    - src/features/himtika/gd/page_39.jpg
+    - src/features/himtika/gd/page_40.jpg
+    - src/features/himtika/gd/page_41.jpg
+    - src/features/himtika/gd/page_42.jpg
+    - src/features/himtika/gd/page_43.jpg
+    - src/features/himtika/gd/page_44.jpg
+    - src/features/himtika/gd/page_45.jpg
+    - src/features/himtika/gd/page_46.jpg
+    - src/features/himtika/gd/page_47.jpg
+    - src/features/himtika/gd/page_48.jpg
+    - src/features/himtika/gd/page_49.jpg
+    - src/features/himtika/gd/page_50.jpg
+    - src/features/himtika/gd/page_51.jpg
+    - src/features/himtika/gd/page_52.jpg
+    - src/features/himtika/gd/page_53.jpg
+    - src/features/himtika/gd/page_54.jpg
+    - src/features/himtika/gd/page_55.jpg
+    - src/features/himtika/gd/page_56.jpg
+    - src/features/himtika/gd/page_57.jpg
+    - src/features/himtika/gd/page_58.jpg
+    - src/features/himtika/gd/page_59.jpg
+    - src/features/himtika/gd/page_60.jpg
+    - src/features/himtika/gd/page_61.jpg
+    - src/features/himtika/gd/page_62.jpg
+    - src/features/himtika/gd/page_63.jpg
+    - src/features/himtika/gd/page_64.jpg
+    - src/features/himtika/gd/page_65.jpg
+    - src/features/himtika/gd/page_66.jpg
+    - src/features/himtika/gd/page_67.jpg
+    - src/features/himtika/gd/page_68.jpg
+    - src/features/himtika/gd/page_69.jpg
+    - src/features/himtika/gd/page_70.jpg
+    - src/features/himtika/gd/page_71.jpg
+    - src/features/himtika/gd/page_72.jpg
+    - src/features/himtika/gd/page_73.jpg
+    - src/features/himtika/gd/page_74.jpg
+    - src/features/himtika/gd/page_75.jpg
+    - src/features/himtika/gd/page_76.jpg
+    - src/features/himtika/gd/page_77.jpg
+    - src/features/himtika/gd/page_78.jpg
+    - src/features/himtika/gd/page_79.jpg
+    - src/features/himtika/gd/page_80.jpg
+    - src/features/himtika/gd/page_81.jpg
+    - src/features/himtika/gd/page_82.jpg
+    - src/features/himtika/gd/page_83.jpg
+    - src/features/himtika/gd/page_84.jpg
+    - src/features/himtika/gd/page_85.jpg
+    - src/features/himtika/gd/page_86.jpg
+    - src/features/himtika/gd/page_87.jpg
+    - src/features/himtika/gd/page_88.jpg
+    - src/features/himtika/gd/page_89.jpg
+    - src/features/himtika/gd/page_90.jpg
 
   #   - images/a_dot_ham.jpeg
 

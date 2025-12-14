@@ -4,6 +4,7 @@ import 'package:himtika_mobile_information/features/himtika/presentation/bloc/hi
 import 'package:himtika_mobile_information/features/calendar/presentation/pages/notification_page.dart';
 import 'package:himtika_mobile_information/features/himtika/presentation/pages/about_himtika_screen.dart';
 import 'package:himtika_mobile_information/features/himtika/presentation/pages/divisi_detail_screen.dart';
+import 'package:himtika_mobile_information/features/himtika/presentation/pages/grand_design_screen.dart';
 import 'package:himtika_mobile_information/features/himtika/presentation/pages/sejarah_screen.dart'; 
 import 'package:himtika_mobile_information/features/himtika/presentation/pages/kabinet_screen.dart'; 
 
@@ -195,6 +196,16 @@ class HimtikaScreen extends StatelessWidget {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           _buildSejarahCard(context),
+          const SizedBox(height: 20),
+          const Text('Program Kerja HIMTIKA',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          _buildProgramKerjaCard(context),
+          const SizedBox(height: 20),
+          const Text('Grand Design HIMTIKA',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          _buildGrandDesignCard(context),
           const SizedBox(height: 28),
           const Text('Bagian Penting dalam HIMTIKA',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -415,6 +426,200 @@ class HimtikaScreen extends StatelessWidget {
                     ),
                   ],
                 ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProgramKerjaCard(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const SejarahScreen()),
+        );
+      },
+      borderRadius: BorderRadius.circular(15),
+      child: Container(
+        width: double.infinity,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: const Color(0xFFFDBF7FF),
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            )
+          ],
+        ),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Image.asset(
+                'src/features/himtika/images/card_proker.png',
+                fit: BoxFit.cover,
+              ),
+            ),
+
+            // ====== TOP TEXT AREA ======
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Program Kerja
+                  const Text(
+                    'Program Kerja',
+                    style: TextStyle(
+                      fontSize: 22,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      height: 1.4,
+                    ),
+                  ),
+
+                  // HIMTIKA (gradient)
+                  ShaderMask(
+                    blendMode: BlendMode.srcIn,
+                    shaderCallback: (bounds) => const LinearGradient(
+                      colors: [
+                        Color(0xFF006EBD), // Biru gelap
+                        Color(0xFF0095FF), // Biru terang
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ).createShader(
+                        Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
+                    child: const Text(
+                      'HIMTIKA',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF81EAFF),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      'Baca Selengkapnya',
+                      style: TextStyle(
+                          color: Colors.cyan.shade800,
+                          fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGrandDesignCard(BuildContext context) {
+    return InkWell(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const GrandDesignScreen()),
+        );
+      },
+      borderRadius: BorderRadius.circular(15),
+      child: Container(
+        width: double.infinity,
+        clipBehavior: Clip.antiAlias,
+        decoration: BoxDecoration(
+          color: const Color(0xFFFDBF7FF),
+          borderRadius: BorderRadius.circular(15),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            )
+          ],
+        ),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: Image.asset(
+                'src/features/himtika/images/card_gd.png',
+                fit: BoxFit.cover,
+              ),
+            ),
+
+            // ====== TOP TEXT AREA ======
+            Padding(
+              padding: const EdgeInsets.all(20.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Program Kerja
+                  const Text(
+                    'Grand Design',
+                    style: TextStyle(
+                      fontSize: 22,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                      height: 1.4,
+                    ),
+                  ),
+
+                  // HIMTIKA (gradient)
+                  ShaderMask(
+                    blendMode: BlendMode.srcIn,
+                    shaderCallback: (bounds) => const LinearGradient(
+                      colors: [
+                        Color(0xFF006EBD), // Biru gelap
+                        Color(0xFF0095FF), // Biru terang
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ).createShader(
+                        Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
+                    child: const Text(
+                      'HIMTIKA',
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF81EAFF),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      'Baca Selengkapnya',
+                      style: TextStyle(
+                          color: Colors.cyan.shade800,
+                          fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

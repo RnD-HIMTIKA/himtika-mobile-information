@@ -429,7 +429,7 @@ class AboutHimtikaScreen extends StatelessWidget {
     );
   }
 
-  // Widget Card Sejarah (salin dari himtika_screen.dart jika perlu)
+  // Widget Card Sejarah
   Widget _buildSejarahCard(BuildContext context) {
     return Container(
       width: double.infinity,

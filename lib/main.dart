@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:himtika_mobile_information/features/himtika/presentation/bloc/himtika_screen/himtika_bloc.dart';
+import 'package:himtika_mobile_information/features/himtika/presentation/pages/himtika_screen.dart';
 import 'package:himtika_mobile_information/features/home/presentation/pages/home.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -122,7 +124,7 @@ class _MyAppState extends State<MyApp> {
         title: 'HIMTIKA Mobile Information',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(primarySwatch: Colors.blue),
-        home: const SplashScreen(),
+        home: const HimtikaScreen(),
       ),
     );
   }
