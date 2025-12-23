@@ -78,7 +78,7 @@ class _RolesViewState extends State<_RolesView> {
     return DefaultTabController(
       length: isRnD ? 2 : 1, // Jumlah tab tergantung peran
       child: Scaffold(
-        resizeToAvoidBottomInset: false,
+        resizeToAvoidBottomInset: true,
         backgroundColor: const Color(0xFF0175C8),
         drawer: const Sidebar(),
         appBar: AppBar(
@@ -141,10 +141,11 @@ class _RolesViewState extends State<_RolesView> {
         children: [
           _buildSearchBox(),
           const SizedBox(height: 16),
-          if (state.status == RolesManagementStatus.loading)
-            const Center(child: CircularProgressIndicator())
-          else
-            _buildDataTable(state.users, onEdit),
+          Expanded(
+            child: state.status == RolesManagementStatus.loading
+                ? const Center(child: CircularProgressIndicator())
+                : _buildDataTable(state.users, onEdit),
+          ),
         ],
       ),
     );
@@ -173,19 +174,21 @@ class _RolesViewState extends State<_RolesView> {
     }
     
     return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Table(
-        border: TableBorder.all(color: Colors.black.withOpacity(0.3)),
-        columnWidths: const {
-          0: FixedColumnWidth(180),
-          1: FixedColumnWidth(350),
-          2: FixedColumnWidth(100),
-        },
-        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-        children: [
-          _buildHeaderRow(),
-          ...users.map((user) => _buildDataRow(user, onEdit)),
-        ],
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Table(
+          border: TableBorder.all(color: Colors.black.withOpacity(0.3)),
+          columnWidths: const {
+            0: FixedColumnWidth(180),
+            1: FixedColumnWidth(350),
+            2: FixedColumnWidth(100),
+          },
+          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+          children: [
+            _buildHeaderRow(),
+            ...users.map((user) => _buildDataRow(user, onEdit)),
+          ],
+        ),
       ),
     );
   }
@@ -348,6 +351,7 @@ class _EditRolesDialogState extends State<_EditRolesDialog> {
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
       content: SizedBox(
         width: double.maxFinite,
+        height: MediaQuery.of(context).size.height * 0.6,
         child: widget.isGeneralScope
             ? _buildGeneralRolesContent()
             : _buildHimaRolesContent(),
