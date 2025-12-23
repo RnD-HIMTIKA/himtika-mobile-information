@@ -38,7 +38,7 @@ jobs:
 
       - name: ⚡ Deploy Functions to DEV
         if: github.ref == 'refs/heads/Majapahit'
-        run: supabase functions deploy --project-ref ${{ secrets.SUPABASE_PROJECT_ID_DEV }} --password ${{ secrets.SUPABASE_DB_PASSWORD_DEV }}
+        run: supabase functions deploy --project-ref ${{ secrets.SUPABASE_PROJECT_ID_DEV }}
 
 
       # ==========================================
@@ -54,4 +54,4 @@ jobs:
       
       - name: ⚡ Deploy Functions to PROD
         if: github.ref == 'refs/heads/master'
-        run: supabase functions deploy --project-ref ${{ secrets.SUPABASE_PROJECT_ID_PROD }} --password ${{ secrets.SUPABASE_DB_PASSWORD }}
+        run: supabase functions deploy --project-ref ${{ secrets.SUPABASE_PROJECT_ID_PROD }}
