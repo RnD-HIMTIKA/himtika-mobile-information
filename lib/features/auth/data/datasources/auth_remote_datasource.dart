@@ -3,6 +3,7 @@ import '../../../../core/helpers/supabase_auth_helper.dart'; // Import helper
 import '../../../../core/helpers/supabase_table_helper.dart'; // Import helper
 import '../models/user_model.dart';
 import '../mappers/user_mapper.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthRemoteDataSource {
   
@@ -46,11 +47,14 @@ class AuthRemoteDataSource {
 
   // sign in with Google (redirect flow)
   Future<void> signInWithGoogle() async {
-    // Gunakan auth helper
+    // Tentukan URL redirect berdasarkan platform
+    final String redirectUrl = kIsWeb
+        ? 'https://himfo-app-f52b3.web.app/' // URL PWA (Home)
+        : 'io.supabase.flutter://login-callback'; // URL Native
+
     await SupabaseAuthHelper.auth.signInWithOAuth(
       supabase.OAuthProvider.google,
-      // FIX: Tambahkan redirectTo secara eksplisit
-      redirectTo: 'io.supabase.flutter://login-callback',
+      redirectTo: redirectUrl, // <-- Gunakan variabel dinamis ini
     );
   }
 

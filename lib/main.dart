@@ -19,11 +19,15 @@ import 'package:himtika_mobile_information/features/auth/presentation/pages/spla
 import 'package:himtika_mobile_information/features/auth/presentation/pages/onboarding.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/pages/invitation_handler_page.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  usePathUrlStrategy();
+  
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -110,8 +114,15 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _handleInvitationLink(Uri uri) {
+    // Debug print untuk melihat link yang masuk
+    debugPrint('Handling Deep Link: $uri'); 
+
+    // --- PERUBAHAN DI SINI ---
+    // Tambahkan kondisi untuk domain Firebase Hosting
     if ((uri.scheme == 'https' && uri.host == 'himtika.cs.unsika.ac.id' && uri.path == '/join-workspace') ||
+        (uri.scheme == 'https' && uri.host == 'himfo-app-f52b3.web.app' && uri.path == '/join-workspace') || // <--- BARU
         (uri.scheme == 'himfo' && uri.host == 'join-workspace')) {
+      
       final token = uri.queryParameters['token'];
       if (token != null) {
         final context = navigatorKey.currentContext;

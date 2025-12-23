@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.example.himtika_mobile_information",
+      "sha256_cert_fingerprints": [
+        "1C:67:38:31:9F:48:77:88:93:07:A6:B5:A4:D6:E4:E5:42:BE:E7:AF:23:B6:7D:51:BE:81:5A:2A:2D:8D:65:02"
+      ]
+    }
+  }
+]

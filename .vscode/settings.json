@@ -1,3 +1,4 @@
 {
-  "cmake.sourceDirectory": "D:/Belajar/Himtika/Apps/himtika-mobile-information/linux"
+  "cmake.sourceDirectory": "D:/Belajar/Himtika/Apps/himtika-mobile-information/linux",
+  "deno.enable": true
 }
