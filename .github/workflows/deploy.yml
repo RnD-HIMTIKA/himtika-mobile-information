@@ -1,0 +1,54 @@
+name: Deploy Supabase
+
+on:
+  push:
+    branches:
+      - master        # Jika push ke master -> Deploy ke Production
+      - Majapahit   # Jika push ke Majapahit -> Deploy ke Dev
+  workflow_dispatch: # Agar bisa dijalankan manual (klik tombol) jika perlu
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      # ==========================================
+      # JALUR 1: DEPLOY KE DEVELOPMENT (CLOUD DEV)
+      # ==========================================
+      - name: 🛠️ Link to DEV Project
+        if: github.ref == 'refs/heads/Majapahit'
+        run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID_DEV }} --password ${{ secrets.SUPABASE_DB_PASSWORD_DEV }}
+
+      - name: 🚀 Push DB to DEV
+        if: github.ref == 'refs/heads/Majapahit'
+        run: supabase db push --password ${{ secrets.SUPABASE_DB_PASSWORD_DEV }}
+
+      - name: ⚡ Deploy Functions to DEV
+        if: github.ref == 'refs/heads/Majapahit'
+        run: supabase functions deploy --project-ref ${{ secrets.SUPABASE_PROJECT_ID_DEV }} --password ${{ secrets.SUPABASE_DB_PASSWORD_DEV }}
+
+
+      # ==========================================
+      # JALUR 2: DEPLOY KE PRODUCTION (LIVE APP)
+      # ==========================================
+      - name: 🛡️ Link to PROD Project
+        if: github.ref == 'refs/heads/master'
+        run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_ID_PROD }} --password ${{ secrets.SUPABASE_DB_PASSWORD }}
+
+      - name: 🚀 Push DB to PROD
+        if: github.ref == 'refs/heads/master'
+        run: supabase db push --password ${{ secrets.SUPABASE_DB_PASSWORD }}
+      
+      - name: ⚡ Deploy Functions to PROD
+        if: github.ref == 'refs/heads/master'
+        run: supabase functions deploy --project-ref ${{ secrets.SUPABASE_PROJECT_ID_PROD }} --password ${{ secrets.SUPABASE_DB_PASSWORD }}
