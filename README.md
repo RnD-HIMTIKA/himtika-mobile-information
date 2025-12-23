@@ -1,16 +1,25 @@
 # himtika_mobile_information
 
-A new Flutter project.
+## 🚀 Cara Menjalankan Aplikasi
 
-## Getting Started
+Project ini menggunakan 2 Environment: **Development** (Team) dan **Production** (User).
 
-This project is a starting point for a Flutter application.
+### Prasyarat
+Pastikan Anda memiliki file `.vscode/launch.json` yang berisi konfigurasi `--dart-define`.
 
-A few resources to get you started if this is your first Flutter project:
+### 1. Menjalankan Mode Development (Default untuk Ngoding)
+Gunakan konfigurasi "HIMFO (DEV - Majapahit)" di VS Code.
+- Terhubung ke: Database `himfo-dev`
+- Branch Git: `feat/...` atau `Majapahit`
+- Gunakan untuk: Development fitur baru & Testing.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+### 2. Menjalankan Mode Production (Hanya untuk Release)
+Gunakan konfigurasi "HIMFO (PROD - Live)" di VS Code.
+- Terhubung ke: Database Production (Data Asli User!)
+- Branch Git: `master`
+- **PERINGATAN:** Jangan melakukan tes hapus data sembarangan di sini.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+### Workflow Git (SOP)
+1.  **Local:** Gunakan `supabase start` untuk generate migrasi SQL.
+2.  **Dev:** Push ke branch fitur -> PR ke `Majapahit` untuk deploy ke Dev.
+3.  **Prod:** PR dari `Majapahit` ke `master` untuk deploy ke Production.

@@ -2,7 +2,29 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "HIMFO (Debug)",
+            "name": "HIMFO Debug (DEV - Majapahit)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "debug",
+            "args": [
+                "--dart-define=SENTRY_DSN=DSN_ANDA",
+                "--dart-define=SUPABASE_URL=https://pjbbhwdznqubtskdxdgu.supabase.co", 
+                "--dart-define=SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqYmJod2R6bnF1YnRza2R4ZGd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0MTE1NDQsImV4cCI6MjA4MTk4NzU0NH0.5GdNuepwrF9PfqhgQLMYAyp6eqEEfrAN8cFF_C6TuKc"
+            ]
+        },
+        {
+            "name": "HIMFO Profile (DEV - Majapahit)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile",
+            "args": [
+                "--dart-define=SENTRY_DSN=DSN_ANDA",
+                "--dart-define=SUPABASE_URL=https://pjbbhwdznqubtskdxdgu.supabase.co", 
+                "--dart-define=SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqYmJod2R6bnF1YnRza2R4ZGd1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0MTE1NDQsImV4cCI6MjA4MTk4NzU0NH0.5GdNuepwrF9PfqhgQLMYAyp6eqEEfrAN8cFF_C6TuKc"
+            ]
+        },
+        {
+            "name": "HIMFO Prod (Debug)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "debug",
@@ -13,7 +35,7 @@
             ]
         },
         {
-            "name": "HIMFO (Profile)",
+            "name": "HIMFO Prod(Profile)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile",

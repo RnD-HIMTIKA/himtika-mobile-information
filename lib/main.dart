@@ -4,12 +4,11 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:himtika_mobile_information/features/home/presentation/pages/home.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'core/env/env.dart';
 import 'firebase_options.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_quill/flutter_quill.dart';
 import 'package:app_links/app_links.dart';
-import 'core/supabase_config.dart';
 import 'package:himtika_mobile_information/core/blocs/connectivity_bloc.dart';
 import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'features/auth/application/auth_controller.dart';
@@ -28,17 +27,21 @@ Future<void> main() async {
 
   usePathUrlStrategy();
   
+  // 1. Validasi Config (Akan error jika lupa pasang --dart-define)
+  Env.validate();
+
+  // 2. Inisialisasi Supabase Dinamis (Dev / Prod)
+  await Supabase.initialize(
+    url: Env.supabaseUrl,
+    anonKey: Env.supabaseAnonKey,
+  );
+
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
-  );
+  ); 
   
-  // HAPUS BARIS INI:
-  // await dotenv.load(fileName: ".env"); 
-  
-  await SupabaseConfig.init(); // Pastikan ini dipanggil
   await initDependencies();
 
-  // --- PERBAIKAN SENTRY ---
   // Ambil DSN dari environment, BUKAN dari dotenv
   const sentryDsn = String.fromEnvironment('SENTRY_DSN');
   
