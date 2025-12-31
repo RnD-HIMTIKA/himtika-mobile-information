@@ -35,7 +35,6 @@ class ContactCard extends StatelessWidget {
             label: "NIDN",
             value: lecturer.nidn,
           ),
-          const SizedBox(height: 16),
           Divider(color: Colors.grey.shade100, height: 1),
           const SizedBox(height: 16),
 
@@ -44,7 +43,7 @@ class ContactCard extends StatelessWidget {
             label: "No Telp.",
             value: lecturer.phone,
           ),
-          const SizedBox(height: 16),
+
           Divider(color: Colors.grey.shade100, height: 1),
           const SizedBox(height: 16),
           

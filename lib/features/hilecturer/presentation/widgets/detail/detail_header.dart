@@ -34,7 +34,7 @@ class DetailHeader extends StatelessWidget {
                 shape: BoxShape.circle,
               ),
               child: CircleAvatar(
-                radius: 60,
+                radius: 80,
                 backgroundColor: Colors.grey.shade200,
                 // Pastikan path asset benar atau pakai NetworkImage kalau dari API
                 backgroundImage: const AssetImage(

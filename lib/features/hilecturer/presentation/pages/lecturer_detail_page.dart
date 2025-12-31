@@ -81,7 +81,7 @@ class LecturerDetailPage extends StatelessWidget {
                 // --- CONTACT CARD ---
                 ContactCard(lecturer: lecturer),
 
-                const SizedBox(height: 40),
+                const SizedBox(height: 110), 
               ],
             ),
           ),
