@@ -90,6 +90,8 @@ flutter:
   assets:
     - .env
   # Home
+    - src/icons/kembali.png
+    
     - src/features/home/images/pattern.png
     - src/features/home/icons/himtika.png
     - src/features/home/icons/hicode.svg
@@ -124,7 +126,6 @@ flutter:
     - src/features/hicode/icon/css.png
     - src/features/hicode/icon/js.png
     - src/features/hicode/icon/cpp.png
-    - src/features/hicode/icon/kembali.png
     - src/features/hicode/icon/informasi.png
     - src/features/hicode/icon/sirine.png
     - src/features/hicode/images/html.png
@@ -276,6 +277,9 @@ flutter:
     - src/features/himtika/proker/infokom/always_on.png
     - src/features/himtika/proker/infokom/content_Writer.png
     - src/features/himtika/proker/infokom/dkv.png
+
+    - src/features/hilecturer/pattern_bg.png
+    - src/features/hilecturer/icons/header.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
