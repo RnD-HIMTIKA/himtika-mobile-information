@@ -5,6 +5,7 @@ abstract class RolesManagementRemoteDatasource {
   Future<List<Map<String, dynamic>>> getAssignableRoles();
   Future<void> updateUserRoles(String userId, List<String> roleIds);
   Future<Map<String, dynamic>> getAllRolesGrouped();
+  Future<void> assignExclusiveRole(String userId, String roleName);
 }
 
 class RolesManagementRemoteDatasourceImpl implements RolesManagementRemoteDatasource {
@@ -38,5 +39,19 @@ class RolesManagementRemoteDatasourceImpl implements RolesManagementRemoteDataso
   Future<Map<String, dynamic>> getAllRolesGrouped() async {
     final data = await client.rpc('get_all_roles_grouped');
     return data as Map<String, dynamic>;
+  }
+
+  @override
+  Future<void> assignExclusiveRole(String userId, String roleName) async {
+    try {
+      // Memanggil RPC 'assign_exclusive_role' yang sudah kita buat di SQL
+      await client.rpc('assign_exclusive_role', params: {
+        'p_target_user_id': userId,
+        'p_role_name': roleName,
+      });
+    } catch (e) {
+      // Lempar error agar ditangkap BLoC nanti
+      throw Exception('Gagal assign role: $e');
+    }
   }
 }

@@ -24,12 +24,12 @@ class Sidebar extends StatelessWidget {
         final roles = state is AdminPanelLoaded ? state.currentUserRoles : [];
 
         // Definisikan hak akses
-        final canAccessDashboard = roles.any((r) => r.groupName == 'Pengurus');
+        final canAccessDashboard = roles.any((r) => r.groupName == 'Pengurus' || r.groupName == 'System');
         final canAccessRoles = roles.any((r) =>
-            ['Ketua Himpunan', 'Wakil Ketua Himpunan', 'RnD'].contains(r.name));
+            ['Ketua Himpunan', 'Wakil Ketua Himpunan', 'RnD', 'Developers'].contains(r.name));
         final canAccessKontakDosen = canAccessRoles;
         final canAccessHiCode = roles.any((r) =>
-            ['Ketua Himpunan', 'Wakil Ketua Himpunan', 'Edukasi', 'RnD']
+            ['Ketua Himpunan', 'Wakil Ketua Himpunan', 'Edukasi', 'RnD', 'Developers']
                 .contains(r.name));
 
         return Theme(

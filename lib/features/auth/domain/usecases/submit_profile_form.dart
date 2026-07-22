@@ -57,11 +57,11 @@ class SubmitProfileForm {
       throw Exception('Nama lengkap minimal 2 karakter.');
     }
 
-    final RegExp nameRegExp = RegExp(r'^[a-zA-Z0-9_ ]{3,20}$');
+    final RegExp nameRegExp = RegExp(r"^[a-zA-Z0-9\s.,'\-_]{2,50}$");
+
     if (!nameRegExp.hasMatch(p.fullName.trim())) {
-      // Pesan error juga diupdate agar sesuai dengan aturan validasi
       throw Exception(
-          'Nama lengkap hanya boleh berisi huruf, angka, spasi, atau underscore');
+          'Nama lengkap mengandung karakter yang tidak valid atau terlalu panjang.');
     }
 
     if (p.username.trim().isEmpty) {

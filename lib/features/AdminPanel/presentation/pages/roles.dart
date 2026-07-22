@@ -10,6 +10,8 @@ import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/roles_management/roles_management_event.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/roles_management/roles_management_state.dart';
 import 'package:himtika_mobile_information/features/roles/domain/entities/role.dart';
+// Pastikan import constants ini benar
+import '../../../../../../core/constants/role_constants.dart'; 
 import 'sidebar.dart';
 
 class RolesPage extends StatelessWidget {
@@ -51,17 +53,24 @@ class _RolesViewState extends State<_RolesView> {
     });
   }
 
+  // Fungsi untuk memanggil Dialog Edit (Memakai Widget terpisah agar rapi)
   void _showEditRolesDialog(
       AdminUser user, RolesManagementState state, bool isGeneral) {
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (dialogContext) {
+        // Kita teruskan BlocProvider ke dalam dialog
         return BlocProvider.value(
-          value: BlocProvider.of<RolesManagementBloc>(context),
-          child: _EditRolesDialog(
-            user: user,
-            state: state,
-            isGeneralScope: isGeneral,
+          value: context.read<RolesManagementBloc>(),
+          // Kita juga butuh AdminPanelBloc untuk refresh dashboard nanti
+          child: BlocProvider.value(
+             value: context.read<AdminPanelBloc>(),
+             child: _EditRolesDialog(
+                user: user,
+                state: state,
+                isGeneralScope: isGeneral,
+             ),
           ),
         );
       },
@@ -71,12 +80,15 @@ class _RolesViewState extends State<_RolesView> {
   @override
   Widget build(BuildContext context) {
     final adminState = context.watch<AdminPanelBloc>().state;
-    final roles =
-        adminState is AdminPanelLoaded ? adminState.currentUserRoles : [];
-    final isRnD = roles.any((r) => r.name == 'RnD');
+    final myRoles = adminState is AdminPanelLoaded ? adminState.currentUserRoles : [];
+    
+    // --- LOGIC 1: SIAPA YANG BOLEH LIHAT TAB GENERAL? (RnD + Developers) ---
+    final isSuperAdmin = myRoles.any((r) => 
+        r.name == AppRoles.rnd || r.name == AppRoles.developers
+    );
 
     return DefaultTabController(
-      length: isRnD ? 2 : 1, // Jumlah tab tergantung peran
+      length: isSuperAdmin ? 2 : 1, // Jika Super Admin, muncul 2 tab
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         backgroundColor: const Color(0xFF0175C8),
@@ -101,7 +113,7 @@ class _RolesViewState extends State<_RolesView> {
             },
             tabs: [
               const Tab(text: 'HIMA Roles'),
-              if (isRnD) const Tab(text: 'General Roles'),
+              if (isSuperAdmin) const Tab(text: 'General Roles'),
             ],
           ),
         ),
@@ -278,6 +290,9 @@ class _TableHeader extends StatelessWidget {
   }
 }
 
+// -----------------------------------------------------------
+// WIDGET DIALOG EDIT ROLE (Sudah diperbarui dengan Logic Baru)
+// -----------------------------------------------------------
 class _EditRolesDialog extends StatefulWidget {
   final AdminUser user;
   final RolesManagementState state;
@@ -304,8 +319,8 @@ class _EditRolesDialogState extends State<_EditRolesDialog> {
     }
   }
 
+  // --- LOGIC 2: TOMBOL SIMPAN (Update Biasa) ---
   void _onSimpanPressed() {
-    // Tampilkan dialog konfirmasi
     showDialog(
       context: context,
       builder: (confirmContext) => AlertDialog(
@@ -319,8 +334,7 @@ class _EditRolesDialogState extends State<_EditRolesDialog> {
           ),
           ElevatedButton(
             onPressed: () {
-              // PERBAIKAN DI SINI
-              // Dapatkan referensi AdminPanelBloc DARI LUAR DIALOG
+              // Dapatkan referensi AdminPanelBloc DARI LUAR DIALOG (context parent)
               final adminPanelBloc = context.read<AdminPanelBloc>();
 
               context.read<RolesManagementBloc>().add(
@@ -328,7 +342,6 @@ class _EditRolesDialogState extends State<_EditRolesDialog> {
                       widget.user.userId,
                       _selectedRoleIds.toList(),
                       onSuccess: () {
-                        // Perintahkan AdminPanelBloc untuk memuat ulang datanya
                         adminPanelBloc.add(LoadAdminPanel());
                       },
                     ),
@@ -341,6 +354,90 @@ class _EditRolesDialogState extends State<_EditRolesDialog> {
         ],
       ),
     );
+  }
+
+  // --- LOGIC 3: POP-UP EXCLUSIVE (Serah Terima) ---
+  void _showExclusiveConfirmation(Role role) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
+            SizedBox(width: 10),
+            Expanded(child: Text("Serah Terima Jabatan", style: TextStyle(fontWeight: FontWeight.bold))),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Anda akan melantik:", style: TextStyle(color: Colors.grey[600])),
+            const SizedBox(height: 4),
+            Text(widget.user.fullName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            const SizedBox(height: 16),
+            Text("Sebagai:", style: TextStyle(color: Colors.grey[600])),
+            const SizedBox(height: 4),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(color: Colors.blue.shade50, borderRadius: BorderRadius.circular(4)),
+              child: Text(role.name, style: TextStyle(color: Colors.blue.shade800, fontWeight: FontWeight.bold)),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              "⚠️ PENTING:\nJabatan ini hanya boleh dipegang oleh 1 orang. Jika ada orang lain yang sedang menjabat, jabatan mereka akan dicopot otomatis.",
+              style: TextStyle(fontSize: 12, color: Colors.red),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text("Batal", style: TextStyle(color: Colors.grey)),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () {
+              Navigator.pop(ctx); // Tutup confirm
+              Navigator.pop(context); // Tutup dialog edit utama
+              
+              // EKSEKUSI KE SERVER
+              context.read<RolesManagementBloc>().add(
+                AssignExclusiveRoleEvent(
+                  userId: widget.user.userId, 
+                  roleName: role.name
+                )
+              );
+            },
+            child: const Text("Lantik Sekarang"),
+          )
+        ],
+      ),
+    );
+  }
+
+  // --- LOGIC HANDLE SWITCH ---
+  void _handleSwitchChange(bool value, Role role) {
+    // Jika role itu adalah "Ketua Himpunan" DAN user ingin menyalakannya (value == true)
+    if (value == true && role.name == AppRoles.ketuaHimpunan) {
+       // Tampilkan Pop Up Khusus
+       _showExclusiveConfirmation(role);
+    } else {
+       // Logic Biasa (Add/Remove dari list lokal _selectedRoleIds)
+       setState(() {
+        if (value) {
+          _selectedRoleIds.add(role.id);
+        } else {
+          _selectedRoleIds.remove(role.id);
+        }
+      });
+    }
   }
 
   @override
@@ -375,13 +472,8 @@ class _EditRolesDialogState extends State<_EditRolesDialog> {
         return SwitchListTile(
           title: Text(role.name),
           value: _selectedRoleIds.contains(role.id),
-          onChanged: (value) => setState(() {
-            if (value) {
-              _selectedRoleIds.add(role.id);
-            } else {
-              _selectedRoleIds.remove(role.id);
-            }
-          }),
+          // GUNAKAN HANDLER BARU
+          onChanged: (value) => _handleSwitchChange(value, role),
         );
       },
     );
@@ -406,13 +498,8 @@ class _EditRolesDialogState extends State<_EditRolesDialog> {
             return SwitchListTile(
               title: Text(role.name),
               value: _selectedRoleIds.contains(role.id),
-              onChanged: (value) => setState(() {
-                if (value) {
-                  _selectedRoleIds.add(role.id);
-                } else {
-                  _selectedRoleIds.remove(role.id);
-                }
-              }),
+              // GUNAKAN HANDLER BARU
+              onChanged: (value) => _handleSwitchChange(value, role),
             );
           }).toList(),
         );

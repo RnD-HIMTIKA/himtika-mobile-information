@@ -6,4 +6,5 @@ abstract class RolesManagementRepository {
   Future<List<Role>> getAssignableRoles();
   Future<void> updateUserRoles(String userId, List<String> roleIds);
   Future<Map<String, List<Role>>> getAllRolesGrouped();
+  Future<void> assignExclusiveRole(String userId, String roleName);
 }

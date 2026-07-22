@@ -289,7 +289,21 @@ class _FormContentState extends State<_FormContent> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildTextFormField('Nama Lengkap', _nameController),
+              _buildTextFormField(
+                'Nama Lengkap',
+                _nameController,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Nama Lengkap tidak boleh kosong.';
+                  }
+                  // Regex: Membolehkan Huruf, Angka, Spasi, Titik (.), Koma (,), Petik ('), Strip (-), Underscore (_)
+                  final nameRegExp = RegExp(r"^[a-zA-Z0-9\s.,'\-_]+$");
+                  if (!nameRegExp.hasMatch(value)) {
+                    return 'Nama mengandung karakter yang tidak valid (Hanya huruf, angka, dan tanda baca umum)';
+                  }
+                  return null;
+                },
+              ),
               const SizedBox(height: 16),
               _buildTextFormField('Username', _usernameController),
               const SizedBox(height: 16),

@@ -28,3 +28,11 @@ class UpdateUserRolesSubmitted extends RolesManagementEvent {
   @override
   List<Object> get props => [userId, roleIds];
 }
+
+class AssignExclusiveRoleEvent extends RolesManagementEvent {
+  final String userId;
+  final String roleName;
+  const AssignExclusiveRoleEvent({required this.userId, required this.roleName});
+  @override
+  List<Object> get props => [userId, roleName];
+}

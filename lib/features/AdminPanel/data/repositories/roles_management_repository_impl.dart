@@ -58,4 +58,10 @@ class RolesManagementRepositoryImpl implements RolesManagementRepository {
       return MapEntry(key, rolesList);
     });
   }
+
+  @override
+  Future<void> assignExclusiveRole(String userId, String roleName) async {
+    // Langsung panggil datasource. Jika error, biarkan exception naik ke atas.
+    await remoteDatasource.assignExclusiveRole(userId, roleName);
+  }
 }

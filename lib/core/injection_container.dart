@@ -86,6 +86,7 @@ import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/g
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/get_assignable_roles.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/search_admin_users.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/update_user_roles.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/assign_exclusive_role.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/domain/usecases/get_all_roles_grouped.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/data/datasources/admin_panel_remote_datasource.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/data/datasources/roles_management_remote_datasource.dart';
@@ -306,29 +307,31 @@ Future<void> initDependencies() async {
   // Datasource
   sl.registerLazySingleton<AdminPanelRemoteDatasource>(
       () => AdminPanelRemoteDatasourceImpl(client: sl()));
-  sl.registerLazySingleton<RolesManagementRemoteDatasource>( // <-- BARU
+  sl.registerLazySingleton<RolesManagementRemoteDatasource>(
       () => RolesManagementRemoteDatasourceImpl(client: sl()));
   // Repository
   sl.registerLazySingleton<AdminPanelRepository>(
       () => AdminPanelRepositoryImpl(remoteDatasource: sl()));
-  sl.registerLazySingleton<RolesManagementRepository>( // <-- BARU
+  sl.registerLazySingleton<RolesManagementRepository>(
       () => RolesManagementRepositoryImpl(remoteDatasource: sl()));
   // Usecases
   sl.registerLazySingleton(() => GetAdminDashboardInfo(sl()));
-  sl.registerLazySingleton(() => SearchAdminUsers(sl())); // <-- BARU
-  sl.registerLazySingleton(() => GetAssignableRoles(sl())); // <-- BARU
-  sl.registerLazySingleton(() => UpdateUserRoles(sl())); // <-- BARU
+  sl.registerLazySingleton(() => SearchAdminUsers(sl()));
+  sl.registerLazySingleton(() => GetAssignableRoles(sl()));
+  sl.registerLazySingleton(() => UpdateUserRoles(sl()));
   sl.registerLazySingleton(() => GetAllRolesGrouped(sl()));
+  sl.registerLazySingleton(() => AssignExclusiveRole(sl()));
   // BLoCs
   sl.registerFactory(() => AdminPanelBloc(
         getAdminDashboardInfo: sl(),
         getMyRoles: sl(), // <-- TAMBAHKAN INI
       ));
-  sl.registerFactory(() => RolesManagementBloc( // <-- BARU
+  sl.registerFactory(() => RolesManagementBloc(
         searchAdminUsers: sl(),
         getAssignableRoles: sl(),
         updateUserRoles: sl(),
         getAllRolesGrouped: sl(),
+        assignExclusiveRole: sl(),
       ));
 
   // ==================== ADMIN PANEL HICODE MANAGEMENT ====================

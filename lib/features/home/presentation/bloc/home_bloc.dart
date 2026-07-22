@@ -34,7 +34,11 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       final roles = await _getMyRoles();
       final (banners, divisions) = await _getHomeContent();
 
-      final isPengurus = roles.any((role) => role.groupName == 'Pengurus');
+      final isPengurus = roles.any((role) => 
+          role.groupName == 'Pengurus' || 
+          role.groupName == 'System' || 
+          role.name == 'RnD'
+      );
 
       emit(state.copyWith(
         isLoading: false, // Selalu set false setelah selesai
