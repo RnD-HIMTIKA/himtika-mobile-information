@@ -152,11 +152,24 @@ import 'package:himtika_mobile_information/features/hicode/presentation/bloc/lea
 
 import 'package:himtika_mobile_information/core/blocs/connectivity_bloc.dart';
 
+// --- Himtika Feature Imports ---
+import 'package:himtika_mobile_information/features/himtika/data/datasources/himtika_remote_datasource.dart';
+import 'package:himtika_mobile_information/features/himtika/data/repositories/himtika_repository_impl.dart';
+import 'package:himtika_mobile_information/features/himtika/domain/repositories/himtika_repository.dart';
+
 final GetIt sl = GetIt.instance;
 
 Future<void> initDependencies() async {
   // Supabase client
   sl.registerLazySingleton<SupabaseClient>(() => Supabase.instance.client);
+
+  // ==================== HIMTIKA FEATURE ====================
+  // Datasource
+  sl.registerLazySingleton<HimtikaRemoteDataSource>(
+      () => HimtikaRemoteDataSourceImpl(client: sl()));
+  // Repository
+  sl.registerLazySingleton<HimtikaRepository>(
+      () => HimtikaRepositoryImpl(remoteDataSource: sl()));
 
   // --- CORE BLOCS ---
   sl.registerLazySingleton<ConnectivityBloc>(() => ConnectivityBloc());
