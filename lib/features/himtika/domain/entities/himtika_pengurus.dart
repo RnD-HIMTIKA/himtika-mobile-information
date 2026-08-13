@@ -17,6 +17,24 @@ class HimtikaPengurus extends Equatable {
     this.urutan = 0,
   });
 
+  HimtikaPengurus copyWith({
+    String? id,
+    String? divisiId,
+    String? nama,
+    String? jabatan,
+    String? fotoUrl,
+    int? urutan,
+  }) {
+    return HimtikaPengurus(
+      id: id ?? this.id,
+      divisiId: divisiId ?? this.divisiId,
+      nama: nama ?? this.nama,
+      jabatan: jabatan ?? this.jabatan,
+      fotoUrl: fotoUrl ?? this.fotoUrl,
+      urutan: urutan ?? this.urutan,
+    );
+  }
+
   @override
   List<Object?> get props => [id, divisiId, nama, jabatan, fotoUrl, urutan];
 }

@@ -15,6 +15,22 @@ class HimtikaDivisi extends Equatable {
     this.urutan = 0,
   });
 
+  HimtikaDivisi copyWith({
+    String? id,
+    String? namaDivisi,
+    String? deskripsi,
+    String? logoUrl,
+    int? urutan,
+  }) {
+    return HimtikaDivisi(
+      id: id ?? this.id,
+      namaDivisi: namaDivisi ?? this.namaDivisi,
+      deskripsi: deskripsi ?? this.deskripsi,
+      logoUrl: logoUrl ?? this.logoUrl,
+      urutan: urutan ?? this.urutan,
+    );
+  }
+
   @override
   List<Object?> get props => [id, namaDivisi, deskripsi, logoUrl, urutan];
 }

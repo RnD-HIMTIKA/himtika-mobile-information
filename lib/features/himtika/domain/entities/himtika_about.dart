@@ -13,6 +13,20 @@ class HimtikaAbout extends Equatable {
     required this.sejarahText,
   });
 
+  HimtikaAbout copyWith({
+    String? id,
+    String? visi,
+    List<String>? misi,
+    String? sejarahText,
+  }) {
+    return HimtikaAbout(
+      id: id ?? this.id,
+      visi: visi ?? this.visi,
+      misi: misi ?? this.misi,
+      sejarahText: sejarahText ?? this.sejarahText,
+    );
+  }
+
   @override
   List<Object?> get props => [id, visi, misi, sejarahText];
 }

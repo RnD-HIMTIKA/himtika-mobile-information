@@ -4,6 +4,7 @@ import '../bloc/adminpanel_bloc.dart';
 import '../bloc/adminpanel_event.dart';
 import '../bloc/adminpanel_state.dart';
 import 'sidebar.dart';
+import 'himtika/himtika_admin_home_screen.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
@@ -144,6 +145,36 @@ class _DashboardState extends State<Dashboard> {
                       'Pantau, kelola, dan kontrol sistem dengan efisien di satu tempat!',
                       style: TextStyle(fontSize: 16, color: Colors.black54),
                       textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const HimtikaAdminHomeScreen(),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0D8EDB),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 12,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      icon: const Icon(Icons.account_balance),
+                      label: const Text(
+                        'Kelola Data HIMTIKA',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 64),
                   ],

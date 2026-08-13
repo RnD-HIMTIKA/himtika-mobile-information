@@ -19,6 +19,26 @@ class HimtikaKabinet extends Equatable {
     this.isActive = true,
   });
 
+  HimtikaKabinet copyWith({
+    String? id,
+    String? namaKabinet,
+    String? tagline,
+    String? deskripsi,
+    String? logoUrl,
+    String? periode,
+    bool? isActive,
+  }) {
+    return HimtikaKabinet(
+      id: id ?? this.id,
+      namaKabinet: namaKabinet ?? this.namaKabinet,
+      tagline: tagline ?? this.tagline,
+      deskripsi: deskripsi ?? this.deskripsi,
+      logoUrl: logoUrl ?? this.logoUrl,
+      periode: periode ?? this.periode,
+      isActive: isActive ?? this.isActive,
+    );
+  }
+
   @override
   List<Object?> get props => [
         id,

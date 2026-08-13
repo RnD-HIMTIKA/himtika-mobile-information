@@ -9,6 +9,7 @@ import 'package:himtika_mobile_information/features/AdminPanel/presentation/page
 import 'package:himtika_mobile_information/features/auth/application/auth_controller.dart';
 import 'package:himtika_mobile_information/features/home/presentation/pages/home.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/pages/hicode/hicode_admin_home_screen.dart';
+import 'package:himtika_mobile_information/features/AdminPanel/presentation/pages/himtika/himtika_admin_home_screen.dart';
 
 class Sidebar extends StatelessWidget {
   const Sidebar({super.key});
@@ -25,6 +26,7 @@ class Sidebar extends StatelessWidget {
 
         // Definisikan hak akses
         final canAccessDashboard = roles.any((r) => r.groupName == 'Pengurus');
+        final canAccessHimtika = canAccessDashboard;
         final canAccessRoles = roles.any((r) =>
             ['Ketua Himpunan', 'Wakil Ketua Himpunan', 'RnD'].contains(r.name));
         final canAccessKontakDosen = canAccessRoles;
@@ -89,6 +91,20 @@ class Sidebar extends StatelessWidget {
                               context,
                               MaterialPageRoute(
                                   builder: (context) => const Dashboard()),
+                            );
+                          },
+                        ),
+                      if (canAccessHimtika)
+                        ListTile(
+                          leading: const Icon(Icons.account_balance,
+                              color: Colors.white),
+                          title: const Text('Kelola HIMTIKA',
+                              style: TextStyle(color: Colors.white)),
+                          onTap: () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => const HimtikaAdminHomeScreen()),
                             );
                           },
                         ),
