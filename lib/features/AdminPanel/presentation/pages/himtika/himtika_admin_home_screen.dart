@@ -38,12 +38,16 @@ class _HimtikaAdminHomeView extends StatelessWidget {
             'Kelola HIMTIKA',
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
           ),
-          bottom: const TabBar(
+          bottom: TabBar(
+            isScrollable: MediaQuery.of(context).size.width < 400,
+            tabAlignment: MediaQuery.of(context).size.width < 400
+                ? TabAlignment.start
+                : TabAlignment.fill,
             indicatorColor: Colors.white,
             indicatorWeight: 3,
             labelColor: Colors.white,
             unselectedLabelColor: Colors.white70,
-            tabs: [
+            tabs: const [
               Tab(
                 icon: Icon(Icons.account_balance, size: 20),
                 text: 'Kabinet & Profil',

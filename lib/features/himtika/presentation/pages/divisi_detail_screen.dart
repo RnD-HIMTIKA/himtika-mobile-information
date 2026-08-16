@@ -36,7 +36,7 @@ class DivisiDetailScreen extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // --- Hero Image (Konsisten) ---
-                          _buildHeroImage(state.heroLogoPath!),
+                          _buildHeroImage(context, state.heroLogoPath!),
                           const SizedBox(height: 24),
 
                           // --- Konten Putih ---
@@ -74,12 +74,16 @@ class DivisiDetailScreen extends StatelessWidget {
                   height: 32,
                   color: Colors.white),
             ),
-            const Text(
-              'DIVISI', // Judul di tengah (SESUAI FIGMA)
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
+            Expanded(
+              child: Text(
+                'DIVISI',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             IconButton(
@@ -98,10 +102,12 @@ class DivisiDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeroImage(String imagePath) {
+  Widget _buildHeroImage(BuildContext context, String imagePath) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final heroHeight = (screenHeight * 0.32).clamp(180.0, 300.0);
     return Container(
       width: double.infinity,
-      height: 300,
+      height: heroHeight,
       decoration: const BoxDecoration(
         color: Colors.blue,
         borderRadius: BorderRadius.only(
@@ -110,11 +116,14 @@ class DivisiDetailScreen extends StatelessWidget {
         ),
       ),
       child: Center(
-        child: Image.asset(
-          imagePath, // Menggunakan path dinamis dari BLoC
-          width: 300,
-          height: 300,
-          fit: BoxFit.contain,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Image.asset(
+            imagePath,
+            width: heroHeight * 0.9,
+            height: heroHeight * 0.9,
+            fit: BoxFit.contain,
+          ),
         ),
       ),
     );
@@ -266,7 +275,7 @@ class DivisiDetailScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(15),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.08),
+                  color: Colors.black.withValues(alpha: 0.08),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -342,46 +351,59 @@ class DivisiDetailScreen extends StatelessWidget {
     required String position,
     required String name,
   }) {
-    // Ambil lebar layar untuk perhitungan
     final screenWidth = MediaQuery.of(context).size.width;
+    final cardWidth = (screenWidth * 0.88).clamp(260.0, 420.0);
+    final cardHeight = (cardWidth * 0.58).clamp(180.0, 240.0);
 
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      clipBehavior: Clip.antiAlias,
-      child: Container(
-        width: screenWidth * 0.8, // Contoh: 80% dari lebar layar
-        height: 220,
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage(imagePath),
-            fit: BoxFit.cover,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.08),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+    return Center(
+      child: Card(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        clipBehavior: Clip.antiAlias,
+        child: Container(
+          width: cardWidth,
+          height: cardHeight,
+          decoration: BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage(imagePath),
+              fit: BoxFit.cover,
             ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Text(position,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.08),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  position,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
-                      fontSize: 22)),
-              Text(name,
+                      fontSize: 20),
+                ),
+                Text(
+                  name,
+                  textAlign: TextAlign.center,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                       fontWeight: FontWeight.w500,
                       color: Colors.white70,
-                      fontSize: 18)),
-            ],
+                      fontSize: 16),
+                ),
+              ],
+            ),
           ),
         ),
       ),

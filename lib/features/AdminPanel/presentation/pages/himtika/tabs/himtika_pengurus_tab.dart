@@ -74,9 +74,12 @@ class _HimtikaPengurusTabState extends State<HimtikaPengurusTab> {
                     color: const Color(0xFF0175C8),
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    pengurus == null ? 'Tambah Pengurus' : 'Edit Pengurus',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Expanded(
+                    child: Text(
+                      pengurus == null ? 'Tambah Pengurus' : 'Edit Pengurus',
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
               ),
@@ -282,10 +285,14 @@ class _HimtikaPengurusTabState extends State<HimtikaPengurusTab> {
                   padding: const EdgeInsets.all(14.0),
                   child: Column(
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      Wrap(
+                        alignment: WrapAlignment.spaceBetween,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        spacing: 10,
+                        runSpacing: 10,
                         children: [
                           Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               const Icon(Icons.people_alt, color: Color(0xFF0175C8)),
                               const SizedBox(width: 8),
@@ -418,6 +425,8 @@ class _HimtikaPengurusTabState extends State<HimtikaPengurusTab> {
                         ),
                         title: Text(
                           pengurus.nama,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -429,6 +438,8 @@ class _HimtikaPengurusTabState extends State<HimtikaPengurusTab> {
                             const SizedBox(height: 2),
                             Text(
                               pengurus.jabatan,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: const TextStyle(
                                 color: Color(0xFF0175C8),
                                 fontWeight: FontWeight.w600,
@@ -438,6 +449,8 @@ class _HimtikaPengurusTabState extends State<HimtikaPengurusTab> {
                             const SizedBox(height: 2),
                             Text(
                               'Divisi: $namaDivisi • Urutan: ${pengurus.urutan}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                               style: TextStyle(
                                 color: Colors.grey.shade600,
                                 fontSize: 12,

@@ -310,8 +310,11 @@ class _HimtikaKabinetAboutTabState extends State<HimtikaKabinetAboutTab> {
                         // Deskripsi Kabinet
                         TextFormField(
                           controller: _deskripsiKabinetController,
-                          maxLines: 3,
+                          minLines: 2,
+                          maxLines: null,
+                          keyboardType: TextInputType.multiline,
                           decoration: InputDecoration(
+                            alignLabelWithHint: true,
                             labelText: 'Deskripsi Kabinet',
                             hintText: 'Deskripsi singkat mengenai filosofi kabinet...',
                             prefixIcon: const Icon(Icons.description),
@@ -377,8 +380,11 @@ class _HimtikaKabinetAboutTabState extends State<HimtikaKabinetAboutTab> {
                         // Visi
                         TextFormField(
                           controller: _visiController,
-                          maxLines: 3,
+                          minLines: 2,
+                          maxLines: null,
+                          keyboardType: TextInputType.multiline,
                           decoration: InputDecoration(
+                            alignLabelWithHint: true,
                             labelText: 'Visi HIMTIKA *',
                             hintText: 'Tuliskan visi HIMTIKA...',
                             prefixIcon: const Icon(Icons.visibility),
@@ -438,6 +444,9 @@ class _HimtikaKabinetAboutTabState extends State<HimtikaKabinetAboutTab> {
                                   Expanded(
                                     child: TextFormField(
                                       controller: _misiControllers[index],
+                                      minLines: 1,
+                                      maxLines: null,
+                                      keyboardType: TextInputType.multiline,
                                       decoration: InputDecoration(
                                         hintText: 'Poin Misi ${index + 1}',
                                         border: OutlineInputBorder(
@@ -468,8 +477,11 @@ class _HimtikaKabinetAboutTabState extends State<HimtikaKabinetAboutTab> {
                         // Sejarah HIMTIKA
                         TextFormField(
                           controller: _sejarahController,
-                          maxLines: 6,
+                          minLines: 4,
+                          maxLines: null,
+                          keyboardType: TextInputType.multiline,
                           decoration: InputDecoration(
+                            alignLabelWithHint: true,
                             labelText: 'Sejarah HIMTIKA *',
                             hintText: 'Tuliskan sejarah berdirinya HIMTIKA...',
                             prefixIcon: const Icon(Icons.history_edu),
@@ -545,15 +557,19 @@ class _HimtikaKabinetAboutTabState extends State<HimtikaKabinetAboutTab> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Icon(icon, color: const Color(0xFF0175C8), size: 24),
                 const SizedBox(width: 10),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E1E1E),
+                Expanded(
+                  child: Text(
+                    title,
+                    softWrap: true,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E1E1E),
+                    ),
                   ),
                 ),
               ],

@@ -53,9 +53,12 @@ class _HimtikaDivisiTabState extends State<HimtikaDivisiTab> {
                     color: const Color(0xFF0175C8),
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    divisi == null ? 'Tambah Divisi' : 'Edit Divisi',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  Expanded(
+                    child: Text(
+                      divisi == null ? 'Tambah Divisi' : 'Edit Divisi',
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                 ],
               ),
@@ -129,8 +132,11 @@ class _HimtikaDivisiTabState extends State<HimtikaDivisiTab> {
 
                       TextFormField(
                         controller: deskripsiController,
-                        maxLines: 3,
+                        minLines: 2,
+                        maxLines: null,
+                        keyboardType: TextInputType.multiline,
                         decoration: InputDecoration(
+                          alignLabelWithHint: true,
                           labelText: 'Deskripsi Divisi',
                           hintText: 'Tuliskan deskripsi tugas divisi...',
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
@@ -227,10 +233,14 @@ class _HimtikaDivisiTabState extends State<HimtikaDivisiTab> {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: 12,
+                    runSpacing: 10,
                     children: [
                       Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           const Icon(Icons.diversity_3, color: Color(0xFF0175C8)),
                           const SizedBox(width: 8),
@@ -312,9 +322,12 @@ class _HimtikaDivisiTabState extends State<HimtikaDivisiTab> {
                         ),
                         title: Row(
                           children: [
-                            Text(
-                              divisi.namaDivisi,
-                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            Flexible(
+                              child: Text(
+                                divisi.namaDivisi,
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                             const SizedBox(width: 8),
                             Container(

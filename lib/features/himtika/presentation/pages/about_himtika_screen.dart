@@ -35,7 +35,7 @@ class AboutHimtikaScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             // 6. Ambil data 'heroImagePath' dari state
-                            _buildHeroImage(state.heroImagePath),
+                            _buildHeroImage(context, state.heroImagePath),
                             const SizedBox(height: 24),
 
                             // Section: Apa itu HIMTIKA?
@@ -184,12 +184,16 @@ class AboutHimtikaScreen extends StatelessWidget {
               icon: Image.asset('src/features/hicode/icon/kembali.png',
                   width: 32, height: 32, color: Colors.white),
             ),
-            const Text(
-              'HIMTIKA',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
+            Expanded(
+              child: Text(
+                'HIMTIKA',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             IconButton(
@@ -208,10 +212,12 @@ class AboutHimtikaScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeroImage(String imagePath) {
+  Widget _buildHeroImage(BuildContext context, String imagePath) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final heroHeight = (screenHeight * 0.32).clamp(180.0, 300.0);
     return Container(
       width: double.infinity,
-      height: 300,
+      height: heroHeight,
       decoration: const BoxDecoration(
         color: Colors.blue,
         borderRadius: BorderRadius.only(
@@ -220,11 +226,14 @@ class AboutHimtikaScreen extends StatelessWidget {
         ),
       ),
       child: Center(
-        child: Image.asset(
-          imagePath, // Gunakan path dari state
-          width: 300,
-          height: 300,
-          fit: BoxFit.contain,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Image.asset(
+            imagePath,
+            width: heroHeight * 0.9,
+            height: heroHeight * 0.9,
+            fit: BoxFit.contain,
+          ),
         ),
       ),
     );
@@ -259,7 +268,7 @@ class AboutHimtikaScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.14),
+                color: Colors.black.withValues(alpha: 0.14),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -321,7 +330,7 @@ class AboutHimtikaScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(15),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.14),
+                color: Colors.black.withValues(alpha: 0.14),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -386,7 +395,7 @@ class AboutHimtikaScreen extends StatelessWidget {
         boxShadow: [
           // 2. Tambahkan shadow
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -435,11 +444,11 @@ class AboutHimtikaScreen extends StatelessWidget {
       width: double.infinity,
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: const Color(0xFFFDBF7FF), // Warna fallback
+        color: const Color(0xFFFDBF7F), // Warna fallback
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           )
@@ -458,7 +467,7 @@ class AboutHimtikaScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0), // Transparan
+                color: Colors.white.withValues(alpha: 0), // Transparan
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(

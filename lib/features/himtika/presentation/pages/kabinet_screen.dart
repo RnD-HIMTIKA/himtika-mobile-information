@@ -34,7 +34,7 @@ class KabinetScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _buildHeroImage(state.heroLogoPath),
+                          _buildHeroImage(context, state.heroLogoPath),
                           const SizedBox(height: 24),
                           _buildContent(context, state),
                         ],
@@ -68,12 +68,16 @@ class KabinetScreen extends StatelessWidget {
                   height: 32,
                   color: Colors.white),
             ),
-            const Text(
-              'Kabinet', // Judul halaman
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
+            Expanded(
+              child: Text(
+                'Kabinet',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             IconButton(
@@ -93,10 +97,12 @@ class KabinetScreen extends StatelessWidget {
   }
 
   // Hero Image (Konsisten dengan about_himtika_screen)
-  Widget _buildHeroImage(String imagePath) {
+  Widget _buildHeroImage(BuildContext context, String imagePath) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final heroHeight = (screenHeight * 0.32).clamp(180.0, 300.0);
     return Container(
       width: double.infinity,
-      height: 300,
+      height: heroHeight,
       decoration: const BoxDecoration(
         color: Colors.blue,
         borderRadius: BorderRadius.only(
@@ -105,11 +111,14 @@ class KabinetScreen extends StatelessWidget {
         ),
       ),
       child: Center(
-        child: Image.asset(
-          imagePath,
-          width: 300,
-          height: 300,
-          fit: BoxFit.contain,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Image.asset(
+            imagePath,
+            width: heroHeight * 0.9,
+            height: heroHeight * 0.9,
+            fit: BoxFit.contain,
+          ),
         ),
       ),
     );
@@ -223,7 +232,7 @@ class KabinetScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -273,7 +282,7 @@ class KabinetScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -334,11 +343,11 @@ class KabinetScreen extends StatelessWidget {
         width: double.infinity,
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          color: const Color(0xFFFDBF7FF), // Warna fallback
+          color: const Color(0xFFFDBF7F), // Warna fallback
           borderRadius: BorderRadius.circular(15),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.1),
+              color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 4,
               offset: const Offset(0, 2),
             )
@@ -358,7 +367,7 @@ class KabinetScreen extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0), // Transparan
+                  color: Colors.white.withValues(alpha: 0), // Transparan
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(

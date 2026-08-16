@@ -81,16 +81,17 @@ class HimtikaScreen extends StatelessWidget {
   }
 
   Widget _buildBlueHeader(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final cardWidth = (screenWidth * 0.9).clamp(280.0, 520.0);
     return Container(
       width: double.infinity,
       color: Colors.blue,
       child: Column(
         children: [
           Transform.translate(
-            offset: const Offset(
-                0, 40), 
+            offset: const Offset(0, 40),
             child: Container(
-              width: MediaQuery.of(context).size.width * 0.9,
+              width: cardWidth,
               padding: const EdgeInsets.all(20.0),
               decoration: BoxDecoration(
                 color: Colors.transparent,
@@ -102,7 +103,7 @@ class HimtikaScreen extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 10,
                     offset: const Offset(0, 5),
                   ),
@@ -229,30 +230,33 @@ class HimtikaScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildKabinetCard(BuildContext context) { // 1. Tambahkan context
-  return InkWell( 
-    onTap: () { 
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const KabinetScreen()),
-      );
-    },
-    borderRadius: BorderRadius.circular(15), // Samakan radius
-    child: Card(
-      elevation: 2,
-      color: const Color(0xFFF5F9FF),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-      child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Image.asset(
-                'src/features/himtika/images/kabinet.png',
-                width: 100,
-                height: 100,
-              ),
-              const SizedBox(width: 16),
+  Widget _buildKabinetCard(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final logoSize = (screenWidth * 0.22).clamp(60.0, 100.0);
+    return InkWell( 
+      onTap: () { 
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const KabinetScreen()),
+        );
+      },
+      borderRadius: BorderRadius.circular(15),
+      child: Card(
+        elevation: 2,
+        color: const Color(0xFFF5F9FF),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Image.asset(
+                  'src/features/himtika/images/kabinet.png',
+                  width: logoSize,
+                  height: logoSize,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -329,11 +333,11 @@ class HimtikaScreen extends StatelessWidget {
       width: double.infinity,
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: const Color(0xFFFDBF7FF), // Warna fallback
+        color: const Color(0xFFFDBF7F), // Warna fallback
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           )
@@ -352,7 +356,7 @@ class HimtikaScreen extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0), // Transparan
+                color: Colors.white.withValues(alpha: 0), // Transparan
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(

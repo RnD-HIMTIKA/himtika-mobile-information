@@ -31,7 +31,7 @@ class SejarahScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          _buildHeroImage(state.heroImagePath),
+                          _buildHeroImage(context, state.heroImagePath),
                           const SizedBox(height: 24),
 
                           // --- Judul & Deskripsi Awal ---
@@ -106,6 +106,7 @@ class SejarahScreen extends StatelessWidget {
                                 children: [
                                   // 1. Kotak Hijau (Konten)
                                   _buildTimelineEntry(
+                                    context: context,
                                     title: entry['title'] as String,
                                     subTitle: entry['subTitle'] as String?,
                                     description:
@@ -161,12 +162,16 @@ class SejarahScreen extends StatelessWidget {
               icon: Image.asset('src/features/hicode/icon/kembali.png',
                   width: 32, height: 32, color: Colors.white),
             ),
-            const Text(
-              'HIMTIKA',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
+            Expanded(
+              child: Text(
+                'HIMTIKA',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
             IconButton(
@@ -186,10 +191,12 @@ class SejarahScreen extends StatelessWidget {
   }
 
   // Hero Image
-  Widget _buildHeroImage(String imagePath) {
+  Widget _buildHeroImage(BuildContext context, String imagePath) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    final heroHeight = (screenHeight * 0.32).clamp(180.0, 300.0);
     return Container(
       width: double.infinity,
-      height: 300,
+      height: heroHeight,
       decoration: const BoxDecoration(
         color: Colors.blue,
         borderRadius: BorderRadius.only(
@@ -198,11 +205,14 @@ class SejarahScreen extends StatelessWidget {
         ),
       ),
       child: Center(
-        child: Image.asset(
-          imagePath, // Gunakan path dari state
-          width: 300,
-          height: 300,
-          fit: BoxFit.contain,
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Image.asset(
+            imagePath,
+            width: heroHeight * 0.9,
+            height: heroHeight * 0.9,
+            fit: BoxFit.contain,
+          ),
         ),
       ),
     );
@@ -210,6 +220,7 @@ class SejarahScreen extends StatelessWidget {
 
   // Widget untuk setiap entri timeline
   Widget _buildTimelineEntry({
+    required BuildContext context,
     required String title,
     String? subTitle,
     String? description,
@@ -217,11 +228,13 @@ class SejarahScreen extends StatelessWidget {
     required String alignment,
   }) {
     final bool isImageLeft = alignment == 'left';
+    final screenWidth = MediaQuery.of(context).size.width;
+    final imageWidth = (screenWidth * 0.22).clamp(65.0, 110.0);
 
     // WIDGET IKON
-    final imageWidget = Container(
-      width: 120,
-      height: 120,
+    final imageWidget = SizedBox(
+      width: imageWidth,
+      height: imageWidth,
       child: Image.asset(
         iconPath,
         fit: BoxFit.contain,
@@ -232,9 +245,9 @@ class SejarahScreen extends StatelessWidget {
     final textWidget = Column(
       crossAxisAlignment:
           isImageLeft ? CrossAxisAlignment.start : CrossAxisAlignment.end,
-      mainAxisAlignment: MainAxisAlignment.center, // Center vertikal
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-      Text(
+        Text(
           title,
           style: const TextStyle(
             fontSize: 18, 
@@ -244,7 +257,6 @@ class SejarahScreen extends StatelessWidget {
           textAlign: isImageLeft ? TextAlign.left : TextAlign.right,
         ),
 
-        // 2. SUBJUDUL (Sekarang Biru Gradien)
         if (subTitle != null)
           ShaderMask(
             blendMode: BlendMode.srcIn,
@@ -277,23 +289,19 @@ class SejarahScreen extends StatelessWidget {
         children: [
           if (isImageLeft)
             SizedBox(
-              width: 120,
+              width: imageWidth,
               child: imageWidget,
             ),
 
-          // Kolom 1 (Jika teks di kiri, bungkus dengan Expanded)
           if (!isImageLeft) Expanded(child: textWidget),
 
-          // Jarak tengah
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
 
-          // Kolom 2 (Jika teks di kanan, bungkus dengan Expanded)
           if (isImageLeft) Expanded(child: textWidget),
 
-          // Kolom 2 (Jika gambar di kanan, beri ukuran tetap)
           if (!isImageLeft)
             SizedBox(
-              width: 120, // Beri lebar tetap
+              width: imageWidth,
               child: imageWidget,
             ),
         ],
@@ -320,7 +328,7 @@ class SejarahScreen extends StatelessWidget {
   Widget _buildDottedLineEnd({required String alignment}) {
     final String path = 'src/features/himtika/icon/lineEnd.png';
 
-    return Container(
+    return SizedBox(
       height: 450,
       width: double.infinity,
       child: Image.asset(
@@ -378,7 +386,7 @@ class SejarahScreen extends StatelessWidget {
         const SizedBox(height: 16),
 
         // ICON
-        Container(
+        SizedBox(
           width: 200,
           height: 200,
           child: Image.asset(iconPath),

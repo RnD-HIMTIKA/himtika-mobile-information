@@ -48,4 +48,5 @@ app.*.map.json
 # Documentation & Analysis
 PROJECT_ANALYSIS.md
 PRD_HIMTIKA_MANAGEMENT.md
+REVERT_TESTING_MODE.md
 
