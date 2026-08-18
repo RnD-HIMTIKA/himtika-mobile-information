@@ -8,6 +8,7 @@ class HimtikaKabinet extends Equatable {
   final String? logoUrl;
   final String periode;
   final bool isActive;
+  final List<Map<String, String>> nilaiKabinet;
 
   const HimtikaKabinet({
     required this.id,
@@ -17,6 +18,7 @@ class HimtikaKabinet extends Equatable {
     this.logoUrl,
     required this.periode,
     this.isActive = true,
+    this.nilaiKabinet = const [],
   });
 
   HimtikaKabinet copyWith({
@@ -27,6 +29,7 @@ class HimtikaKabinet extends Equatable {
     String? logoUrl,
     String? periode,
     bool? isActive,
+    List<Map<String, String>>? nilaiKabinet,
   }) {
     return HimtikaKabinet(
       id: id ?? this.id,
@@ -36,6 +39,7 @@ class HimtikaKabinet extends Equatable {
       logoUrl: logoUrl ?? this.logoUrl,
       periode: periode ?? this.periode,
       isActive: isActive ?? this.isActive,
+      nilaiKabinet: nilaiKabinet ?? this.nilaiKabinet,
     );
   }
 
@@ -48,5 +52,6 @@ class HimtikaKabinet extends Equatable {
         logoUrl,
         periode,
         isActive,
+        nilaiKabinet,
       ];
 }

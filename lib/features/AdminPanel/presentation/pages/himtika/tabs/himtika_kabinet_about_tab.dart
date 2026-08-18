@@ -28,6 +28,9 @@ class _HimtikaKabinetAboutTabState extends State<HimtikaKabinetAboutTab> {
   late TextEditingController _sejarahController;
   final List<TextEditingController> _misiControllers = [];
 
+  final List<TextEditingController> _nilaiTitleControllers = [];
+  final List<TextEditingController> _nilaiDescControllers = [];
+
   File? _selectedLogoFile;
   final ImagePicker _picker = ImagePicker();
 
@@ -51,6 +54,20 @@ class _HimtikaKabinetAboutTabState extends State<HimtikaKabinetAboutTab> {
       _taglineController.text = state.kabinet!.tagline ?? '';
       _deskripsiKabinetController.text = state.kabinet!.deskripsi ?? '';
       _periodeController.text = state.kabinet!.periode;
+
+      for (var c in _nilaiTitleControllers) {
+        c.dispose();
+      }
+      for (var c in _nilaiDescControllers) {
+        c.dispose();
+      }
+      _nilaiTitleControllers.clear();
+      _nilaiDescControllers.clear();
+
+      for (var item in state.kabinet!.nilaiKabinet) {
+        _nilaiTitleControllers.add(TextEditingController(text: item['title'] ?? ''));
+        _nilaiDescControllers.add(TextEditingController(text: item['description'] ?? ''));
+      }
     }
 
     if (state.about != null) {
@@ -81,6 +98,12 @@ class _HimtikaKabinetAboutTabState extends State<HimtikaKabinetAboutTab> {
     _visiController.dispose();
     _sejarahController.dispose();
     for (var c in _misiControllers) {
+      c.dispose();
+    }
+    for (var c in _nilaiTitleControllers) {
+      c.dispose();
+    }
+    for (var c in _nilaiDescControllers) {
       c.dispose();
     }
     super.dispose();
@@ -115,8 +138,36 @@ class _HimtikaKabinetAboutTabState extends State<HimtikaKabinetAboutTab> {
     }
   }
 
+  void _addNilaiField() {
+    setState(() {
+      _nilaiTitleControllers.add(TextEditingController());
+      _nilaiDescControllers.add(TextEditingController());
+    });
+  }
+
+  void _removeNilaiField(int index) {
+    setState(() {
+      _nilaiTitleControllers[index].dispose();
+      _nilaiTitleControllers.removeAt(index);
+      _nilaiDescControllers[index].dispose();
+      _nilaiDescControllers.removeAt(index);
+    });
+  }
+
   void _submitKabinet(HimtikaKabinet? currentKabinet) {
     if (_formKeyKabinet.currentState!.validate()) {
+      final List<Map<String, String>> nilaiKabinet = [];
+      for (int i = 0; i < _nilaiTitleControllers.length; i++) {
+        final title = _nilaiTitleControllers[i].text.trim();
+        final desc = _nilaiDescControllers[i].text.trim();
+        if (title.isNotEmpty || desc.isNotEmpty) {
+          nilaiKabinet.add({
+            'title': title,
+            'description': desc,
+          });
+        }
+      }
+
       final kabinet = HimtikaKabinet(
         id: currentKabinet?.id ?? '',
         namaKabinet: _namaKabinetController.text.trim(),
@@ -125,6 +176,7 @@ class _HimtikaKabinetAboutTabState extends State<HimtikaKabinetAboutTab> {
         logoUrl: currentKabinet?.logoUrl,
         periode: _periodeController.text.trim(),
         isActive: currentKabinet?.isActive ?? true,
+        nilaiKabinet: nilaiKabinet,
       );
 
       context.read<HimtikaManagementBloc>().add(
@@ -322,6 +374,103 @@ class _HimtikaKabinetAboutTabState extends State<HimtikaKabinetAboutTab> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                           ),
+                        ),
+                        const SizedBox(height: 20),
+
+                        // Dynamic Nilai Kabinet Section
+                        const Divider(height: 30),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Expanded(
+                              child: Text(
+                                'Nilai Kabinet',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1E1E1E),
+                                ),
+                              ),
+                            ),
+                            TextButton.icon(
+                              onPressed: _addNilaiField,
+                              icon: const Icon(Icons.add_circle, size: 18),
+                              label: const Text('Tambah Nilai'),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+
+                        ListView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: _nilaiTitleControllers.length,
+                          itemBuilder: (context, index) {
+                            return Card(
+                              margin: const EdgeInsets.only(bottom: 12),
+                              color: Colors.blue.shade50.withValues(alpha: 0.5),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                side: BorderSide(color: Colors.blue.shade200),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          'Nilai #${index + 1}',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF0175C8),
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.delete_outline,
+                                            color: Colors.redAccent,
+                                            size: 20,
+                                          ),
+                                          onPressed: () => _removeNilaiField(index),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 4),
+                                    TextFormField(
+                                      controller: _nilaiTitleControllers[index],
+                                      decoration: InputDecoration(
+                                        labelText: 'Judul Nilai',
+                                        hintText: 'Contoh: Sinergi / Amanah',
+                                        isDense: true,
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    TextFormField(
+                                      controller: _nilaiDescControllers[index],
+                                      minLines: 2,
+                                      maxLines: null,
+                                      keyboardType: TextInputType.multiline,
+                                      decoration: InputDecoration(
+                                        labelText: 'Deskripsi Nilai',
+                                        hintText: 'Penjelasan mengenai nilai ini...',
+                                        alignLabelWithHint: true,
+                                        isDense: true,
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
                         ),
                         const SizedBox(height: 20),
 

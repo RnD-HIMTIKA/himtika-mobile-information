@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-// Sesuaikan path import
+import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/pages/notification_page.dart';
 import 'package:himtika_mobile_information/features/himtika/presentation/bloc/kabinet_himtika/kabinet_bloc.dart';
 import 'package:himtika_mobile_information/features/himtika/presentation/pages/sejarah_screen.dart';
@@ -11,7 +11,7 @@ class KabinetScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => KabinetBloc()..add(FetchKabinetData()),
+      create: (context) => sl<KabinetBloc>()..add(FetchKabinetData()),
       child: Scaffold(
         backgroundColor: Colors.white,
         body: SafeArea(
@@ -113,12 +113,24 @@ class KabinetScreen extends StatelessWidget {
       child: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Image.asset(
-            imagePath,
-            width: heroHeight * 0.9,
-            height: heroHeight * 0.9,
-            fit: BoxFit.contain,
-          ),
+          child: imagePath.startsWith('http://') || imagePath.startsWith('https://')
+              ? Image.network(
+                  imagePath,
+                  width: heroHeight * 0.9,
+                  height: heroHeight * 0.9,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const Icon(
+                    Icons.broken_image,
+                    color: Colors.white,
+                    size: 80,
+                  ),
+                )
+              : Image.asset(
+                  imagePath,
+                  width: heroHeight * 0.9,
+                  height: heroHeight * 0.9,
+                  fit: BoxFit.contain,
+                ),
         ),
       ),
     );

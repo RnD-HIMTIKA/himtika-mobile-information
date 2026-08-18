@@ -1,24 +1,25 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import '../../../domain/repositories/himtika_repository.dart';
 
 part 'kabinet_event.dart';
 part 'kabinet_state.dart';
 
 class KabinetBloc extends Bloc<KabinetEvent, KabinetState> {
-  KabinetBloc() : super(const KabinetState()) {
+  final HimtikaRepository? repository;
+
+  KabinetBloc({this.repository}) : super(const KabinetState()) {
     on<FetchKabinetData>(_onFetchKabinetData);
   }
 
   Future<void> _onFetchKabinetData(
       FetchKabinetData event, Emitter<KabinetState> emit) async {
     emit(state.copyWith(status: KabinetStatus.loading));
-    await Future.delayed(const Duration(milliseconds: 300)); // Simulasi
 
-    // --- Data Dummy untuk Halaman Detail Kabinet ---
-    const heroLogoPath = 'src/features/himtika/images/kabinet.png';
-    const aboutSinergis = 'Sinergis mencerminkan nilai-nilai utama yang dijunjung tinggi oleh kami, yaitu Sinergi, Inovatif, Eksplorasi, Responsif, Generalis, dan Sistematis. Setiap elemen dalam logo kami melambangkan komitmen kami untuk memberikan kontribusi nyata pada masyarakat informatika.';
+    String heroLogoPath = 'src/features/himtika/images/kabinet.png';
+    String aboutSinergis = 'Sinergis mencerminkan nilai-nilai utama yang dijunjung tinggi oleh kami, yaitu Sinergi, Inovatif, Eksplorasi, Responsif, Generalis, dan Sistematis. Setiap elemen dalam logo kami melambangkan komitmen kami untuk memberikan kontribusi nyata pada masyarakat informatika.';
 
-    const kabinetCards = [
+    List<Map<String, String>> kabinetCards = [
       {
         'title': 'Sinergi',
         'description':
@@ -51,6 +52,25 @@ class KabinetBloc extends Bloc<KabinetEvent, KabinetState> {
       },
     ];
 
+    try {
+      if (repository != null) {
+        final activeKabinet = await repository!.getActiveKabinet();
+        if (activeKabinet != null) {
+          if (activeKabinet.logoUrl != null && activeKabinet.logoUrl!.isNotEmpty) {
+            heroLogoPath = activeKabinet.logoUrl!;
+          }
+          if (activeKabinet.deskripsi != null && activeKabinet.deskripsi!.isNotEmpty) {
+            aboutSinergis = activeKabinet.deskripsi!;
+          }
+          if (activeKabinet.nilaiKabinet.isNotEmpty) {
+            kabinetCards = activeKabinet.nilaiKabinet;
+          }
+        }
+      }
+    } catch (_) {
+      // Fallback to initial dummy data on error
+    }
+
     const logoMeanings = [
       {
         'icon': 'src/features/himtika/kabinet/angsa.png',
@@ -73,7 +93,6 @@ class KabinetBloc extends Bloc<KabinetEvent, KabinetState> {
         'description': 'Melambangkan teknologi dan keberlanjutan yang dinamis dan terus bergerak membangun sumber daya mahasiswa yang kreatif, kompetitif, dan unggul'
       },
     ];
-    // ----------------------------------------
 
     emit(state.copyWith(
       status: KabinetStatus.success,
