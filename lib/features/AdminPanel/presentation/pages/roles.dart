@@ -34,7 +34,7 @@ class _RolesView extends StatefulWidget {
 
 class _RolesViewState extends State<_RolesView> {
   Timer? _debounce;
-  String _currentScope = 'HIMA'; // Untuk melacak tab yang aktif
+  String _currentScope = 'HIMA'; // Scope aktif: 'HIMA' atau 'GENERAL'
 
   @override
   void dispose() {
@@ -76,7 +76,7 @@ class _RolesViewState extends State<_RolesView> {
     final isRnD = roles.any((r) => r.name == 'RnD');
 
     return DefaultTabController(
-      length: isRnD ? 2 : 1, // Jumlah tab tergantung peran
+      length: isRnD ? 2 : 1, // Tab 'General Roles' hanya muncul untuk role RnD
       child: Scaffold(
         resizeToAvoidBottomInset: false,
         backgroundColor: const Color(0xFF0175C8),
@@ -137,14 +137,20 @@ class _RolesViewState extends State<_RolesView> {
         borderRadius: BorderRadius.circular(16),
       ),
       padding: const EdgeInsets.all(16),
+      // Column membutuhkan bounded height agar Expanded dapat mengisi sisa ruang
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildSearchBox(),
           const SizedBox(height: 16),
           if (state.status == RolesManagementStatus.loading)
-            const Center(child: CircularProgressIndicator())
+            const Expanded(
+              child: Center(child: CircularProgressIndicator()),
+            )
           else
-            _buildDataTable(state.users, onEdit),
+            Expanded(
+              child: _buildDataTable(state.users, onEdit),
+            ),
         ],
       ),
     );
@@ -171,21 +177,25 @@ class _RolesViewState extends State<_RolesView> {
         child: Text('Pengguna tidak ditemukan.'),
       ));
     }
-    
+
+    // Scroll dua arah: vertikal (banyak baris) + horizontal (lebar kolom melebihi layar)
     return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Table(
-        border: TableBorder.all(color: Colors.black.withOpacity(0.3)),
-        columnWidths: const {
-          0: FixedColumnWidth(180),
-          1: FixedColumnWidth(350),
-          2: FixedColumnWidth(100),
-        },
-        defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-        children: [
-          _buildHeaderRow(),
-          ...users.map((user) => _buildDataRow(user, onEdit)),
-        ],
+      scrollDirection: Axis.vertical,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Table(
+          border: TableBorder.all(color: Colors.black.withOpacity(0.3)),
+          columnWidths: const {
+            0: FixedColumnWidth(180),
+            1: FixedColumnWidth(350),
+            2: FixedColumnWidth(100),
+          },
+          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+          children: [
+            _buildHeaderRow(),
+            ...users.map((user) => _buildDataRow(user, onEdit)),
+          ],
+        ),
       ),
     );
   }
@@ -302,7 +312,7 @@ class _EditRolesDialogState extends State<_EditRolesDialog> {
   }
 
   void _onSimpanPressed() {
-    // Tampilkan dialog konfirmasi
+    // Tampilkan dialog konfirmasi sebelum menyimpan perubahan role
     showDialog(
       context: context,
       builder: (confirmContext) => AlertDialog(
@@ -316,8 +326,7 @@ class _EditRolesDialogState extends State<_EditRolesDialog> {
           ),
           ElevatedButton(
             onPressed: () {
-              // PERBAIKAN DI SINI
-              // Dapatkan referensi AdminPanelBloc DARI LUAR DIALOG
+              // Ambil referensi AdminPanelBloc dari context luar dialog
               final adminPanelBloc = context.read<AdminPanelBloc>();
 
               context.read<RolesManagementBloc>().add(
@@ -325,7 +334,7 @@ class _EditRolesDialogState extends State<_EditRolesDialog> {
                       widget.user.userId,
                       _selectedRoleIds.toList(),
                       onSuccess: () {
-                        // Perintahkan AdminPanelBloc untuk memuat ulang datanya
+                        // Refresh data admin panel agar perubahan role langsung terlihat
                         adminPanelBloc.add(LoadAdminPanel());
                       },
                     ),
