@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:himtika_mobile_information/core/injection_container.dart';
 import 'package:himtika_mobile_information/features/himtika/presentation/bloc/himtika_screen/himtika_bloc.dart';
 import 'package:himtika_mobile_information/features/calendar/presentation/pages/notification_page.dart';
 import 'package:himtika_mobile_information/features/himtika/presentation/pages/about_himtika_screen.dart';
@@ -14,7 +15,7 @@ class HimtikaScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => HimtikaBloc()..add(FetchHimtikaData()),
+      create: (context) => sl<HimtikaBloc>()..add(FetchHimtikaData()),
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F5F5),
         body: SafeArea(
@@ -190,7 +191,7 @@ class HimtikaScreen extends StatelessWidget {
           const Text('Kabinet Saat Ini',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
-          _buildKabinetCard(context),
+          _buildKabinetCard(context, state),
           const SizedBox(height: 20),
           const Text('Sejarah HIMTIKA',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
@@ -230,7 +231,7 @@ class HimtikaScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildKabinetCard(BuildContext context) {
+  Widget _buildKabinetCard(BuildContext context, HimtikaState state) {
     final screenWidth = MediaQuery.of(context).size.width;
     final logoSize = (screenWidth * 0.22).clamp(60.0, 100.0);
     return InkWell( 
@@ -250,12 +251,26 @@ class HimtikaScreen extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Image.asset(
-                  'src/features/himtika/images/kabinet.png',
-                  width: logoSize,
-                  height: logoSize,
-                  fit: BoxFit.contain,
-                ),
+                state.kabinetLogoPath.startsWith('http://') ||
+                        state.kabinetLogoPath.startsWith('https://')
+                    ? Image.network(
+                        state.kabinetLogoPath,
+                        width: logoSize,
+                        height: logoSize,
+                        fit: BoxFit.contain,
+                        errorBuilder: (_, __, ___) => Image.asset(
+                          'src/features/himtika/images/kabinet.png',
+                          width: logoSize,
+                          height: logoSize,
+                          fit: BoxFit.contain,
+                        ),
+                      )
+                    : Image.asset(
+                        state.kabinetLogoPath,
+                        width: logoSize,
+                        height: logoSize,
+                        fit: BoxFit.contain,
+                      ),
                 const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -276,27 +291,27 @@ class HimtikaScreen extends StatelessWidget {
                           ).createShader(
                             Rect.fromLTWH(0, 0, bounds.width, bounds.height),
                           ),
-                          child: const Text(
-                            'SINERGIS',
-                            style: TextStyle(
+                          child: Text(
+                            state.kabinetName.toUpperCase(),
+                            style: const TextStyle(
                               fontSize: 28,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Padding(
+                            const Padding(
                               padding: EdgeInsets.only(top: 2.0, right: 4.0),
                               child:
                                   Icon(Icons.star, color: Colors.amber, size: 14),
                             ),
                             Expanded(
                               child: Text(
-                                'Sinergi, Inovatif, Eksplorasi, Responsif, Generalis, Sistematis',
-                                style: TextStyle(
+                                state.kabinetTagline,
+                                style: const TextStyle(
                                     color: Colors.black54, fontSize: 10),
                               ),
                             ),

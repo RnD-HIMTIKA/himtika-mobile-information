@@ -83,9 +83,10 @@ class HimtikaManagementBloc
 
       final updatedKabinet = event.kabinet.copyWith(logoUrl: logoUrl);
       await _repository.updateKabinet(updatedKabinet);
+      final refreshedKabinet = await _repository.getActiveKabinet();
 
       emit(state.copyWith(
-        kabinet: updatedKabinet,
+        kabinet: refreshedKabinet ?? updatedKabinet,
         isSubmitting: false,
         successMessage: 'Berhasil mengedit informasi Kabinet!',
       ));
@@ -104,9 +105,10 @@ class HimtikaManagementBloc
     emit(state.copyWith(isSubmitting: true));
     try {
       await _repository.updateAboutInfo(event.about);
+      final refreshedAbout = await _repository.getAboutInfo();
 
       emit(state.copyWith(
-        about: event.about,
+        about: refreshedAbout ?? event.about,
         isSubmitting: false,
         successMessage: 'Berhasil mengedit Visi, Misi, dan Sejarah!',
       ));

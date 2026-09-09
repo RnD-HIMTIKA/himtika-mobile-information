@@ -158,6 +158,7 @@ import 'package:himtika_mobile_information/features/himtika/data/repositories/hi
 import 'package:himtika_mobile_information/features/himtika/domain/repositories/himtika_repository.dart';
 import 'package:himtika_mobile_information/features/AdminPanel/presentation/bloc/himtika_management/himtika_management_bloc.dart';
 import 'package:himtika_mobile_information/features/himtika/presentation/bloc/kabinet_himtika/kabinet_bloc.dart';
+import 'package:himtika_mobile_information/features/himtika/presentation/bloc/himtika_screen/himtika_bloc.dart';
 
 final GetIt sl = GetIt.instance;
 
@@ -175,6 +176,7 @@ Future<void> initDependencies() async {
   // BLoC
   sl.registerFactory(() => HimtikaManagementBloc(repository: sl<HimtikaRepository>()));
   sl.registerFactory(() => KabinetBloc(repository: sl<HimtikaRepository>()));
+  sl.registerFactory(() => HimtikaBloc(repository: sl<HimtikaRepository>()));
 
   // --- CORE BLOCS ---
   sl.registerLazySingleton<ConnectivityBloc>(() => ConnectivityBloc());

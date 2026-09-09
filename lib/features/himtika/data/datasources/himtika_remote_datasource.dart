@@ -49,8 +49,13 @@ class HimtikaRemoteDataSourceImpl implements HimtikaRemoteDataSource {
 
   @override
   Future<void> updateKabinet(HimtikaKabinetModel kabinet) async {
-    await SupabaseTableHelper.table('himtika_kabinet')
-        .upsert(kabinet.toJson());
+    final data = kabinet.toJson();
+    if (kabinet.id.isEmpty) {
+      data.remove('id');
+      await SupabaseTableHelper.table('himtika_kabinet').insert(data);
+    } else {
+      await SupabaseTableHelper.table('himtika_kabinet').upsert(data);
+    }
   }
 
   @override
@@ -66,8 +71,13 @@ class HimtikaRemoteDataSourceImpl implements HimtikaRemoteDataSource {
 
   @override
   Future<void> updateAboutInfo(HimtikaAboutModel about) async {
-    await SupabaseTableHelper.table('himtika_about')
-        .upsert(about.toJson());
+    final data = about.toJson();
+    if (about.id.isEmpty) {
+      data.remove('id');
+      await SupabaseTableHelper.table('himtika_about').insert(data);
+    } else {
+      await SupabaseTableHelper.table('himtika_about').upsert(data);
+    }
   }
 
   @override

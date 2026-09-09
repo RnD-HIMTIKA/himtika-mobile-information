@@ -48,6 +48,39 @@ class _HimtikaKabinetAboutTabState extends State<HimtikaKabinetAboutTab> {
     _initDataFromState(context.read<HimtikaManagementBloc>().state);
   }
 
+  static const List<Map<String, String>> defaultNilaiKabinet = [
+    {
+      'title': 'Sinergi',
+      'description':
+          'Mengembangkan HIMTIKA sebagai sebuah Organisasi aktif yang menaungi dan bersinergi dengan Mahasiswa Informatika UNSIKA... Nilai Sinergi ini menjadi hal utama yang diaktualisasikan agar HIMTIKA dapat menghimpun dan Mewadahi Mahasiswa Informatika untuk menjalin rasa kekeluargaan yang solid dan saling mendukung untuk mencapai peningkatan prestasi dan mewujudkan tujuan bersama'
+    },
+    {
+      'title': 'Inovatif',
+      'description':
+          'Inovatif adalah sesuatu yang bersifat pengembangan dan pembaruan. Maksud dari inovatif HIMTIKA harus mampu menciptakan ruang yang mendukung Inovasi untuk memberikan kesempatan bagi Mahasiswa Informatika mengembangkan ide dan gagasannya'
+    },
+    {
+      'title': 'Eksplorasi',
+      'description':
+          'Adalah upaya mencari dan mengembangkan ide-ide, pengetahuan, atau cara-cara baru yang dapat mendorong inovasi. Dalam hal ini diharapkan HIMTIKA berkontribusi untuk mendukung Mahasiswa Informatika untuk mencari dan mendapatkan pengetahuan lebih luas dan lebih menyeluruh'
+    },
+    {
+      'title': 'Responsif',
+      'description':
+          'Adalah kemampuan untuk memberikan tanggapan atau reaksi yang cepat, tepat, dan sesuai terhadap suatu kondisi. Diharapkan HIMTIKA dapat merespon semua kebutuhan dan keinginan Mahasiswa Informatika dengan cepat dan tepat, khususnya yang berkaitan dengan bidang Keilmuan dan Akademik'
+    },
+    {
+      'title': 'Generalis',
+      'description':
+          'Diartikan sebagai sesuatu hal yang mencakup banyak bidang. Berdasarkan hal ini HIMTIKA harus berhasil mewadahi setiap aspek potensial Mahasiswa dalam berbagai bidang, dan memahami atau menangani berbagai topik ataupun permasalahan yang relevan'
+    },
+    {
+      'title': 'Sistematis',
+      'description':
+          'Merujuk pada cara berpikir atau cara bekerja yang mengikuti urutan yang logis, terencana, dan konsisten. HIMTIKA akan mengadaptasi struktural yang lebih terorganisir dan terencana untuk menjalankan sebuah Organisasi yang berjalan dengan cara yang efisien, terkoordinir, dan terarah pada tujuan yang jelas'
+    },
+  ];
+
   void _initDataFromState(HimtikaManagementState state) {
     if (state.kabinet != null) {
       _namaKabinetController.text = state.kabinet!.namaKabinet;
@@ -64,9 +97,34 @@ class _HimtikaKabinetAboutTabState extends State<HimtikaKabinetAboutTab> {
       _nilaiTitleControllers.clear();
       _nilaiDescControllers.clear();
 
-      for (var item in state.kabinet!.nilaiKabinet) {
+      final listToUse = state.kabinet!.nilaiKabinet.isNotEmpty
+          ? state.kabinet!.nilaiKabinet
+          : defaultNilaiKabinet;
+
+      for (var item in listToUse) {
         _nilaiTitleControllers.add(TextEditingController(text: item['title'] ?? ''));
         _nilaiDescControllers.add(TextEditingController(text: item['description'] ?? ''));
+      }
+    } else {
+      if (_namaKabinetController.text.isEmpty) {
+        _namaKabinetController.text = 'SINERGIS';
+        _taglineController.text = 'Sinergi, Inovatif, Eksplorasi, Responsif, Generalis, Sistematis';
+        _periodeController.text = '2024/2025';
+        _deskripsiKabinetController.text = 'Sinergis mencerminkan nilai-nilai utama yang dijunjung tinggi oleh kami, yaitu Sinergi, Inovatif, Eksplorasi, Responsif, Generalis, dan Sistematis. Setiap elemen dalam logo kami melambangkan komitmen kami untuk memberikan kontribusi nyata pada masyarakat informatika.';
+
+        for (var c in _nilaiTitleControllers) {
+          c.dispose();
+        }
+        for (var c in _nilaiDescControllers) {
+          c.dispose();
+        }
+        _nilaiTitleControllers.clear();
+        _nilaiDescControllers.clear();
+
+        for (var item in defaultNilaiKabinet) {
+          _nilaiTitleControllers.add(TextEditingController(text: item['title'] ?? ''));
+          _nilaiDescControllers.add(TextEditingController(text: item['description'] ?? ''));
+        }
       }
     }
 
@@ -401,10 +459,28 @@ class _HimtikaKabinetAboutTabState extends State<HimtikaKabinetAboutTab> {
                         ),
                         const SizedBox(height: 8),
 
-                        ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _nilaiTitleControllers.length,
+                        if (_nilaiTitleControllers.isEmpty)
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            margin: const EdgeInsets.only(bottom: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade100,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.grey.shade300),
+                            ),
+                            child: const Center(
+                              child: Text(
+                                'Belum ada nilai kabinet. Klik "Tambah Nilai" untuk menambahkan.',
+                                style: TextStyle(color: Colors.black54, fontSize: 13),
+                              ),
+                            ),
+                          )
+                        else
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: _nilaiTitleControllers.length,
                           itemBuilder: (context, index) {
                             return Card(
                               margin: const EdgeInsets.only(bottom: 12),

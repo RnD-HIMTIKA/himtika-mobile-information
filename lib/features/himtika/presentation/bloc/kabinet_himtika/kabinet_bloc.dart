@@ -16,6 +16,7 @@ class KabinetBloc extends Bloc<KabinetEvent, KabinetState> {
       FetchKabinetData event, Emitter<KabinetState> emit) async {
     emit(state.copyWith(status: KabinetStatus.loading));
 
+    String namaKabinet = 'Sinergis';
     String heroLogoPath = 'src/features/himtika/images/kabinet.png';
     String aboutSinergis = 'Sinergis mencerminkan nilai-nilai utama yang dijunjung tinggi oleh kami, yaitu Sinergi, Inovatif, Eksplorasi, Responsif, Generalis, dan Sistematis. Setiap elemen dalam logo kami melambangkan komitmen kami untuk memberikan kontribusi nyata pada masyarakat informatika.';
 
@@ -23,7 +24,7 @@ class KabinetBloc extends Bloc<KabinetEvent, KabinetState> {
       {
         'title': 'Sinergi',
         'description':
-            'Mengembangkan HIMTIKA sebagai sebuah Organisasi aktif yang menaungi dan bersinergi dengan Mahasiswa Informatika UNSIKA... (dst)Nilai Sinergi ini menjadi hal utama yang diaktualisasikan agar HIMTIKA dapat menghimpun dan Mewadahi Mahasiswa Informatika untuk menjalin rasa kekeluargaan yang solid dan saling mendukung untuk mencapai peningkatan prestasi dan mewujudkan tujuan bersama'
+            'Mengembangkan HIMTIKA sebagai sebuah Organisasi aktif yang menaungi dan bersinergi dengan Mahasiswa Informatika UNSIKA... Nilai Sinergi ini menjadi hal utama yang diaktualisasikan agar HIMTIKA dapat menghimpun dan Mewadahi Mahasiswa Informatika untuk menjalin rasa kekeluargaan yang solid dan saling mendukung untuk mencapai peningkatan prestasi dan mewujudkan tujuan bersama'
       },
       {
         'title': 'Inovatif',
@@ -56,6 +57,9 @@ class KabinetBloc extends Bloc<KabinetEvent, KabinetState> {
       if (repository != null) {
         final activeKabinet = await repository!.getActiveKabinet();
         if (activeKabinet != null) {
+          if (activeKabinet.namaKabinet.isNotEmpty) {
+            namaKabinet = activeKabinet.namaKabinet;
+          }
           if (activeKabinet.logoUrl != null && activeKabinet.logoUrl!.isNotEmpty) {
             heroLogoPath = activeKabinet.logoUrl!;
           }
@@ -96,6 +100,7 @@ class KabinetBloc extends Bloc<KabinetEvent, KabinetState> {
 
     emit(state.copyWith(
       status: KabinetStatus.success,
+      namaKabinet: namaKabinet,
       heroLogoPath: heroLogoPath,
       aboutSinergis: aboutSinergis,
       kabinetCards: kabinetCards,

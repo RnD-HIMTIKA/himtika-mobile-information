@@ -5,6 +5,7 @@ enum KabinetStatus { initial, loading, success, failure }
 class KabinetState extends Equatable {
   const KabinetState({
     this.status = KabinetStatus.initial,
+    this.namaKabinet = 'Sinergis',
     this.heroLogoPath = '',
     this.aboutSinergis = '',
     this.kabinetCards = const [],
@@ -12,6 +13,7 @@ class KabinetState extends Equatable {
   });
 
   final KabinetStatus status;
+  final String namaKabinet;
   final String heroLogoPath;
   final String aboutSinergis;
   final List<Map<String, String>> kabinetCards; 
@@ -19,6 +21,7 @@ class KabinetState extends Equatable {
 
   KabinetState copyWith({
     KabinetStatus? status,
+    String? namaKabinet,
     String? heroLogoPath,
     String? aboutSinergis,
     List<Map<String, String>>? kabinetCards,
@@ -26,6 +29,7 @@ class KabinetState extends Equatable {
   }) {
     return KabinetState(
       status: status ?? this.status,
+      namaKabinet: namaKabinet ?? this.namaKabinet,
       heroLogoPath: heroLogoPath ?? this.heroLogoPath,
       aboutSinergis: aboutSinergis ?? this.aboutSinergis,
       kabinetCards: kabinetCards ?? this.kabinetCards,
@@ -35,5 +39,5 @@ class KabinetState extends Equatable {
 
   @override
   List<Object?> get props =>
-      [status, heroLogoPath, aboutSinergis, kabinetCards, logoMeanings];
+      [status, namaKabinet, heroLogoPath, aboutSinergis, kabinetCards, logoMeanings];
 }

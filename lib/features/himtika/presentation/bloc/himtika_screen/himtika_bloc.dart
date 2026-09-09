@@ -1,17 +1,52 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
+import '../../../domain/repositories/himtika_repository.dart';
 
 part 'himtika_event.dart';
 part 'himtika_state.dart';
 
 class HimtikaBloc extends Bloc<HimtikaEvent, HimtikaState> {
-  HimtikaBloc() : super(const HimtikaState()) {
+  final HimtikaRepository? repository;
+
+  HimtikaBloc({this.repository}) : super(const HimtikaState()) {
     on<FetchHimtikaData>(_onFetchHimtikaData);
   }
 
-  void _onFetchHimtikaData(
-      FetchHimtikaData event, Emitter<HimtikaState> emit) {
+  Future<void> _onFetchHimtikaData(
+      FetchHimtikaData event, Emitter<HimtikaState> emit) async {
     emit(state.copyWith(status: HimtikaStatus.loading));
+
+    String kabinetName = 'SINERGIS';
+    String kabinetTagline =
+        'Sinergi, Inovatif, Eksplorasi, Responsif, Generalis, Sistematis';
+    String kabinetLogoPath = 'src/features/himtika/images/kabinet.png';
+
+    try {
+      if (repository != null) {
+        final activeKabinet = await repository!.getActiveKabinet();
+        if (activeKabinet != null) {
+          if (activeKabinet.namaKabinet.isNotEmpty) {
+            kabinetName = activeKabinet.namaKabinet;
+          }
+          if (activeKabinet.tagline != null && activeKabinet.tagline!.isNotEmpty) {
+            kabinetTagline = activeKabinet.tagline!;
+          } else if (activeKabinet.nilaiKabinet.isNotEmpty) {
+            final titles = activeKabinet.nilaiKabinet
+                .map((e) => e['title'] ?? '')
+                .where((t) => t.isNotEmpty)
+                .toList();
+            if (titles.isNotEmpty) {
+              kabinetTagline = titles.join(', ');
+            }
+          }
+          if (activeKabinet.logoUrl != null && activeKabinet.logoUrl!.isNotEmpty) {
+            kabinetLogoPath = activeKabinet.logoUrl!;
+          }
+        }
+      }
+    } catch (_) {
+      // Fallback to default
+    }
 
     // Data Dummy untuk "Bagian Penting"
     final dummyImportantParts = [
@@ -44,6 +79,9 @@ class HimtikaBloc extends Bloc<HimtikaEvent, HimtikaState> {
     emit(state.copyWith(
       status: HimtikaStatus.success,
       importantParts: dummyImportantParts,
+      kabinetName: kabinetName,
+      kabinetTagline: kabinetTagline,
+      kabinetLogoPath: kabinetLogoPath,
     ));
   }
 }

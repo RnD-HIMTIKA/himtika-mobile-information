@@ -166,9 +166,11 @@ class KabinetScreen extends StatelessWidget {
                         begin: Alignment.topCenter, end: Alignment.bottomCenter,
                       ).createShader(
                           Rect.fromLTWH(0, 0, bounds.width, bounds.height)),
-                      child: const Text('Sinergis?',
-                          style: TextStyle(
-                              fontSize: 24, fontWeight: FontWeight.bold)),
+                      child: Text(
+                        '${state.namaKabinet.isNotEmpty ? state.namaKabinet : "Sinergis"}?',
+                        style: const TextStyle(
+                            fontSize: 24, fontWeight: FontWeight.bold),
+                      ),
                     ),
                   ),
                 ],
@@ -188,20 +190,31 @@ class KabinetScreen extends StatelessWidget {
           const Text('Nilai Kabinet',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
-          ListView.separated(
-            padding: EdgeInsets.zero,
-            itemCount: state.kabinetCards.length,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemBuilder: (context, index) {
-              final card = state.kabinetCards[index];
-              return _buildKabinetInfoCard(
-                title: card['title']!,
-                description: card['description']!,
-              );
-            },
-            separatorBuilder: (context, index) => const SizedBox(height: 16),
-          ),
+          if (state.kabinetCards.isEmpty)
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0),
+                child: Text(
+                  'Belum ada nilai kabinet.',
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+                ),
+              ),
+            )
+          else
+            ListView.separated(
+              padding: EdgeInsets.zero,
+              itemCount: state.kabinetCards.length,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemBuilder: (context, index) {
+                final card = state.kabinetCards[index];
+                return _buildKabinetInfoCard(
+                  title: card['title'] ?? '',
+                  description: card['description'] ?? '',
+                );
+              },
+              separatorBuilder: (context, index) => const SizedBox(height: 16),
+            ),
           const SizedBox(height: 26),
 
           // --- Section Makna Logo ---
